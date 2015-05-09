@@ -49,7 +49,7 @@
 \renewcommand{\date}[1]{\renewcommand{\uvadate}{#1}}
 \newcommand{\uvaemail}{}
 \newcommand{\authemail}[1]{\renewcommand{\uvaemail}{{\ttfamily\email{#1}}\par}}
-\newcommand{\uvasuper}{One does not simply do a thesis without \texttt{$\backslash$supervisor}!}
+\newcommand{\uvasuper}{Tijs van der Storm}
 \newcommand{\supervisor}[1]{\renewcommand{\uvasuper}{#1}}
 
 \newcommand{\uvapic}{}
