@@ -1,4 +1,5 @@
 \documentclass{uvamscse}
+\usepackage{color}
 
 \input{program-listings}
 \newcommand{\cmd}[1]{\texttt{$\backslash$#1}}
@@ -10,7 +11,7 @@
 
 \author{Lukasz Harezlak}
 \authemail{lukasz.harezlak@gmail.com}
-% \host{Grammarware, Inc., \url{http://grammarware.github.io}}
+\host{Instamrkt, \url{https://instamrkt.com}}
 
 \abstract{
   This section summarises the content of the thesis for potential readers who do not have time to read it whole,
@@ -35,6 +36,61 @@ Kent Beck~\cite{JohnsonBBCGW93} proposes to have four sentences in a good abstra
 \begin{document}
 \maketitle
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Let the juicy stuff start.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Introduction}
+Here we write about scalability.
+Importance of measuring in the clouds and testing optimal architectures.
+
+\section{Initial Study}
+What we found out researching.
+
+\section{Problem Statement}
+State the general problem that you are trying to solve with this research.
+\subsection{Research Questions}
+Precise research questions here.
+\subsection{Solution Outline}
+How our solution works in short.
+\subsection{Research Method}
+Why we went for a controlled experiment.
+
+\section{Contributions}
+Case study on AWS.
+Architecture decomposition analysis.
+Deliverable piece of code - metrics framework and auto-scaling scripts.
+
+\section{Related Work}
+The big paper on measuring scalability in the clouds.
+The big paper on deploying different scalability structures.
+Small mentions of the others.
+
+\section{Outline}
+Here we outline the structure of the thesis. A short paragraph on what happens in each chapter.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Background}
+General stuffs go here.
+
+\section{Scalability}
+General.
+
+\subsection{Measuring Scalability}
+What we have from literature study.
+
+\subsection{Data-layer Scalability}
+
+\subsection{Websocket Scalability}
+
+\subsection{Geographical Distribution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BELOW WE HAVE ORIGINAL TEMPLATE STUFF THAT NEEDS TO BE REMOVED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Front Matter}
 
@@ -261,17 +317,17 @@ Here are the guidelines to report on replicated studies~\cite{Carver10}:
     \item[Participants,] their number and any other relevant characteristics
     \item[Design] as a graphical or textual description of the experimental design
     \item[Artefacts,] the description of them and/or links to the artefacts used
-    \item[Context variables] as any important details that affected the design of the study or interpretation of the 
+    \item[Context variables] as any important details that affected the design of the study or interpretation of the
 results
     \item[Summary of the results] in a brief overview of the major findings
     \end{description}
   %
   \item[Information about the replication]~\\
     \begin{description}
-    \item[Motivation for conducting the replication] as a 
-description of why the replication was conducted: 
-to validate the results, to broaden the results by 
-changing the participant pool or the artifacts. 
+    \item[Motivation for conducting the replication] as a
+description of why the replication was conducted:
+to validate the results, to broaden the results by
+changing the participant pool or the artifacts.
     \item[Level of interaction with original experimenters.]
 The level of interaction between the original experimenters and the
 replicators should be reported. This interaction could range from none (i.e.
@@ -285,18 +341,18 @@ techniques should be  discussed along with the motivation for the change.
     \end{description}
   \item[Comparison of results to original]~\\
     \begin{description}
-    \item[Consistent results,] when replication results supported 
-results from the original study, and 
-    \item[Differences in results,] when results from the replication 
-did not coincide with the results from the original study. 
-Authors should also discuss how changes made to the 
-experimental design (see above) may have caused 
-these differences. 
+    \item[Consistent results,] when replication results supported
+results from the original study, and
+    \item[Differences in results,] when results from the replication
+did not coincide with the results from the original study.
+Authors should also discuss how changes made to the
+experimental design (see above) may have caused
+these differences.
     \end{description}
     \item[Drawing conclusions across studies]
 \end{description}
 
-NB: this section contains portions of text repeated directly from Carver~\cite{Carver10} and 
+NB: this section contains portions of text repeated directly from Carver~\cite{Carver10} and
 only slightly massaged. Do not do this for your thesis, write your own thoughts down.
 
 \section{\LaTeX\ details}
@@ -390,7 +446,7 @@ exports
 import types.*;
 import org.antlr.runtime.*;
 
-public class TestEvaluator 
+public class TestEvaluator
     public static void main(String[] args) throws Exception {
 
         // Parse file to program
