@@ -73,12 +73,12 @@ Here we outline the structure of the thesis. A short paragraph on what happens i
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Background}
-General stuffs go here.
+General stuffs go here. Look through Scalability Research in drive for tons of information.
 
 \section{Scalability}
 General.
 
-\subsection{Measuring Scalability}
+\subsection{Measuring Scalability} \label{Measuring Scalability}
 What we have from literature study.
 
 \subsection{Data-layer Scalability}
@@ -88,10 +88,76 @@ What we have from literature study.
 \subsection{Geographical Distribution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Experiment outline}
+
+\begin{enumerate}
+  \item Baseline architecture on a local network.
+  \item Baseline architecture deployed in the cloud.
+  \item Improved architecture in the cloud.
+\end{enumerate}
+
+All of them measured with the same set of metrics with a prepared framework for gathering them.
+
+Details below.
+
+\section{Baseline architecture on a local network}
+Architecture diagrams.
+Technical details - local server capabilities.
+Load testing.
+
+\section{Baseline architecture deployed in the cloud}
+
+\section{Improved architecture deployed in the cloud}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Scalability Measurements}
+The previous description \ref{Measuring Scalability} concerned general stuff.
+Here we describe the metrics we settled for.
+
+\section{Selected model}
+[3] With CRUMs, SPMs etc.
+
+\section{Baseline, Local network}
+Lab notes from 11 of May go here:
+
+Basic metrics
+\begin{itemize}
+  \item cpu, memory, disk usage (pidstat / CloudWatch)
+  \item network i/o (wireshark, list others analyzed)
+  \item latency, throughput, concurrent connections, messages dropped?
+\end{itemize}
+
+\subsection{Load Testing}
+all the analyzed tools, list also in lab notes from may 11
+
+\section{Baseline, Deployed in the cloud}
+
+\section{Improved, Deployed in the cloud}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Experiment results}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Evaluation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Further work}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % BELOW WE HAVE ORIGINAL TEMPLATE STUFF THAT NEEDS TO BE REMOVED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Everything below that needs to be removed (except for bib)}
 \chapter{Front Matter}
 
 The first thing is to connect the class by saying:
