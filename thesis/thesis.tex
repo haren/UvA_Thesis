@@ -51,13 +51,30 @@ Importance of measuring in the clouds and testing optimal architectures.
 What we found out researching.
 
 \section{Problem Statement}
-State the general problem that you are trying to solve with this research.
+what's the best architecture that answers that best:
+how to deliver data to geographically distributed users with minimal, consistent and manageable latency
+how to react
+scales up and down in response to demand changes (WEBSOCKETS - DISCONNECT SESSIONS? WHEN?  This provides some additional challenges when it comes to websockets, since in order to stop an instance one needs to make sure it does not serve any sessions. [MMPROJ9])
+according to the models based on the set of metrics described in detail later \ref{Selected metrics}
+Also, there is an inherent limitation for scaling a websocket application - a number of TCP ports (and file descriptors available to a ws/wss connections) on a server instance. Hardware limitations are different in an http-based application.
 \subsection{Research Questions}
-Precise research questions here.
+\begin{enumerate}
+  \item Does architecture with geographically aware scaling case can produce better results than the baseline architecture?
+  \item What is the preferred architecture decomposition for a system with given characteristics - stateless, deployed in the cloud, dynamically scaled up and down, with persistent connections, clients distributed globally and uncacheable data generated in real time?
+\end{enumerate}
 \subsection{Solution Outline}
 How our solution works in short.
 \subsection{Research Method}
-Why we went for a controlled experiment.
+Software engineering is a relatively difficult field to investigate in terms of lack of clarity on how to do it. Most of the problems are of design, rather than pure scientific, nature. West Churchman coined a specific term for these kind of modern problems - wicked (since they are resistant to resolutions) [MMPROJ1]. Eastbrook et al claim it is often difficult to identify the true underlying nature of the research problem and thus the best method to research it [MMPROJ2]. In their work, they name and compare five most classes of research methods to select from: controlled experiments, case studies, survey research, ethnographies, action research. They help to select the method by first establishing the type of research question being asked - existence question (“Does X exist”?), description and classification question (“What is X like?”), and descriptive-comparative questions(“How does X offer from Y?”). The questions of this research are of the last type. The authors suggest pinpointing up-front what will be accepted as a valid answer to the research question [MMPROJ2]. The detailed description of each of the methods helps me to settle for the controlled experiment. It’s well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of me research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described below.
+\subsubsection{Research Difficulty}
+The experiments will be performed in a shared cloud environment, which is inherently unpredictable and changing. Designing and executing a test yielding statistically relevant results where all the necessary variables are controlled (within reasonable boundaries) will be a challenge.
+The focus of the project is on scaling a websocket application. This is a relatively new technology, thus finding proper scientific coverage is not trivial.
+Some of the necessary development and data collection might be in relatively low-level technology.
+The geo-location with reasonable accuracy of the clients might prove difficult too.
+Overall, it’s a complex project requiring knowledge of both hardware (protocol), software (architecture) and consisting of multiple disciplines.
+even linking order in the compiler can change the performance!!! [one of CRIMES]
+\subsection{Hypothesis}
+The correct geographical decomposition of application stack can lead to vastly improved performance in comparison with baseline architecure(TODO:S????).
 
 \section{Contributions}
 Case study on AWS.
@@ -74,14 +91,72 @@ Here we outline the structure of the thesis. A short paragraph on what happens i
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{References TO MOVE TO THESIS.BIB}
+
+[Master's Project Plan]
+
+[MMPROJ1] Churchman, C. West, "Wicked Problems", Management Science 14 (4) (December 1967).
+[MMPROJ2] S.Easterbrook, J.Singer, M.A. Storey, D. Damian, Selecting Empirical Methods for Software Engineering Research, Java Report 3 (7) (1998) 51–56.
+[MMPROJ9] N. Grozev, R. Buyya, Multi-Cloud Provisioning and Load Distribution for Three-Tier Applications, ACM Transactions on Autonomous and Adaptive Systems (TAAS), Vol.9 Iss.3, Article No. 13 (October 2014)
+[MMPROJ10] T. Leighton, Improving performance of the internet, Communications of the ACM - Inspiring Women in Computing, Vol. 52, Iss. 2, p. 44-51 (February 2009)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Background}
 
 \section{Scalability of Software Systems}
-Scalability seems to be a notion that everyone intuitively understands, but has difficulties when it comes to clear explanations. In my literature study I came across a few similar definitions, which might help with that, of which 3 can be found below:
+
+Scalability seems to be a notion that everyone intuitively grasps, but has difficulties when it comes to clear explanations. In my literature study I came across a few similar definitions, which might help with that, of which three can be found below:
 
 \begin{quote}
-\cite{WeinstockOnSystem2006} Scalability is a measure of an application system’s ability to, without modification, cost-effectively provide increased throughput, reduced response time and/or support more users when hardware resources are added.
+\cite{Williams04} Scalability is a measure of an application system’s ability to, without modification, cost-effectively provide increased throughput, reduced response time and/or support more users when hardware resources are added.
 \end{quote}
+
+\begin{quote}
+\cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload (without adding resources).
+\end{quote}
+
+\begin{quote}
+\cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload by repeatedly applying a cost-effective strategy for extending a system’s capacity.
+\end{quote}
+
+Scalability is generally desired in the software systems, yet it comes at a cost associated with the system's design. Design of scalable systems is more complex (since there are additional problems that need to be dealt with).
+
+As the globalization and internetization progresses, more and more systems are expected to be capable of serving millions of globally distributed users. A single server instance often cannot live up to that task and thus application needs to be divided and distributed in multiple smaller chunks. This division happens on different application layers, and different parts of the system now have to communicate and synchronize with each other.
+
+The user traffic, and with it the need for system services and resources, rarely stays constant. From this, a need to be able to scale up and down dynamically in response to traffic arises.
+
+Huge parts of the internet are shifting towards real-time. This trend is giving rise to new technologies for exchanging messages between clients and servers in the client-server architecture. Traditionally, client would send a request to a server and receive a response. This is hugely inefficient when there is a need for continuous bidirectional exchange of messages. As an improvement, new mechanisms for server-client communication were introduced: first long polling, to enhance the process and reduce overhead. Websockets are a huge next step on this path but introduce new challenges. One of them is scalability of applications which make use of this technology.
+
+Before the rise of the websocket protocol, different techniques were used to improve communication between server to client. Among them, the following can be listed (some of them serving different purposes):
+ajax - a request / response model; was an improvement since the page didn’t have to be refreshed anymore to get new data,
+short polling - using a timer to regulate sending requests to server, similar to refreshing the page, useful when data doesn’t change too often,
+long polling - now considered to be a workaround of preventing creating connections for each request, keeps a connection artificially alive for some time, clients have to reconnect periodically,
+webRTC - a peer to peer connection
+server-side events - only allow for a server-initiated communication.
+
+There exist multiple scalability vectors - applications can be scaled in a multitude of different ways. Different decompositions of application stack can be applied. Database layer itself can be scaled up (or out) in numerous ways. They and their benefits are described below.
+
+
+\subsection{Existing Approaches}
+A few traditional approaches of tackling an issue like that exist already. Among them we can enumerate:
+Scaling up (one massive instance),
+end-user experience is at the mercy of the unreliable Internet and its middle-mile bottlenecks
+Traffic levels fluctuate tremendously, so the need to provision for peak traffic levels means that expensive infrastructure will sit underutilized most of the time
+model does not provide the flexibility to handle unexpected surges [All 28]
+This will be selected as the baseline architecture - first with isolating the network effects (tested on an internal network), and then in the real-life cloud scenario. This way the real impact on the performance of the architecture of network variables can be established.
+Scaling out randomly - firing up new system nodes in new data centres,
+Averaging out geographical locations and firing up instances 'in the middle',
+Content Delivery Networks - these only handle static assets. Websockets do not support CDNs, because the WebSocket protocol is stateful.
+Big Data Center CDNs
+potential improvements are limited because the CDN’s servers are still far away from most users and still deliver content from the wrong side of the middle-mile bottlenecks
+Highly Distributed CDNs
+putting servers within end-user ISPs
+Algorithmically predicting message frequency and opening / closing persistent connections according to this.
+Peer to peer networks.
+[MMPROJ10]
+
 
 \section{Cloud Scalability}
 General.
@@ -94,10 +169,57 @@ General.
 
 \section{Measuring Scalability} \label{Measuring Scalability}
 What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAPTER \ref{Scalability Measurements} ON THIS.
+
+\section{Benchmarking}
+
+\subsection{Benchmarking Crimes}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Experiment outline}
+\chapter{The System Under Test}
+
+real time prediction parmet
+parimutuel pools
+directed contracts
+sort of a stock market for real-time prediction on anything, e.g. live sport
+
+\section{General Purpose of The System}
+first applicatoin - live sports
+low manageable latencies important
+
+\subsection{Sample Use Case}
+A good example e.g. can be predicting the outcomes of certain drives in the football match as they happen. A sample case: Manchester United - Liverpool live game, live data coming from UK servers, introduced into the system through a UK node, most users (who also generate data that needs to be distributed) in China (10k), India(10k), Australia(3k). Where should websocket servers which distribute messages spun up for minimal latencies for all clients? Is it faster to spin up db replicas on that nodes too?
+
+\subsection{Users of the System}
+in stadium
+on couch
+dekstop
+tablet
+mobile
+Users of the platform are mostly on mobile networks (that often drop), so reconnecting them quick to the right (providing lowest latencies) instance is important.
+lumpy demand - it comes in 2-hour-long spikes and then can go quiet for days
+
+\section{Basic Architecture}
+
+\section{Technology Stack}
+Python + redis + javascript + mysql (Ampersand)
+cloud stack described here: \section{Cloud architecture setup}
+
+
+\section{Unique Aspects of The System}
+critical data flows over websockets
+Users receiving data shared locally should receive it at the same time as data shared globally (with as low a latency as possible). This creates a need for globally consistent and manageable latency between end user and the system.
+Connected users and sources of data are geographically changing.
+Users geographical center of mass is changing for each peak of demand.
+Extremely lumpy demand (peaks lasting around 2 hours). This creates a need for being able to quickly scale up and scale down.
+New data is generated every few seconds by the users so caching the content and distributing geographically is difficult.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Experiment Outline}
 
 \begin{enumerate}
   \item Baseline architecture on a local network.
@@ -109,14 +231,31 @@ All of them measured with the same set of metrics with a prepared framework for 
 
 Details below.
 
+\section{Goal of the experiment}
+
+The goal of the project is to design a scalability framework for a real-time persistent websocket distributed application (the system). The core researched topic will be whether a systems awareness of clients geographical distribution can improve the system performance according to selected metrics, in comparison with traditional approaches.
+
+The goal of the project is to see if the proposed architecture decomposition can perform better (quantitatively, according to the selected metric model) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
+TODO: REFERENCE CURRENT APPROACHES HERE.
+
+\section{Load Testing Framework}
+tsung and all tools
+
 \section{Baseline architecture on a local network}
 Architecture diagrams.
 Technical details - local server capabilities.
 Load testing.
 
-\section{Baseline architecture deployed in the cloud}
+\section{Cloud architecture setup}
+route53
+load balancers with AutoScaleGroups. vs what?
+instances behind each groups. automatically scalable, connected to external redis and mysql instances.
 
-\section{Improved architecture deployed in the cloud}
+\subsection{Baseline architecture deployed in the cloud}
+
+\subsection{Improved architecture deployed in the cloud}
+
+\section{Experiment deliverables}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -125,8 +264,36 @@ Load testing.
 The previous description \ref{Measuring Scalability} concerned general stuff.
 Here we describe the metrics we settled for.
 
+Most of what is necessary for the purpose of this research has been covered by Pushkala Pattabiraman et al [MMPROJ3].
+They realized that cloud computing and its measurement provides a new set of challenges when it comes to measuring performance testing, as opposed to measuring performance of  traditional software systems. They list some key points for measuring cloud applications, among them we can find: validating and ensuring the elasticity of scalability and evaluating utility service billings and pricing models. The latter is also important in my case since cost is one of the driving factors in assessing the scalability of my system. A question they raise regarding this is: How to use a transparent approach to monitor and evaluate the correctness of the utility bill based on a posted price model during system performance evaluation and scalability measurement?.
+The authors divide the performance indicators into three groups:
+computing resource (CPU, disk, memory, networks) - they can be helpful in establishing baseline architecture in my case,
+workload indicators (connected users, throughput and latency),
+performance indicators - processing speed, system reliability and scalability based on the given QoS standards.
+For each they propose formal models with pluggable values and graphic representations (BELOW).
+On top of that, the research contains a case study performed in the Amazon EC2 environment [MMPROJ3].
+Cloud limitations need to be taken into account. One needs to be aware of hidden costs (e.g. autoscaling service is free on EC2, but it requires cloudwatch, which is not). The authors also advise to pay attention to inconsistencies in performance and scalability data [MMPROJ3].
+
+many others:
+There is much more work related to the general scalability of distributed systems. Srinivas and Janakiram in their work [MMPROJ5] mention a metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor. They propose another model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability.
+Jogalekar and Woodside [6] propose a strategy-based scalability metric based on cost effectiveness (a function of system's throughput and it’s quality of service). It separates evaluation of throughput or quantity of work from QoS (which, according to the authors, can be any suitable expression).[MMPROJ6]
+
+\section{Selected metrics}
+latency (messaging + handhsaking)
+sustainable concurrent websocket connectoins
+infrastructure cost (per unit of time, supporting the same number of users)
+architecture reaction speed to changes in demand (scaling up and scaling down)
+dropped connections
+cpu usage
+memory usage
+network in network out
+iops reads + writes
+CRAM METRICS
+TODO: review
+\subsection{EC2 Available metrics}
+
 \section{Selected model}
-[3] With CRUMs, SPMs etc.
+[MMPROJ3] With CRUMs, SPMs etc.
 
 \section{Baseline, Local network}
 Lab notes from 11 of May go here:
@@ -140,6 +307,8 @@ Basic metrics
 
 \subsection{Load Testing}
 all the analyzed tools, list also in lab notes from may 11
+\subsubsection{Users Distribution}
+The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial[MMPROJ7]. Another distribution is suggested by Grozev and Buyya [MMPROJ9] - Poisson distribution with a constant mean.
 
 \section{Baseline, Deployed in the cloud}
 
