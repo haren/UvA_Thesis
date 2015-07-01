@@ -83,6 +83,7 @@ Deliverable piece of code - metrics framework and auto-scaling scripts.
 
 \section{Related Work}
 The big paper on measuring scalability in the clouds.
+custom routing between regions. A lot on page 14/21 MMPROJ.
 The big paper on deploying different scalability structures.
 Small mentions of the others.
 
@@ -127,6 +128,14 @@ As the globalization and internetization progresses, more and more systems are e
 
 The user traffic, and with it the need for system services and resources, rarely stays constant. From this, a need to be able to scale up and down dynamically in response to traffic arises.
 
+tradeoffs:
+performance and scalability,
+cost and scalability,
+operability and scalability,
+usability and scalability,
+data consistency and scalability
+\cite{WeinstockOnSystem2006}
+
 Huge parts of the internet are shifting towards real-time. This trend is giving rise to new technologies for exchanging messages between clients and servers in the client-server architecture. Traditionally, client would send a request to a server and receive a response. This is hugely inefficient when there is a need for continuous bidirectional exchange of messages. As an improvement, new mechanisms for server-client communication were introduced: first long polling, to enhance the process and reduce overhead. Websockets are a huge next step on this path but introduce new challenges. One of them is scalability of applications which make use of this technology.
 
 Before the rise of the websocket protocol, different techniques were used to improve communication between server to client. Among them, the following can be listed (some of them serving different purposes):
@@ -137,6 +146,8 @@ webRTC - a peer to peer connection
 server-side events - only allow for a server-initiated communication.
 
 There exist multiple scalability vectors - applications can be scaled in a multitude of different ways. Different decompositions of application stack can be applied. Database layer itself can be scaled up (or out) in numerous ways. They and their benefits are described below.
+
+The two researchers present us with an interesting thought - software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. [MMPROJ9] 
 
 
 \subsection{Existing Approaches}
@@ -156,6 +167,7 @@ putting servers within end-user ISPs
 Algorithmically predicting message frequency and opening / closing persistent connections according to this.
 Peer to peer networks.
 [MMPROJ10]
+Scaling up (using a bigger server instance) is easy to implement, but costly, even extremely when you start pushing at current hardware limits. Which, with a websocket-based application is not an impossible option. Instead, one can perform horizontal scaling out and cost of hardware can be reduced dramatically this way. He discusses different types of balancing: application layer balancing, business load balancing, and anticipating load. He claims that the overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer. [MMPROJ14]
 
 
 \section{Cloud Scalability}
@@ -277,6 +289,8 @@ Cloud limitations need to be taken into account. One needs to be aware of hidden
 many others:
 There is much more work related to the general scalability of distributed systems. Srinivas and Janakiram in their work [MMPROJ5] mention a metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor. They propose another model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability.
 Jogalekar and Woodside [6] propose a strategy-based scalability metric based on cost effectiveness (a function of system's throughput and it’s quality of service). It separates evaluation of throughput or quantity of work from QoS (which, according to the authors, can be any suitable expression).[MMPROJ6]
+
+PASA[MMPROJ17]
 
 \section{Selected metrics}
 latency (messaging + handhsaking)
