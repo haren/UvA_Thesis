@@ -261,7 +261,8 @@ What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAP
 
 \subsection{Websocket Protocol}
 
-websocket draft
+websocket draft - RFC6455
+
 [http://stackoverflow.com/questions/4852702/do-html-websockets-maintain-an-open-connection-for-each-client-does-this-scale/25340220#25340220]
 Each TCP connection in itself consumes very little in terms server resources. Often setting up the connection can be expensive but maintaining an idle connection it is almost free. The first limitation that is usually encountered is the maximum number of file descriptors (sockets consume file descriptors) that can be open simultaneously. This often defaults to 1024 but can easily be configured higher.
 http connections more expensive:
@@ -341,13 +342,29 @@ The goal of the project is to design a scalability framework for a real-time per
 The goal of the project is to see if the proposed architecture decomposition can perform better (quantitatively, according to the selected metric model) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 TODO: REFERENCE CURRENT APPROACHES HERE.
 
-\section{Load Testing Framework}
-tsung and all tools
+\section{Load Testing Framework}\label{Load Testing Framework}
+all the analyzed tools, list also in lab notes from may 11 [FOR EACH WHY WASN'T SATISFACTORY]
+jmeter, thor (low extensibility which we needed), autobahn (max available connections but no further control),
+gatling-websocket, http://www.opensourcetesting.org/performance.php
+tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
+
 
 \subsection{Kernel tuning}
 all websocket updates
 http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
 Also, and very important, you may need to check if your application has a memory/file descriptor leak. Use lsof to see all it has open to see if they are valid or not. Don't try to change your system to work around applications bugs.
+
+look for _what can limit concurrent sockets?_ in lab notes
+
+“The number of connections wstest can open on a server is limited by the number of ephemeral ports on the machine on the outgoing interface / IP. Something like 64k at most. If you need to test the server with more connections, currently you will need to run multiple instances of wstest (on different machines).” from: http://autobahn.ws/testsuite/usage.html#mode-massconnect
+
+Understanding tcp sockets:
+sockets are left in TIME_WAIT on the server when the client suite is killed which makes sense
+when client exits gracefully no sockets left in TIME_WAIT / CLOSE_WAIT by the server
+on_close() from tornado only kicks in on client close
+.onclose in js only kicks in when server initiates through self.close()
+when server terminates through self.close() sockets ends in TIME_WAIT for a minute (also makes sense according to docs)
+describe how you can influence that (reusing web sockets + delay time )
 
 \section{Baseline architecture on a local network}
 Architecture diagrams.
@@ -356,6 +373,22 @@ Load testing.
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 route53
+  dns mapped to inscance ips / load balancer dns names
+  lbr, geo, weighed rr
+  their internal heuristics take network conditions from past weeks [VERIFY], rather amibiguous
+  http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Tutorials.html
+autoscaling
+  only within one region, multiple availability zones
+  http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/GettingStartedTutorial.html
+  http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/how-as-works.html#arch-AutoScalingMultiAZ
+  Auto Scaling attempts to distribute instances evenly between the Availability Zones that are enabled for your Auto Scaling group. Auto Scaling does this by attempting to launch new instances in the Availability Zone with the fewest instances.
+  alarm - object that watches over a single metric (e.g. avg cpu use of ec2 instances in auto scaling group over specified time period) (OK, ALARM, INSSUFICIENT_DATA), can trigger scaling up / down policy on an autoscaling group
+  policy variants (change ExactCapacity, ChangeInCapacity, PercentChangeInCapacity)
+  recommendation one policy for scaling out, another policy for scaling in
+  http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/as-scale-based-on-demand.html
+  http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html
+  http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/US_AlarmAtThresholdEC2.html
+
 load balancers with AutoScaleGroups. vs what?
 instances behind each groups. automatically scalable, connected to external redis and mysql instances.
 problems with rds and elasticache
@@ -402,9 +435,50 @@ iops reads + writes
 CRAM METRICS
 TODO: review
 \subsection{EC2 Available metrics}
+collectible every minute (in detailed mode), by default every 5 minute, paid additionaly
+the current EC2 cloud technology does not provide any CloudWatch API to monitor the allocation and utilization of memory for EC2 instances (we do it on our own)
+limits exist (10 metric, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications per month for free
+no limits on custom metrics
+up to 5gb of incoming data logs for free
+up to 5gb of data archiving for free) but we don't expect to hit them.
+small delay (up to 2 minutes, that's what we experienced - delays in autoscaling)
+
+alarms can be configured based on this -  http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html
+data not aggregated across regions [lab2]
+
+\subsubsection{Instance Specific}
+[Lab2 - http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html]
+custom possible
+available statistics for each: min, max, sum, avg, sampleCount (count of data points but research that)
+cpu utilization
+network in / out (in bytes)
+disk read / disk write (number of ops + bytes)
+status checks
+
+\subsubsection{Cloud (group) Specific}
+Collected from Elastic Load Balancer for all instances connected.
+
+\subsubsection{Custom Metric Collection}
+pidstat
+latencies by our custom client suite
+for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
 
 \section{Selected model}
 [MMPROJ3] With CRUMs, SPMs etc.
+four different types of needs:
+resource utilization and allocation measurement
+performance measurement under allocated computing resources
+scalability measurement in different cloud infrastructures
+cost driven evaluation based on a pre-defined price model
+
+additional values we want to capture to proposed in the model:
+cost
+time to scale up / down
+What we will use to compare architectures:
+SCM (allocated resources) or SEC (used)
+(1/cost) as an additional metric to SEC? or amount of s you can run on a 100bucks
+
+Results of all setups get plugged into SCM / SEC and then ESS.
 
 \section{Baseline, Local network}
 Lab notes from 11 of May go here:
@@ -417,7 +491,8 @@ Basic metrics
 \end{itemize}
 
 \subsection{Load Testing}
-all the analyzed tools, list also in lab notes from may 11
+Described \cite{Load Testing Framework}
+
 \subsubsection{Users Distribution}
 The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial[MMPROJ7]. Another distribution is suggested by Grozev and Buyya [MMPROJ9] - Poisson distribution with a constant mean.
 
