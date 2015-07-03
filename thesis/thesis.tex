@@ -117,10 +117,12 @@ Scalability seems to be a notion that everyone intuitively grasps, but has diffi
 \begin{quote}
 \cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload (without adding resources).
 \end{quote}
+failures: address space exceeded, memory overloaded, available network bandwith exceeded, internal table filled.
 
 \begin{quote}
 \cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload by repeatedly applying a cost-effective strategy for extending a system’s capacity.
 \end{quote}
+failure: resource is overloaded or exhausted and adding capac- ity to the resource does not result in a commensurate ability to handle significant additional demand. For example, adding a processor may not allow a system to meet the additional de- mand if adding the processor also increases overhead significantly.
 
 Scalability is generally desired in the software systems, yet it comes at a cost associated with the system's design. Design of scalable systems is more complex (since there are additional problems that need to be dealt with).
 
@@ -134,7 +136,7 @@ cost and scalability,
 operability and scalability,
 usability and scalability,
 data consistency and scalability
-\cite{WeinstockOnSystem2006}
+\cite{WeinstockOnSystem2006} (look there for details)
 
 Huge parts of the internet are shifting towards real-time. This trend is giving rise to new technologies for exchanging messages between clients and servers in the client-server architecture. Traditionally, client would send a request to a server and receive a response. This is hugely inefficient when there is a need for continuous bidirectional exchange of messages. As an improvement, new mechanisms for server-client communication were introduced: first long polling, to enhance the process and reduce overhead. Websockets are a huge next step on this path but introduce new challenges. One of them is scalability of applications which make use of this technology.
 
@@ -147,8 +149,7 @@ server-side events - only allow for a server-initiated communication.
 
 There exist multiple scalability vectors - applications can be scaled in a multitude of different ways. Different decompositions of application stack can be applied. Database layer itself can be scaled up (or out) in numerous ways. They and their benefits are described below.
 
-The two researchers present us with an interesting thought - software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. [MMPROJ9] 
-
+The two researchers present us with an interesting thought - software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. [MMPROJ9]
 
 \subsection{Existing Approaches}
 A few traditional approaches of tackling an issue like that exist already. Among them we can enumerate:
@@ -169,15 +170,81 @@ Peer to peer networks.
 [MMPROJ10]
 Scaling up (using a bigger server instance) is easy to implement, but costly, even extremely when you start pushing at current hardware limits. Which, with a websocket-based application is not an impossible option. Instead, one can perform horizontal scaling out and cost of hardware can be reduced dramatically this way. He discusses different types of balancing: application layer balancing, business load balancing, and anticipating load. He claims that the overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer. [MMPROJ14]
 
-
 \section{Cloud Scalability}
 General.
 
 \section{Data-layer Scalability}
+Data layer is often a performance bottleneck because of requirements for transactional access and atomicity - it is hard to scale out because of this [MMPROJ9].
+
+The technology stack I am working with in this scope consists of mysql as a persistent storage and redis as a key-value cache. Described in details \ref{Technology Stack}.
+
+Many solutions and strategies for dealing with database scalability have emerged, including nosql and newsql databases, data replication, caching and database sharding [MMPROJ8]. In Amazon’s environment, Grozev and Buyya suggest using Elasticache service [MMPROJ9]. We cannot use this, also described in \ref{Cloud architecture setup}.
+
+Cooper et al touch on that subject in their work [MMPROJ7]. They claim that in scaling out one should aim for elasticity and high availability. These are hard to achieve using traditional database systems. They emphasize that there are protocols that help achieve strong transaction: two-phase commit and paxos.
+They also give an overview of different database systems, including PNUTS, BigTable, HBase, Cassandra, Sharded MySQL, Azure, CouchDB, and SimpleDB. Mysql they use does not support elastic growth and dynamic data repartitioning -  Sharded MySQL is inherently inelastic.
+In their work [MMPROJ7], we can find enumeration of classic data-related scalability tradeoffs, such as latency and durability. They talk about different replication techniques - synchronous and asynchronous and different data partitioning solutions.
+
+Mysql White paper [MMPROJ19] gives us a good overview of how scalability works in Mysql’s case. Authors suggest identify which characteristic the application falls into - lots of write operations, real-time user experience, 24 x 7 user experience or agility and ease-of-use. My application falls into the second tier.
+They claim to support (among others) auto-sharding for write-scalability, active / active geographic replication and online scaling and schema upgrades.  Geographic replications offers distribution of clusters across remote data centers, which they claim helps reduce latency (important in our case). Authors show how mysql is optimized for real-timeness: data structures are optimized for in-memory access, persistence run in background processes, all indexed columns are stored in memory. They claim that mysql clustered is very well-suited for on-line, on-demand scaling, which provides a contrast to what cooper et al have found  (careful here, son) [MMPROJ7].
+
+Liu in his Eventual Consistency [MMPROJ20] writes about BASE property - basically available, soft state, eventually consistent. It’s a complement of ACID.  Author claims we lack precise metrics to measure its aspects and that’s why every implementation implements eventual consistency differently.
+He writes about different implementations. Most importantly for my research, he explains mysql cluster implementation - that it performs much like an ACID database but with the performance benefits of a cluster and can be configured at multiple topologies, not only the basic master-slave. Consistency differs per configuration.
+
+Ruflin et al in Social-Data Storage-Systems [21] evaluate different storage system types: rdbms,  key-value, column store, document store and graph databases. Two first are of my interest, especially since they evaluate technologies I use - redis and mysql. The authors mention unconventional usages of Mysql, as a key value store e.g. by Twitter. Reddit also uses it, with a single table [SOURCE]
+
+They show how mysql can be scaled horizontally by both sharding and data replication. They also indicate that the more structured the RDBMS data, the harder it is to scale horizontally. Mysql is optimized for writes, since only one record in one table is touched, whereas reads can prove expensive if they contain joints, especially spreading across multiple cluster nodes. Facebook and Twitter solved it by putting a cache on top of mysql [21].
+
+Redis is said to be of limited scalability, because of the fact that for good performance the whole data set should fit into memory.
+
+Further improvements to mysql: Pakkonen and Pakkala show how MySQL performance can be increased [22], e.g. by disabling automatic committing or binary logging (binlog) output. They used the already mentioned YCSB benchmarking tool [7]. They also present the results of the tests they performed - switching off auto committing changes the latency from (1.4s to 130 ms) on their data sample, which is a huge improvement.
 
 \section{Websocket Scalability}
 
+A nice introduction into push-base communication over the internet can be found in Agarwal’s work - Toward a Push-Scalable Global Internet [MMPROJ11]. The key message in this paper is that push message delivery on the World Wide Web is not scalable for servers, intermediate network elements, and battery-operated mobile device clients. And yet, most of modern day websites have highly dynamic content updated multiple times a minute.
+Author here proposes a content-based, machine-learning optimized solution for closing and opening connections when needed. The result he achieves is that the number of hours of active always-on connections can be cut by half while still achieving real-time message delivery for up to 90 percent of all messages.
+
+The author performs the following reasoning in his study. Most of internet communications happens over HTTP Running over TCP. Real-time message delivery requires an always-on connection from the server to the client. HTTP proxies have limited memory and tcp ports, are shared among multiple users. Servers need to be provisioned in order to maintain active tcp connections from large populations of user clients. These all provide challenges that need to be dealt with in scalable applications.
+
+my own research has shown - difficult, one needs to tweak kernels, cloud scalability built for http
+
+previous: ajax, long polling, short polling, websocket [MMPROJ11]
+
+M. Franklin and S. Zdonik provide an insight into the history of push-based technologies. Their paper from 1998 [MMPROJ12] classifies communication mechanisms into aperiodic pull, periodic pull, aperiodic push and periodic push.
+
+Cassetti and Luz [MMPROJ15] claim that overhead introduced by the websocket protocol and WebSocket API is rather small as compared to other communication methods. Furthermore, you can achieve superior bandwidth and performance when using websockets.
+
 \section{Geographical Distribution}
+
+The topic is nicely introduced by Tom Leighton in his article Improving performance of the internet [10]. He provides a few arguments why it is important to keep data as close to end users as possible. Apart from obvious latency benefits, by doing this one reduces the chances of suffering from a big “middle mile” provider outage.
+He introduces a scale to reason about internet locality:
+
+Scale name
+Range
+Latency range
+local
+< 100 miles
+1ms
+regional
+500 - 1000 miles
+15ms
+cross-continent
+~ 3000 miles
+50ms
+multi-continent
+~ 6000 miles
+100ms
+
+The longer data must travel through the middle mile, the more it is subject to congestion, packet loss, and poor performance. This is why the company he works for, Akamai, locates servers close to smaller network, end users (on a scale that I cannot reproduce in this research - requires control over infrastructure, in this case it's Amazon's). He claims that big websites have at least two geographically dispersed mirror locations to improve performance, reliability and scalability [MMPROJ10].
+In his work, Leighton includes a set of guidelines to follow when thinking about geographical scalability:
+reduce transport layer overhead (this is achieved partly in my case by using websockets),
+prefetch embedded content,
+assemble pages at the edge,
+offload computations to the edge,
+ensure significant redundancy in all systems to facilitate failover,
+software logic to provide message reliability,
+distributed control or coordination.
+
+Ed Howorka in his interesting paper “Colocation beats the speed of light” [MMPROJ13] focuses on the best placement of servers for traders trading on multiple exchanges. His paper demonstrates that traders gain nothing by positioning their computer at the midpoint between two financial exchanges. He claims that  every algorithm on a central machine talking to surrounding servers (users in my case) can be replaced by colocated servers (located next to, in my case, users). What is more, he implies that server colocation provides a better solution for high-speed applications (as opposed to using a big, centralized server located in the middle). His formal proof in the article (why isn't this a case for us).
 
 \section{Measuring Scalability} \label{Measuring Scalability}
 What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAPTER \ref{Scalability Measurements} ON THIS.
@@ -214,9 +281,9 @@ lumpy demand - it comes in 2-hour-long spikes and then can go quiet for days
 
 \section{Basic Architecture}
 
-\section{Technology Stack}
+\section{Technology Stack} \label{Technology Stack}
 Python + redis + javascript + mysql (Ampersand)
-cloud stack described here: \section{Cloud architecture setup}
+cloud stack described here: \ref{Cloud architecture setup}
 
 
 \section{Unique Aspects of The System}
@@ -258,10 +325,11 @@ Architecture diagrams.
 Technical details - local server capabilities.
 Load testing.
 
-\section{Cloud architecture setup}
+\section{Cloud architecture setup} \label{Cloud architecture setup}
 route53
 load balancers with AutoScaleGroups. vs what?
 instances behind each groups. automatically scalable, connected to external redis and mysql instances.
+problems with rds and elasticache 
 
 \subsection{Baseline architecture deployed in the cloud}
 
