@@ -169,11 +169,15 @@ Algorithmically predicting message frequency and opening / closing persistent co
 Peer to peer networks.
 [MMPROJ10]
 Scaling up (using a bigger server instance) is easy to implement, but costly, even extremely when you start pushing at current hardware limits. Which, with a websocket-based application is not an impossible option. Instead, one can perform horizontal scaling out and cost of hardware can be reduced dramatically this way. He discusses different types of balancing: application layer balancing, business load balancing, and anticipating load. He claims that the overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer. [MMPROJ14]
+client state needs to be stored on the server but in a layer shared between the webservers - the more of it, the bigger the latency
+When the client reconnects, the server calculates a delta, the difference between the current market state and the last values sent to the client and only sends those values that have changed. [MMPROJ14]
+The overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer.
 
-\section{Cloud Scalability}
+
+\subsection{Cloud Scalability}
 General.
 
-\section{Data-layer Scalability}
+\subsection{Data-layer Scalability}
 Data layer is often a performance bottleneck because of requirements for transactional access and atomicity - it is hard to scale out because of this [MMPROJ9].
 
 The technology stack I am working with in this scope consists of mysql as a persistent storage and redis as a key-value cache. Described in details \ref{Technology Stack}.
@@ -198,7 +202,7 @@ Redis is said to be of limited scalability, because of the fact that for good pe
 
 Further improvements to mysql: Pakkonen and Pakkala show how MySQL performance can be increased [22], e.g. by disabling automatic committing or binary logging (binlog) output. They used the already mentioned YCSB benchmarking tool [7]. They also present the results of the tests they performed - switching off auto committing changes the latency from (1.4s to 130 ms) on their data sample, which is a huge improvement.
 
-\section{Websocket Scalability}
+\subsection{Websocket Scalability}
 
 A nice introduction into push-base communication over the internet can be found in Agarwal’s work - Toward a Push-Scalable Global Internet [MMPROJ11]. The key message in this paper is that push message delivery on the World Wide Web is not scalable for servers, intermediate network elements, and battery-operated mobile device clients. And yet, most of modern day websites have highly dynamic content updated multiple times a minute.
 Author here proposes a content-based, machine-learning optimized solution for closing and opening connections when needed. The result he achieves is that the number of hours of active always-on connections can be cut by half while still achieving real-time message delivery for up to 90 percent of all messages.
@@ -213,7 +217,7 @@ M. Franklin and S. Zdonik provide an insight into the history of push-based tech
 
 Cassetti and Luz [MMPROJ15] claim that overhead introduced by the websocket protocol and WebSocket API is rather small as compared to other communication methods. Furthermore, you can achieve superior bandwidth and performance when using websockets.
 
-\section{Geographical Distribution}
+\subsection{Geographical Distribution}
 
 The topic is nicely introduced by Tom Leighton in his article Improving performance of the internet [10]. He provides a few arguments why it is important to keep data as close to end users as possible. Apart from obvious latency benefits, by doing this one reduces the chances of suffering from a big “middle mile” provider outage.
 He introduces a scale to reason about internet locality:
@@ -246,12 +250,33 @@ distributed control or coordination.
 
 Ed Howorka in his interesting paper “Colocation beats the speed of light” [MMPROJ13] focuses on the best placement of servers for traders trading on multiple exchanges. His paper demonstrates that traders gain nothing by positioning their computer at the midpoint between two financial exchanges. He claims that  every algorithm on a central machine talking to surrounding servers (users in my case) can be replaced by colocated servers (located next to, in my case, users). What is more, he implies that server colocation provides a better solution for high-speed applications (as opposed to using a big, centralized server located in the middle). His formal proof in the article (why isn't this a case for us).
 
-\section{Measuring Scalability} \label{Measuring Scalability}
+\subsection{Measuring Scalability} \label{Measuring Scalability}
 What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAPTER \ref{Scalability Measurements} ON THIS.
 
-\section{Benchmarking}
+\subsection{Benchmarking}
 
-\subsection{Benchmarking Crimes}
+[MMPROJ] important to have random distributions(uniform, zipfian, latest, multinomial)
+
+\subsubsection{Benchmarking Crimes}
+
+\subsection{Websocket Protocol}
+
+websocket draft
+[http://stackoverflow.com/questions/4852702/do-html-websockets-maintain-an-open-connection-for-each-client-does-this-scale/25340220#25340220]
+Each TCP connection in itself consumes very little in terms server resources. Often setting up the connection can be expensive but maintaining an idle connection it is almost free. The first limitation that is usually encountered is the maximum number of file descriptors (sockets consume file descriptors) that can be open simultaneously. This often defaults to 1024 but can easily be configured higher.
+http connections more expensive:
+- Each HTTP connection carries a lot of baggage that isn't used most of the time: cookies, content type, conetent length, user-agent, server id, date, last-modified, etc. Once a WebSockets connection is established, only the data required by the application needs to be sent back and forth.
+- TYPICALLY: HTTP servers are configured to log the start and completion of every HTTP request taking up disk and CPU time. It will become standard to log the start and completion of WebSockets data, but while the WebSockets connection doing duplex transfer there won't be any additional logging overhead (except by the application/service if it is designed to do so)
+- interactive applications that use AJAX either continuously poll or use some sort of long-poll mechanism. WebSockets is a much cleaner (and lower resource) way of doing a more event'd model where the server and client notify each other when they have something to report over the existing connection.
+obviously don't support cdn
+
+As for decreased latency via WS vs. HTTP, it's true since there's no more parsing of HTTP headers beyond the initial WS handshake. Plus, as more and more packets are successfully sent, the TCP congestion window widens, effectively reducing the RTT.
+
+Think of it this way: what is cheaper, keeping an open connection, or opening a new connection for every request (with the negotiation overhead of doing so, remember it's TCP.)
+
+http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
+the number of client connections that a server can support has nothing to do with ports in this scenario, since the server is [typically] only listening for WS/WSS connections on one single port. I think what the other commenters meant to refer to were file descriptors. You can set the maximum number of file descriptors quite high, but then you have to watch out for socket buffer sizes adding up for each open TCP/IP socket.  MAKE SURE THIS IS CONSISTENT THROUGHOUT THE PAPER.
+If the file descriptors are tcp sockets, etc, then you risk using up a large amount of memory for the socket buffers and other kernel objects; this memory is not going to be swappable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -284,7 +309,6 @@ lumpy demand - it comes in 2-hour-long spikes and then can go quiet for days
 \section{Technology Stack} \label{Technology Stack}
 Python + redis + javascript + mysql (Ampersand)
 cloud stack described here: \ref{Cloud architecture setup}
-
 
 \section{Unique Aspects of The System}
 critical data flows over websockets
@@ -320,6 +344,11 @@ TODO: REFERENCE CURRENT APPROACHES HERE.
 \section{Load Testing Framework}
 tsung and all tools
 
+\subsection{Kernel tuning}
+all websocket updates
+http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
+Also, and very important, you may need to check if your application has a memory/file descriptor leak. Use lsof to see all it has open to see if they are valid or not. Don't try to change your system to work around applications bugs.
+
 \section{Baseline architecture on a local network}
 Architecture diagrams.
 Technical details - local server capabilities.
@@ -329,7 +358,7 @@ Load testing.
 route53
 load balancers with AutoScaleGroups. vs what?
 instances behind each groups. automatically scalable, connected to external redis and mysql instances.
-problems with rds and elasticache 
+problems with rds and elasticache
 
 \subsection{Baseline architecture deployed in the cloud}
 
@@ -403,6 +432,12 @@ The authors suggest choosing randomly when generating load as to which operation
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation}
+
+\section{Threats to validity}
+ec2 whacky, control over hardware released to amazon (can be dedicated machines)
+shared environment, someone else might get ddosed or sth - you have no control over that
+network is inherently non-deterministic, load tests needed to actually test availability
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
