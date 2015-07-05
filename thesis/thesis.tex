@@ -1,5 +1,6 @@
 \documentclass{uvamscse}
 \usepackage{color}
+\usepackage{url}
 
 \input{program-listings}
 \newcommand{\cmd}[1]{\texttt{$\backslash$#1}}
@@ -54,7 +55,7 @@ What we found out researching.
 what's the best architecture that answers that best:
 how to deliver data to geographically distributed users with minimal, consistent and manageable latency
 how to react
-scales up and down in response to demand changes (WEBSOCKETS - DISCONNECT SESSIONS? WHEN?  This provides some additional challenges when it comes to websockets, since in order to stop an instance one needs to make sure it does not serve any sessions. [MMPROJ9])
+scales up and down in response to demand changes (WEBSOCKETS - DISCONNECT SESSIONS? WHEN?  This provides some additional challenges when it comes to websockets, since in order to stop an instance one needs to make sure it does not serve any sessions. \cite{GroBuy})
 according to the models based on the set of metrics described in detail later \ref{Selected metrics}
 Also, there is an inherent limitation for scaling a websocket application - a number of TCP ports (and file descriptors available to a ws/wss connections) on a server instance. Hardware limitations are different in an http-based application.
 \subsection{Research Questions}
@@ -84,7 +85,7 @@ Deliverable piece of code - metrics framework and auto-scaling scripts.
 \section{Related Work}
 The big paper on measuring scalability in the clouds.
 custom routing between regions. A lot on page 14/21 MMPROJ.
-The big paper on deploying different scalability structures [MMPROJ9].
+The big paper on deploying different scalability structures \cite{GroBuy}.
 Software engineers need to design for the cloud, not only deploy in the cloud. This is even more important when using multiple data centers situated in different legislative domains; constructed with different hardware, network, and software components; and prone to different environmental risks.
 Both Route 53 and ELB do not consider applications’ regulatory requirements when selecting a data center site. Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center.
 because they want custom metrics routing they
@@ -116,7 +117,7 @@ Here we outline the structure of the thesis. A short paragraph on what happens i
 
 [MMPROJ1] Churchman, C. West, "Wicked Problems", Management Science 14 (4) (December 1967).
 [MMPROJ2] S.Easterbrook, J.Singer, M.A. Storey, D. Damian, Selecting Empirical Methods for Software Engineering Research, Java Report 3 (7) (1998) 51–56.
-[MMPROJ9] N. Grozev, R. Buyya, Multi-Cloud Provisioning and Load Distribution for Three-Tier Applications, ACM Transactions on Autonomous and Adaptive Systems (TAAS), Vol.9 Iss.3, Article No. 13 (October 2014)
+\cite{GroBuy} N. Grozev, R. Buyya, Multi-Cloud Provisioning and Load Distribution for Three-Tier Applications, ACM Transactions on Autonomous and Adaptive Systems (TAAS), Vol.9 Iss.3, Article No. 13 (October 2014)
 [MMPROJ10] T. Leighton, Improving performance of the internet, Communications of the ACM - Inspiring Women in Computing, Vol. 52, Iss. 2, p. 44-51 (February 2009)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -185,20 +186,22 @@ There exist multiple scalability vectors for web applications. Different decompo
 \end{description}
 
 \subsection{Cloud Scalability}
-The two researchers present us with an interesting thought - software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. [MMPROJ9]
 
-A lot of tools and providers, most popular - google, azure, aws. Described in details in \ref{Cloud architecture setup}.
+Cloud computing has become virtually ubiquitous. All biggest internet services are either deployed to a cloud, or run their proprietary cloud systems. Netflix and Spotify (both deployed to Amazon's AWS) are examples of the first approach, with Microsoft(Azure), Google(Google Cloud Platform)\footnote{\url{http://google.com}} and Amazon(Amazon Web Services) being the example of the second. A lot of companies running proprietary clouds also make them available for hosting to the external clients. 
+A lot of tools and providers, most popular - google, azure, aws. Described in details in a chapter \ref{Cloud architecture setup} dedicated to this.
 
-Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center. [MMPROJ9]
+Software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. \cite{GroBuy}
+
+Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center. \cite{GroBuy}
 
 multiple availability zones very important in a shared cloud environment - often because another customer is getting hit by a DDoS.
 
 \subsection{Data-layer Scalability}
-Data layer is often a performance bottleneck because of requirements for transactional access and atomicity - it is hard to scale out because of this [MMPROJ9].
+Data layer is often a performance bottleneck because of requirements for transactional access and atomicity - it is hard to scale out because of this \cite{GroBuy}.
 
 The technology stack I am working with in this scope consists of mysql as a persistent storage and redis as a key-value cache. Described in details \ref{Technology Stack}.
 
-Many solutions and strategies for dealing with database scalability have emerged, including nosql and newsql databases, data replication, caching and database sharding [MMPROJ8]. In Amazon’s environment, Grozev and Buyya suggest using Elasticache service [MMPROJ9]. We cannot use this, also described in \ref{Cloud architecture setup}.
+Many solutions and strategies for dealing with database scalability have emerged, including nosql and newsql databases, data replication, caching and database sharding [MMPROJ8]. In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \cite{GroBuy}. We cannot use this, also described in \ref{Cloud architecture setup}.
 
 Cooper et al touch on that subject in their work [MMPROJ7]. They claim that in scaling out one should aim for elasticity and high availability. These are hard to achieve using traditional database systems. They emphasize that there are protocols that help achieve strong transaction: two-phase commit and paxos.
 They also give an overview of different database systems, including PNUTS, BigTable, HBase, Cassandra, Sharded MySQL, Azure, CouchDB, and SimpleDB. Mysql they use does not support elastic growth and dynamic data repartitioning -  Sharded MySQL is inherently inelastic.
@@ -648,7 +651,7 @@ Each test client should gradually ramp up its load over the course of a few hour
 Tools described here \cite{Load Testing Framework}
 
 \subsubsection{Users Distribution}
-The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial[MMPROJ7]. Another distribution is suggested by Grozev and Buyya [MMPROJ9] - Poisson distribution with a constant mean.
+The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial[MMPROJ7]. Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
 
 \section{Baseline, Deployed in the cloud}
 
