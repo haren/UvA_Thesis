@@ -56,6 +56,7 @@ what's the best architecture that answers that best:
 how to deliver data to geographically distributed users with minimal, consistent and manageable latency
 how to react
 scales up and down in response to demand changes (WEBSOCKETS - DISCONNECT SESSIONS? WHEN?  This provides some additional challenges when it comes to websockets, since in order to stop an instance one needs to make sure it does not serve any sessions. \cite{GroBuy})
+Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center. \cite{GroBuy}
 according to the models based on the set of metrics described in detail later \ref{Selected metrics}
 Also, there is an inherent limitation for scaling a websocket application - a number of TCP ports (and file descriptors available to a ws/wss connections) on a server instance. Hardware limitations are different in an http-based application.
 \subsection{Research Questions}
@@ -186,15 +187,12 @@ There exist multiple scalability vectors for web applications. Different decompo
 \end{description}
 
 \subsection{Cloud Scalability}
+Cloud computing has become virtually ubiquitous. All biggest internet services are either deployed to a cloud, or run their proprietary cloud systems. A lot of companies running proprietary clouds also make them available for hosting to the external clients. Netflix\footnote{\url{https://aws.amazon.com/solutions/case-studies/netflix/}} and Spotify\footnote{\url{https://aws.amazon.com/solutions/case-studies/spotify/}} (both deployed to Amazon's AWS) are examples of the first approach, with Microsoft(Azure)\footnote{\url{https://azure.microsoft.com/}}, Google(Google Cloud Platform)\footnote{\url{https://cloud.google.com/}} and Amazon(Amazon Web Services)\footnote{\url{https://aws.amazon.com/}} being the example of the second.
+General cloud capabilities and the cloud stack I am working with for the scope of this project is discribed in a dedicated chapter \ref{Cloud architecture setup}.
 
-Cloud computing has become virtually ubiquitous. All biggest internet services are either deployed to a cloud, or run their proprietary cloud systems. Netflix and Spotify (both deployed to Amazon's AWS) are examples of the first approach, with Microsoft(Azure), Google(Google Cloud Platform)\footnote{\url{http://google.com}} and Amazon(Amazon Web Services) being the example of the second. A lot of companies running proprietary clouds also make them available for hosting to the external clients. 
-A lot of tools and providers, most popular - google, azure, aws. Described in details in a chapter \ref{Cloud architecture setup} dedicated to this.
+One of the biggest advantages of deploying one's architecture to the cloud that aforementioned companies offer is the ability to dynamically scale up and in response to application traffic changes.
 
-Software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. \cite{GroBuy}
-
-Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center. \cite{GroBuy}
-
-multiple availability zones very important in a shared cloud environment - often because another customer is getting hit by a DDoS.
+As Grozev and Buyya \cite{GroBuy} put it, to fully facilitate cloud capabilities, software engineers need to design for the cloud, not only to deploy to it.
 
 \subsection{Data-layer Scalability}
 Data layer is often a performance bottleneck because of requirements for transactional access and atomicity - it is hard to scale out because of this \cite{GroBuy}.
@@ -474,6 +472,11 @@ Technical details - local server capabilities.
 Load testing.
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
+
+selected aws
+
+multiple availability zones very important in a shared cloud environment - often because another customer is getting hit by a DDoS.\cite{GroBuy}
+
 \subsection{Route53}
   dns mapped to inscance ips / load balancer dns names
   lbr, geo, weighed rr
