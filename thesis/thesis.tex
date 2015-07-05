@@ -124,7 +124,7 @@ Here we outline the structure of the thesis. A short paragraph on what happens i
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Background}
 
-\section{Systems Scalability}
+\section{Scalability}
 
 Scalability seems to be a notion that everyone intuitively grasps, but has difficulties when it comes to clear explanations. In my literature study I came across a few definitions, which might help with that, of which three can be found below:
 
@@ -171,28 +171,18 @@ In case of many software systems (the system under test \ref{The System Under Te
 Huge parts of the internet are shifting towards real-time. This trend is giving rise to new technologies for exchanging messages between clients and servers in the client-server architecture. Traditionally, client would send a request to a server and receive a response. This is hugely inefficient when there is a need for continuous bidirectional exchange of messages. As an improvement, new mechanisms for server-client communication have been introduced recently \ref{Client-Server Communication Improvements} to enhance the process and reduce overhead. One of them - websockets - are a huge next step on this path, but introduce new challenges. One of them is scalability of applications which make use of this technology.
 
 \subsection{Existing Approaches}
-There exist multiple scalability vectors - applications can be scaled in a multitude of different ways. Different decompositions of application stack can be applied. Database layer itself can be scaled up (or out) in numerous ways. They and their benefits are described below.
-
-A few traditional approaches of tackling an issue like that exist already. Among them we can enumerate:
-Scaling up (one massive instance),
-end-user experience is at the mercy of the unreliable Internet and its middle-mile bottlenecks
-Traffic levels fluctuate tremendously, so the need to provision for peak traffic levels means that expensive infrastructure will sit underutilized most of the time
-model does not provide the flexibility to handle unexpected surges [All 28]
-This will be selected as the baseline architecture - first with isolating the network effects (tested on an internal network), and then in the real-life cloud scenario. This way the real impact on the performance of the architecture of network variables can be established.
-Scaling out randomly - firing up new system nodes in new data centres,
-Averaging out geographical locations and firing up instances 'in the middle',
-Content Delivery Networks - these only handle static assets. Websockets do not support CDNs, because the WebSocket protocol is stateful.
-Big Data Center CDNs
-potential improvements are limited because the CDN’s servers are still far away from most users and still deliver content from the wrong side of the middle-mile bottlenecks
-Highly Distributed CDNs
-putting servers within end-user ISPs
-Algorithmically predicting message frequency and opening / closing persistent connections according to this.
-Peer to peer networks.
-[MMPROJ10]
-Scaling up (using a bigger server instance) is easy to implement, but costly, even extremely when you start pushing at current hardware limits. Which, with a websocket-based application is not an impossible option. Instead, one can perform horizontal scaling out and cost of hardware can be reduced dramatically this way. He discusses different types of balancing: application layer balancing, business load balancing, and anticipating load. He claims that the overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer. [MMPROJ14]
-client state needs to be stored on the server but in a layer shared between the webservers - the more of it, the bigger the latency
-When the client reconnects, the server calculates a delta, the difference between the current market state and the last values sent to the client and only sends those values that have changed. [MMPROJ14]
-The overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer.
+There exist multiple scalability vectors for web applications. Different decompositions of application stack can be applied to achieve the goal of scalability. A few traditional approaches of tackling an issue like that exist already \cite{Akamai}:
+\begin{description}
+  \item[Scaling up.]
+  Increasing volume of system allocated resources. As internet is unreliable and so called "middle-mile bottlenecks" exist,
+  a web application end-user latency and throughput experience is not fully deterministic. Traffic levels fluctuate tremendously, so the need to provision for peak traffic levels means that expensive infrastructure will sit underutilized most of the time. It is easy to implement, but costly, even extremely when you start pushing at current hardware limits.\cite{Qvef}
+  \item[Scaling out.]
+  Scaling out horizontally - increasing the number of units of resources comprising the system. Cost of hardware can be reduced dramatically this way. In a web application, one can deploy multiple instances of servers. Different types of balancing can be applied to distribuet traffic among them: application layer balancing, business load balancing, and anticipating load. The overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer. Client state needs to be stored in a layer shared between the webservers.\cite{Qvef}
+  \item[Content Delivery Networks.]
+  These only handle static assets. Communication in our system \ref{The System Under Test} happens mainly over websockets, which are not supported by CDNs. CDNs can be divided into Big Data Center CDNs and Highly Distributed CDNs, which put application data within end-user ISPs.\cite{Akamai}
+  \item[Peer to peer networks.]
+  An architecture different from client - server, where users communicate with each other directly. It handles adding and removing nodes to and from the network dynamically very well.
+\end{description}
 
 \subsection{Cloud Scalability}
 The two researchers present us with an interesting thought - software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. [MMPROJ9]
