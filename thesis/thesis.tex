@@ -84,7 +84,25 @@ Deliverable piece of code - metrics framework and auto-scaling scripts.
 \section{Related Work}
 The big paper on measuring scalability in the clouds.
 custom routing between regions. A lot on page 14/21 MMPROJ.
-The big paper on deploying different scalability structures.
+The big paper on deploying different scalability structures [MMPROJ9].
+Software engineers need to design for the cloud, not only deploy in the cloud. This is even more important when using multiple data centers situated in different legislative domains; constructed with different hardware, network, and software components; and prone to different environmental risks.
+Both Route 53 and ELB do not consider applications’ regulatory requirements when selecting a data center site. Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center.
+because they want custom metrics routing they
+Selecting the cloud:
+As a first step, the user authenticates to one of the entry points. At this point, the entry point has the user’s identity and geographical location (extracted from the IP address). As a second step, the entry point broadcasts the user’s identifier to the admission controllers of all data centers. We call this step matchmaking broadcast.
+As a first step, the user authenticates to one of the entry points. At this point, the entry point has the user’s identity and geographical location (extracted from the IP address). As a second step, the entry point broadcasts the user’s identifier to the admission controllers of all data centers. We call this step matchmaking broadcast.
+The admission controllers respond to the entry point whether the user’s data are present and if they are allowed (in terms of legislation and regulations) to serve the user. In the response, they also include information about costs within the data center.
+Based on the admission controllers’ responses, the entry point selects the data center to serve the user and redirects him or her to the load balancer deployed within it. The entry point filters all clouds that have the user’s data and are eligible to serve him or her. If there is more than one such cloud, the entry point selects the most suitable with respect to network latency and pricing. If no cloud meets the data location and legislative requirements, the user is denied service.
+After a data center is selected, the user is served by the AS and DB servers within the chosen cloud as prescribed by the standard three-tier architecture.
+they do:
+sticky load balancing
+it is not beneficial to terminate a running VM ahead of its next billing time. It is better to keep it running until its billing time in order to reuse it if resources are needed again.
+their objectives - cost minimization and latency minimization
+they use front VMs and each cloud runs an ELB an Admission Controller
+latency approximation
+GeoLite db (ip->geo coordinates)
+compute latency using PingER (To approximate the latency between a user and a cloud, we select the three pairs of PingER hosts that are closest to the user and the cloud, respectively, and define the latency as a weighted sum of the three latencies between the hosts in these three pairs)
+CloudSim
 Small mentions of the others.
 
 \section{Outline}
@@ -175,7 +193,11 @@ The overhead of parsing requests in the application layer is high thus limiting 
 
 
 \subsection{Cloud Scalability}
-General.
+A lot of tools and providers, most popular - google, azure, aws. Described in details in \ref{Cloud architecture setup}.
+
+Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center. [MMPROJ9]
+
+multiple availability zones very important in a shared cloud environment - often because another customer is getting hit by a DDoS.
 
 \subsection{Data-layer Scalability}
 Data layer is often a performance bottleneck because of requirements for transactional access and atomicity - it is hard to scale out because of this [MMPROJ9].
@@ -251,19 +273,72 @@ distributed control or coordination.
 Ed Howorka in his interesting paper “Colocation beats the speed of light” [MMPROJ13] focuses on the best placement of servers for traders trading on multiple exchanges. His paper demonstrates that traders gain nothing by positioning their computer at the midpoint between two financial exchanges. He claims that  every algorithm on a central machine talking to surrounding servers (users in my case) can be replaced by colocated servers (located next to, in my case, users). What is more, he implies that server colocation provides a better solution for high-speed applications (as opposed to using a big, centralized server located in the middle). His formal proof in the article (why isn't this a case for us).
 
 \subsection{Measuring Scalability} \label{Measuring Scalability}
+Even in 'locked down' cloud computing environments such as EC2 where the developer has little control over network topology or hardware platform, understanding the performance bottlenecks imposed by the offered infrastructure is valuable [http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.163.7403 ,http://www.cs.berkeley.edu/~fox/Cloudstone-Sep08-DRAFT.pdf]
+
 What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAPTER \ref{Scalability Measurements} ON THIS.
 
 \subsection{Benchmarking}
 
-[MMPROJ] important to have random distributions(uniform, zipfian, latest, multinomial)
+[MMPROJ7] important to have random distributions(uniform, zipfian, latest, multinomial)
+
+[MMPROJ2] https://homes.cs.washington.edu/~bornholt/post/performance-evaluation.html
+computer science experiments tend to be among the most non-deterministic and prone to omitted-variable bias
+Computer systems have many moving parts in both hardware and software, researchers are unlikely to have a complete understanding of every part in those systems, and controlling each of those components is often next to impossible.
+linking order can significantly bias the results of a benchmark
+the size of your UNIX environment variables biases performance - we made sure this are consistent across tests
+
+Most researchers I’ve met tend to rebuild their infrastructure over and over again, writing new scripts to parse, tabulate and plot their results for every experiment. This approach clearly doesn’t scale.
+This is where we can come in and contribute to the scientific and open source communities. Plan to release the deployment and whatever is possible.
+
+
+[MMPROJ5] http://www.sosy-lab.org/~dbeyer/Publications/2015-SPIN.Benchmarking\_and\_Resource\_Measurement.pdf
+benchmarking good and well established for very specific tasks ( https://www.spec.org/ 2 http://www.tpc.org/ 3 http://nlrp.ipd.kit.edu/), our case more complex (as describd below)
+non-deterministic aspects (networks, multi-threading etc.)
+Results are reproducible if it is guaranteed that the same results can be obtained later again (assuming a deterministic tool) by re-running the benchmarks on a machine with the same hardware and the same software versions. Reproducibility of experimental results requires reliable measurement. We call a measurement reliable, if the measurement method ensures accuracy (small systematic and random measurement error, i.e., no bias or “volatile” effects, resp.) and sufficient precision
+
+Benchmarking a distributed tool (3) is much more complex and out of scope. [3rd paper from http://www.sosy-lab.org/~dbeyer/Publications/2015-SPIN.Benchmarking\_and\_Resource\_Measurement.pdf]
+extremely difficult to get all variables under control in IT - hardware, all the layers of software, non deterministic stuff like networks, etc. Don't even get me started on clouds where you basically give up control over hardware to the cloud host.
+
 
 \subsubsection{Benchmarking Crimes}
+
+[MMPROJ1] http://www.cse.unsw.edu.au/~Gernot/benchmarking-crimes.html
+Selective benchmarking
+  not covering the full evaluation space
+  not evaluating potential performance degradation
+    Progressive criterion - performance actually does improve significantly in area of interest
+    Conservative criterion - performance does not significantly degrade elsewhere
+    both need to be demonstrated - we wrote our testing scenarios to cover the full area of interest
+    “Reality is that techniques that improve performance generally require some degree of extra work: extra bookkeeping, caching, etc. These things always have a cost, and it is dishonest to pretend otherwise. This is really at the heart of systems: it's all about picking the right trade-offs. A new technique will therefore almost always introduce some overheads, and you need to demonstrate that they are acceptable.” - how do we fit in here?
+
+benchmark subsetting without strong justification - WARNING SIGNS: “we picked a representative subset”, “typical results are shown” (reads as cherry picked to fit our results), “I want to understand why you picked the particular subset [of benchmarks].” If your selection contains many obscure or outdated devices, or is heavily biased towards X and Y drivers, then I suspect that you have something to hide.
+Selective data set hiding deficiencies. Luckily we have statistical tools to detect that (chess data skeptic podcast)
+
+Same dataset for calibration and validation
+Calibrate the system first (using calibration workload). Use evaluation workload to show how accurate the model is. Both workloads need to be totally disjoint. - TODO: DOEST THIS APPLY TO OUR CASE?
+
+No indication of significance of data.
+Raw averages, without any indication of variance. At least standard deviations must be quoted. If in doubt use student's t-test to check significance.
+
+Benchmarking of simplified simulated system - WE'RE DOING THE REAL DEAL.
+
+Inappropriate and misleading benchmarks, Unfair benchmarking of competitors - We care about our system's best setup so no incentive to lie.
+
+Relative numbers only, Reads as I am covering that the results are really bad or irrelevant. - happy to provide absolutes but sometimes the unit will be made up so numbers only make sense in context
+
+No proper baseline - Often the state-of-the-art solution, we couldn't find data to prove that what we are comparing against is bad. occam's razor, simple solution proves best - only known limitation is the number of sockets.
+
+Arithmetic mean for averaging across benchmark scores
+The proper way to average (i.e. arrive at a single figure of merit) is to use the geometric mean of the normalised scores [http://dl.acm.org/citation.cfm?id=5673]
+
+[MMPROJ3] http://dl.acm.org/citation.cfm?id=5673
+Using the arithmetic mean to summarize normalized benchmark results leads to mistaken conclusions that can be avoided by using the preferred method: the geometric mean.
 
 \subsection{Websocket Protocol}
 
 websocket draft - RFC6455
 
-[http://stackoverflow.com/questions/4852702/do-html-websockets-maintain-an-open-connection-for-each-client-does-this-scale/25340220#25340220]
+[http://stackoverflow.com/questions/4852702/do-html-websockets-maintain-an-open-connection-for-each-client-does-this-scale/25340220\#25340220]
 Each TCP connection in itself consumes very little in terms server resources. Often setting up the connection can be expensive but maintaining an idle connection it is almost free. The first limitation that is usually encountered is the maximum number of file descriptors (sockets consume file descriptors) that can be open simultaneously. This often defaults to 1024 but can easily be configured higher.
 http connections more expensive:
 - Each HTTP connection carries a lot of baggage that isn't used most of the time: cookies, content type, conetent length, user-agent, server id, date, last-modified, etc. Once a WebSockets connection is established, only the data required by the application needs to be sent back and forth.
@@ -307,9 +382,33 @@ lumpy demand - it comes in 2-hour-long spikes and then can go quiet for days
 
 \section{Basic Architecture}
 
+Diagram
+
 \section{Technology Stack} \label{Technology Stack}
-Python + redis + javascript + mysql (Ampersand)
+Python + redis + mysql + redis (cluster) all versions
 cloud stack described here: \ref{Cloud architecture setup}
+
+\subsection{Programming languages}
+
+python
+
+\subsection{Database Technologies}
+
+\subsubsection{Mysql Cluster}
+write scalable, important for us, multi master, automatic / manual sharding
+distributed, shared-nothing data that provides very high, scalable performance for applications that largely use primary key access and have high concurrency, but it incurs a cost in network access when accessing data between a MySQL Server and tables distributed across Data Nodes
+In terms of CAP, MySQL Cluster will sacrifice availability to maintain consistency in the event of an unsurvivable network partition.
+at least 3 machines (otherwise split brain problem)
+data nodes (ndbd) - need memory, single-threaded
+sql nodes (mysqld) - need cpu, multithreaded
+Important:
+Will MySQL Cluster “out of the box” run an application faster than my existing MySQL database?
+The reality is probably not without some optimizations to the application and the database. However, by following the guidelines and best practices in the Guide to Optimizing Performance of the MySQL Cluster Database1 , significant performance gains can be realized, especially as you start to scale write operations while maintaining very high levels of availability and low latency.
+[http://openquery.com.au/files/mysql-cluster-intro-use.pdf]
+
+
+\section{System Scaleup Delay}
+Delays: up to 2 minutes to get metrics, up to ????? minutes for instance to be accessible to clients + ???? for DNS changes to propagate (TTL set to 60 seconds but TODO VERITYF)
 
 \section{Unique Aspects of The System}
 critical data flows over websockets
@@ -348,22 +447,21 @@ jmeter, thor (low extensibility which we needed), autobahn (max available connec
 gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
 
-
 \subsection{Kernel tuning}
 all websocket updates
 http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
 Also, and very important, you may need to check if your application has a memory/file descriptor leak. Use lsof to see all it has open to see if they are valid or not. Don't try to change your system to work around applications bugs.
 
-look for _what can limit concurrent sockets?_ in lab notes
+look for \_what can limit concurrent sockets?\_ in lab notes
 
-“The number of connections wstest can open on a server is limited by the number of ephemeral ports on the machine on the outgoing interface / IP. Something like 64k at most. If you need to test the server with more connections, currently you will need to run multiple instances of wstest (on different machines).” from: http://autobahn.ws/testsuite/usage.html#mode-massconnect
+“The number of connections wstest can open on a server is limited by the number of ephemeral ports on the machine on the outgoing interface / IP. Something like 64k at most. If you need to test the server with more connections, currently you will need to run multiple instances of wstest (on different machines).” from: http://autobahn.ws/testsuite/usage.html\#mode-massconnect
 
 Understanding tcp sockets:
-sockets are left in TIME_WAIT on the server when the client suite is killed which makes sense
-when client exits gracefully no sockets left in TIME_WAIT / CLOSE_WAIT by the server
-on_close() from tornado only kicks in on client close
+sockets are left in TIME\_WAIT on the server when the client suite is killed which makes sense
+when client exits gracefully no sockets left in TIME\_WAIT / CLOSE\_WAIT by the server
+on\_close() from tornado only kicks in on client close
 .onclose in js only kicks in when server initiates through self.close()
-when server terminates through self.close() sockets ends in TIME_WAIT for a minute (also makes sense according to docs)
+when server terminates through self.close() sockets ends in TIME\_WAIT for a minute (also makes sense according to docs)
 describe how you can influence that (reusing web sockets + delay time )
 
 \section{Baseline architecture on a local network}
@@ -372,26 +470,64 @@ Technical details - local server capabilities.
 Load testing.
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
-route53
+\subsection{Route53}
   dns mapped to inscance ips / load balancer dns names
   lbr, geo, weighed rr
   their internal heuristics take network conditions from past weeks [VERIFY], rather amibiguous
+  For each end user’s location, Route 53 will return the most specific Geo DNS record that includes that location. In other words, for a given end user’s location, Route 53 will first return a state record; if no state record is found, Route 53 will return a country record; if no country record is found, Route 53 will return a continent record; and finally, if no continent record is found, Route 53 will return the global record.
+
+  health checks - can be used custom-defined, but for us we can use load balancing health checks (will only route if healthy incstances behind it) [http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-complex-configs.html]
+
   http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Tutorials.html
-autoscaling
+\subsection{Autoscaling}
+  instances behind each groups. automatically scalable, connected to external redis and mysql instances.
   only within one region, multiple availability zones
   http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/GettingStartedTutorial.html
-  http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/how-as-works.html#arch-AutoScalingMultiAZ
+  http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/how-as-works.html\#arch-AutoScalingMultiAZ
   Auto Scaling attempts to distribute instances evenly between the Availability Zones that are enabled for your Auto Scaling group. Auto Scaling does this by attempting to launch new instances in the Availability Zone with the fewest instances.
-  alarm - object that watches over a single metric (e.g. avg cpu use of ec2 instances in auto scaling group over specified time period) (OK, ALARM, INSSUFICIENT_DATA), can trigger scaling up / down policy on an autoscaling group
+  alarm - object that watches over a single metric (e.g. avg cpu use of ec2 instances in auto scaling group over specified time period) (OK, ALARM, INSSUFICIENT\_DATA), can trigger scaling up / down policy on an autoscaling group
   policy variants (change ExactCapacity, ChangeInCapacity, PercentChangeInCapacity)
   recommendation one policy for scaling out, another policy for scaling in
   http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/as-scale-based-on-demand.html
   http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html
-  http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/US_AlarmAtThresholdEC2.html
+  http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/US\_AlarmAtThresholdEC2.html
+  \subsubsection{Alarms}
+  avg / min / max / sum / sample count (for whole group)
+  of cpu / disk io / network io
+  is >= / > / < / <= than x %
+  for at least X consecutive periods of 5 min / 15 min / 1 hour / 6 hours
+  \subsubsection{Scaling Policies}
+  execute policy when alarm
+  add / remove / set to   X   instances / % of group
+  and then wait Y (cooldown period)
 
-load balancers with AutoScaleGroups. vs what?
-instances behind each groups. automatically scalable, connected to external redis and mysql instances.
-problems with rds and elasticache
+  \subsubsection{Launch configurations}
+
+\section{Load balancing}
+  elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit), that's why they are not provided a static ip
+  routing: request count-based for http(s), for others (tcp which is a workaround for websockets) they use tcp [http://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/how-elb-works.html\#request-routing]
+  The client uses DNS round robin to determine which IP address to use to send the request to the load balancer. No control over routing without load balancing groups.
+  For example, if you have ten instances in Availability Zone us-west-2a and two instances in us-west-2b, the traffic is equally distributed between the two Availability Zones. As a result, the two instances in us-west-2b serve the same amount of traffic as the ten instances in us-west-2a. Instead, you should distribute your instances so that you have six instances in each Availability Zone.
+  To distribute traffic evenly across all back-end instances, regardless of the Availability Zone, enable cross-zone load balancing on your load balancer. However, we still recommend that you maintain approximately equivalent numbers of instances in each Availability Zone for higher fault tolerance.
+  [http://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/how-elb-works.html\#request-routing]
+  only ~64k connections possible per ELB instance TODO: VERIFY THAT
+  stickiness only works for HTTP/HTTPS protocols
+  Once you have a testing tool in place, you will need to define the growth in the load. We recommend that you increase the load at a rate of no more than 50 percent every five minutes. B.oth step patterns and linear patterns for load generation should work well with Elastic Load Balancing. If you are going to use a random load generator, then it is important that you set the ceiling for the spikes so that they do not go above the load that Elastic Load Balancing will handle until it scales (see Pre-Warming the ELB).
+  [https://aws.amazon.com/articles/1636185810492479\#pre-warming]
+
+\section{Data Layer}
+
+Technologies we used described in \ref{Technology Stack}. We used Mysql and redis as a caching solution.
+
+\subsection{Amazon Relational Database Service}
+Does not support mysql cluster as of July 2015. Support coming but not released yet.
+Offers mysql read replicas. With a single master. That obviously scales only reads
+You can create a MySQL Read Replica in a different region than the source DB instance to improve your disaster recovery capabilities, scale read operations into a region closer to end users, or make it easier to migrate from a data center in one region to a data center in another region.
+
+\subsection{Elasticache}
+doesn't support crossregion (you cannot connect to an elasticache cluster from outisde of the region)
+
+The above explain why, for a scaled out solution we had to roll with our custom setup. We were suggested using technologies like DynamoDB and Kinesis, but out of scope.
 
 \subsection{Baseline architecture deployed in the cloud}
 
@@ -423,19 +559,28 @@ Jogalekar and Woodside [6] propose a strategy-based scalability metric based on 
 PASA[MMPROJ17]
 
 \section{Selected metrics}
-latency (messaging + handhsaking)
-sustainable concurrent websocket connectoins
-infrastructure cost (per unit of time, supporting the same number of users)
-architecture reaction speed to changes in demand (scaling up and scaling down)
-dropped connections
-cpu usage
-memory usage
-network in network out
-iops reads + writes
+latency (messaging + handhsaking) (our suite)
+sustainable concurrent websocket connectoins (our suite)
+infrastructure cost (per unit of time, supporting the same number of users) (manual calculation)
+dropped connections (our suite)
+cpu usage (cloudwatch)
+memory usage (our custom server metrics, pidstat)
+network in network out (cloudwatch)
+iops reads + writes (bots number and byte values, cloudwatch)
+
+to calculate manually:
+percentage of available ports used?
+how long to run on a x euros
+
+
+availability (SLAs???????)
+architecture reaction speed to changes in demand (scaling up and scaling down) (????)
+
 CRAM METRICS
 TODO: review
+
 \subsection{EC2 Available metrics}
-collectible every minute (in detailed mode), by default every 5 minute, paid additionaly
+collectible every minute (in detailed mode), by default every 5 minute, paid additionaly - delay up to 2 minutes
 the current EC2 cloud technology does not provide any CloudWatch API to monitor the allocation and utilization of memory for EC2 instances (we do it on our own)
 limits exist (10 metric, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications per month for free
 no limits on custom metrics
@@ -447,7 +592,7 @@ alarms can be configured based on this -  http://docs.aws.amazon.com/AWSEC2/late
 data not aggregated across regions [lab2]
 
 \subsubsection{Instance Specific}
-[Lab2 - http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html]
+[Lab2 - http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch\_concepts.html]
 custom possible
 available statistics for each: min, max, sum, avg, sampleCount (count of data points but research that)
 cpu utilization
@@ -491,7 +636,15 @@ Basic metrics
 \end{itemize}
 
 \subsection{Load Testing}
-Described \cite{Load Testing Framework}
+http://stackoverflow.com/questions/3871886/ssl-and-load-balancing
+
+elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit)
+in order for the full range of ELB machine IP addresses to be utilized, “make sure each [client] refreshes their DNS resolution results every few minutes.”
+One test client equals one public IP address. ELB machines seem to route all traffic from a single IP address to the same back-end instance, so if you run more than one test client process behind a single public IP address, ELB regards these as a single client.
+Use 12 test clients for every availability zone you have enabled on the ELB. These test clients do not need to be in different availability zones – they do not even need to be in EC2 (although it is quite attractive to use EC2 instances for test clients). If you have configured your ELB to balance among two availability zones then you should use 24 test clients.
+Each test client should gradually ramp up its load over the course of a few hours. Each client can begin at (for example) one connection per second, and increase its rate of connections-per-second every X minutes until the load reaches your desired target after a few hours. - WE CANNOT DO THAT
+
+Tools described here \cite{Load Testing Framework}
 
 \subsubsection{Users Distribution}
 The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial[MMPROJ7]. Another distribution is suggested by Grozev and Buyya [MMPROJ9] - Poisson distribution with a constant mean.
@@ -507,6 +660,9 @@ The authors suggest choosing randomly when generating load as to which operation
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Evaluation}
+
+\section{Statistical Significance}
+http://technology.stitchfix.com/blog/2015/05/26/significant-sample/
 
 \section{Threats to validity}
 ec2 whacky, control over hardware released to amazon (can be dedicated machines)
