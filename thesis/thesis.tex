@@ -163,24 +163,16 @@ Scalability is generally desired in the software systems, yet, as all architectu
 \end{itemize}
 
 \subsection{Need for Scalability}
-As the globalization and internetization progresses, more and more systems are expected to be capable of serving millions of globally distributed users. A single server instance often cannot live up to that task and thus application needs to be divided and distributed in multiple smaller chunks. This division happens on different application layers, and different parts of the system now have to communicate and synchronize with each other.
 
-The user traffic, and with it the need for system services and resources, rarely stays constant. From this, a need to be able to scale up and down dynamically in response to traffic arises.
+As the globalization and internetization progresses, more and more systems are expected to be capable of serving millions of globally distributed users. A single server instance often cannot live up to that task and thus application needs to be divided and distributed in multiple smaller chunks. This division happens on different application layers, and different parts of the system have to communicate and synchronize with each other.
 
-Huge parts of the internet are shifting towards real-time. This trend is giving rise to new technologies for exchanging messages between clients and servers in the client-server architecture. Traditionally, client would send a request to a server and receive a response. This is hugely inefficient when there is a need for continuous bidirectional exchange of messages. As an improvement, new mechanisms for server-client communication were introduced: first long polling, to enhance the process and reduce overhead. Websockets are a huge next step on this path but introduce new challenges. One of them is scalability of applications which make use of this technology.
+In case of many software systems (the system under test \ref{The System Under Test} included), user traffic, and with it the need for system services and resources, varies significantly. A need to be able to scale up and down dynamically in response to traffic arises from this.
 
-Before the rise of the websocket protocol, different techniques were used to improve communication between server to client. Among them, the following can be listed (some of them serving different purposes):
-ajax - a request / response model; was an improvement since the page didn’t have to be refreshed anymore to get new data,
-short polling - using a timer to regulate sending requests to server, similar to refreshing the page, useful when data doesn’t change too often,
-long polling - now considered to be a workaround of preventing creating connections for each request, keeps a connection artificially alive for some time, clients have to reconnect periodically,
-webRTC - a peer to peer connection
-server-side events - only allow for a server-initiated communication.
-
-There exist multiple scalability vectors - applications can be scaled in a multitude of different ways. Different decompositions of application stack can be applied. Database layer itself can be scaled up (or out) in numerous ways. They and their benefits are described below.
-
-The two researchers present us with an interesting thought - software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. [MMPROJ9]
+Huge parts of the internet are shifting towards real-time. This trend is giving rise to new technologies for exchanging messages between clients and servers in the client-server architecture. Traditionally, client would send a request to a server and receive a response. This is hugely inefficient when there is a need for continuous bidirectional exchange of messages. As an improvement, new mechanisms for server-client communication have been introduced recently \ref{Client-Server Communication Improvements} to enhance the process and reduce overhead. One of them - websockets - are a huge next step on this path, but introduce new challenges. One of them is scalability of applications which make use of this technology.
 
 \subsection{Existing Approaches}
+There exist multiple scalability vectors - applications can be scaled in a multitude of different ways. Different decompositions of application stack can be applied. Database layer itself can be scaled up (or out) in numerous ways. They and their benefits are described below.
+
 A few traditional approaches of tackling an issue like that exist already. Among them we can enumerate:
 Scaling up (one massive instance),
 end-user experience is at the mercy of the unreliable Internet and its middle-mile bottlenecks
@@ -203,6 +195,8 @@ When the client reconnects, the server calculates a delta, the difference betwee
 The overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer.
 
 \subsection{Cloud Scalability}
+The two researchers present us with an interesting thought - software engineers need to design for the cloud, not only to deploy in it. To facilitate that process, they propose an adaptive dynamic provisioning and autonomous workload redirection algorithms. [MMPROJ9]
+
 A lot of tools and providers, most popular - google, azure, aws. Described in details in \ref{Cloud architecture setup}.
 
 Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center. [MMPROJ9]
@@ -345,6 +339,14 @@ Using the arithmetic mean to summarize normalized benchmark results leads to mis
 
 \section{Websocket Protocol}
 
+\subsection{Client-Server Communication Improvements}\label{Client-Server Communication Improvements}
+Before the rise of the websocket protocol, different techniques were used to improve communication between server to client. Among them, the following can be listed (some of them serving different purposes):
+ajax - a request / response model; was an improvement since the page didn’t have to be refreshed anymore to get new data,
+short polling - using a timer to regulate sending requests to server, similar to refreshing the page, useful when data doesn’t change too often,
+long polling - now considered to be a workaround of preventing creating connections for each request, keeps a connection artificially alive for some time, clients have to reconnect periodically,
+webRTC - a peer to peer connection
+server-side events - only allow for a server-initiated communication.
+
 websocket draft - RFC6455
 
 [http://stackoverflow.com/questions/4852702/do-html-websockets-maintain-an-open-connection-for-each-client-does-this-scale/25340220\#25340220]
@@ -366,7 +368,7 @@ If the file descriptors are tcp sockets, etc, then you risk using up a large amo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{The System Under Test}
+\chapter{The System Under Test}\label{The System Under Test}
 
 real time prediction parmet
 parimutuel pools
