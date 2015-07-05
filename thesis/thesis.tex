@@ -124,37 +124,48 @@ Here we outline the structure of the thesis. A short paragraph on what happens i
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Background}
 
-\section{Scalability of Software Systems}
+\section{Systems Scalability}
 
-Scalability seems to be a notion that everyone intuitively grasps, but has difficulties when it comes to clear explanations. In my literature study I came across a few similar definitions, which might help with that, of which three can be found below:
+Scalability seems to be a notion that everyone intuitively grasps, but has difficulties when it comes to clear explanations. In my literature study I came across a few definitions, which might help with that, of which three can be found below:
 
 \begin{quote}
-\cite{Williams04} Scalability is a measure of an application system’s ability to, without modification, cost-effectively provide increased throughput, reduced response time and/or support more users when hardware resources are added.
+~\cite{Williams04} Scalability is a measure of an application system’s ability to, without modification, cost-effectively provide increased throughput, reduced response time and/or support more users when hardware resources are added.
 \end{quote}
 
 \begin{quote}
 \cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload (without adding resources).
-\end{quote}
-failures: address space exceeded, memory overloaded, available network bandwith exceeded, internal table filled.
+\end{quote}\label{x}
+In light of this definition we would talk about a scalability failure if one of the following occured:
+\begin{itemize}
+  \item Address space was exceeded,
+  \item Memory was overloaded,
+  \item Available network bandwith was exceeded,
+  \item etc.
+\end{itemize}
 
 \begin{quote}
 \cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload by repeatedly applying a cost-effective strategy for extending a system’s capacity.
 \end{quote}
-failure: resource is overloaded or exhausted and adding capac- ity to the resource does not result in a commensurate ability to handle significant additional demand. For example, adding a processor may not allow a system to meet the additional de- mand if adding the processor also increases overhead significantly.
+According to this definition, one could determine system scalability failure if a given resource got overloaded or exhausted an adding capacity to this resource would not result in a proportional ability to handle additional demand, e.g.:
+\begin{itemize}
+  \item an additional processor will not contribute to meeting the higher demand if handing of that processor entails an overhead).
+  \item a newly added server instance might not contribute to handling a higher user demand if slows down the routing process.
+\end{itemize}
 
-Scalability is generally desired in the software systems, yet it comes at a cost associated with the system's design. Design of scalable systems is more complex (since there are additional problems that need to be dealt with).
+\subsection{Scalability Cost}
+Scalability is generally desired in the software systems, yet, as all architectural software decisions come at a cost \cite{GerHeiBench}, one must be aware of the trade-offs usually associated with it. Weinstock and Goodenough \cite{WeinstockOnSystem2006} point these out:
+\begin{itemize}
+  \item performance and scalability (non-scalable system will often demonstrate degrading performance with increasing demand, but scalable systems require performance sacrifice on lower usage levels),
+  \item cost and scalability (designing a system to be scalable up-front entails additional costs),
+  \item operability and scalability (it is difficult for humans to operate large systems),
+  \item usability and scalability (it may be possible to increase servable demand with limiting system's service scope - e.g. removing personalization and displaying generic, cacheable data),
+  \item data consistency and scalability (higher scalability can be achieved if system allows for data inconsistencies).
+\end{itemize}
 
+\subsection{Need for Scalability}
 As the globalization and internetization progresses, more and more systems are expected to be capable of serving millions of globally distributed users. A single server instance often cannot live up to that task and thus application needs to be divided and distributed in multiple smaller chunks. This division happens on different application layers, and different parts of the system now have to communicate and synchronize with each other.
 
 The user traffic, and with it the need for system services and resources, rarely stays constant. From this, a need to be able to scale up and down dynamically in response to traffic arises.
-
-tradeoffs:
-performance and scalability,
-cost and scalability,
-operability and scalability,
-usability and scalability,
-data consistency and scalability
-\cite{WeinstockOnSystem2006} (look there for details)
 
 Huge parts of the internet are shifting towards real-time. This trend is giving rise to new technologies for exchanging messages between clients and servers in the client-server architecture. Traditionally, client would send a request to a server and receive a response. This is hugely inefficient when there is a need for continuous bidirectional exchange of messages. As an improvement, new mechanisms for server-client communication were introduced: first long polling, to enhance the process and reduce overhead. Websockets are a huge next step on this path but introduce new challenges. One of them is scalability of applications which make use of this technology.
 
@@ -190,7 +201,6 @@ Scaling up (using a bigger server instance) is easy to implement, but costly, ev
 client state needs to be stored on the server but in a layer shared between the webservers - the more of it, the bigger the latency
 When the client reconnects, the server calculates a delta, the difference between the current market state and the last values sent to the client and only sends those values that have changed. [MMPROJ14]
 The overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer.
-
 
 \subsection{Cloud Scalability}
 A lot of tools and providers, most popular - google, azure, aws. Described in details in \ref{Cloud architecture setup}.
@@ -277,7 +287,7 @@ Even in 'locked down' cloud computing environments such as EC2 where the develop
 
 What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAPTER \ref{Scalability Measurements} ON THIS.
 
-\subsection{Benchmarking}
+\section{Benchmarking}
 
 [MMPROJ7] important to have random distributions(uniform, zipfian, latest, multinomial)
 
@@ -299,10 +309,9 @@ Results are reproducible if it is guaranteed that the same results can be obtain
 Benchmarking a distributed tool (3) is much more complex and out of scope. [3rd paper from http://www.sosy-lab.org/~dbeyer/Publications/2015-SPIN.Benchmarking\_and\_Resource\_Measurement.pdf]
 extremely difficult to get all variables under control in IT - hardware, all the layers of software, non deterministic stuff like networks, etc. Don't even get me started on clouds where you basically give up control over hardware to the cloud host.
 
+\subsection{Benchmarking Crimes}
 
-\subsubsection{Benchmarking Crimes}
-
-[MMPROJ1] http://www.cse.unsw.edu.au/~Gernot/benchmarking-crimes.html
+\cite{GerHeiBench}
 Selective benchmarking
   not covering the full evaluation space
   not evaluating potential performance degradation
@@ -334,7 +343,7 @@ The proper way to average (i.e. arrive at a single figure of merit) is to use th
 [MMPROJ3] http://dl.acm.org/citation.cfm?id=5673
 Using the arithmetic mean to summarize normalized benchmark results leads to mistaken conclusions that can be avoided by using the preferred method: the geometric mean.
 
-\subsection{Websocket Protocol}
+\section{Websocket Protocol}
 
 websocket draft - RFC6455
 
