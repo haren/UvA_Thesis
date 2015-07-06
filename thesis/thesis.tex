@@ -262,12 +262,12 @@ My own research has proven preparing websocket-based communication scalability t
 
 The Websocket Protocol is described in details in a dedicated section \ref{Websocket Protocol}.
 
-\subsection{Measuring Scalability} \label{Measuring Scalability}
-proves a challenge, especially in a cloud environment
-wicked problem
-Even in 'locked down' cloud computing environments such as EC2 where the developer has little control over network topology or hardware platform, understanding the performance bottlenecks imposed by the offered infrastructure is valuable [http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.163.7403 ,http://www.cs.berkeley.edu/~fox/Cloudstone-Sep08-DRAFT.pdf]
+\subsection{Measuring Scalability}
+Measuring scalabliity proves a challenge, since there is no single physical quantity or unit which the community has accepted as a scalability measure.
 
-What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAPTER \ref{Scalability Measurements} ON THIS.
+Measuring and researching in a cloud environment is difficult, because, by definition, the researcher has no control over the hardware that his system is running on. Clouds are also inherently non-deterministic. Nevertheless, as Sobel et al. describe in their work \cite{Sobel}, even in cloud computing environments, where researchers have little control over network topology or hardware platform, understanding the performance bottlenecks and scalability limitations imposed by the offered infrastructure is valuable.
+
+As this is a crucial topic to my research, this topic is explored in detail in a dedicated chapter \ref{Scalability Measurements}.
 
 \section{Geographical Distribution}
 
@@ -583,7 +583,6 @@ The above explain why, for a scaled out solution we had to roll with our custom 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Scalability Measurements} \label{Scalability Measurements}
-The previous description \ref{Measuring Scalability} concerned general stuff.
 Here we describe the metrics we settled for.
 
 Most of what is necessary for the purpose of this research has been covered by Pushkala Pattabiraman et al [MMPROJ3].
