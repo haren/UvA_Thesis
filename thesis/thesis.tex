@@ -191,7 +191,7 @@ Data layer is often a performance bottleneck because of requirements for transac
 
 \begin{description}
   \item[CAP Theorem]
-   put forward by Eric Brewer \cite{Cap} states that it is impossible for a distributed system to provide all of the following guarantees:
+  put forward by Eric Brewer \cite{Cap} states that it is impossible for a distributed system to provide all of the following guarantees:
   \begin{itemize}
     \item consistency,
     \item availability,
@@ -199,18 +199,19 @@ Data layer is often a performance bottleneck because of requirements for transac
   \end{itemize}
   Therefore, a trade-off needs to be made, depending on stakeholder priorities, which of the three to give up.
   \item[ACID]
+   stands for Atomicity, Consistency, Isolation, Durability and is a set of properties guaranteeing reliable processing of database transactions. It has been a guideline in designing multiple database systems. The term was originaly coined by Haerder and Reuter in 1983 \cite{ACID}.
   \item[BASE]
-  Dekhtyar writes about BASE property \cite{EveCon} - basically available, soft state, eventually consistent. It’s a complement of ACID. Author claims we lack precise metrics to measure BASE aspects and that’s why every system implements eventual consistency differently.
+   stands for Basically Available, Soft State, Eventually Consistent \cite{EveCon}. It’s a complement of ACID. Author claims we lack precise metrics to measure BASE aspects and that’s why every system implements eventual consistency differently.
 
-  Most importantly for this research, he explains \textit{MySQL Cluster} - it performs much like an ACID database but with the performance benefits of a cluster. Aside from that, \textit{MySQL Replication} can be put to use. It can be configured at multiple topologies, not only the basic master-slave; consistency differs per configuration.
+  Most importantly for this research, the author \cite{EveCon} explains \textit{MySQL Cluster} - it performs much like an ACID database but with the performance benefits of a cluster. Aside from that, \textit{MySQL Replication} can be put to use. It can be configured at multiple topologies, not only the basic master-slave; consistency differs per configuration.
 \end{description}
 
 Many solutions and strategies for dealing with database scalability have emerged, including \textit{NoSQL} and \textit{NewSQL} databases, data replication and sharding \cite{Amza}.
 
-Cooper et al touch on that subject in their work \cite{Ycsb}. They claim that in scaling out the database layer one should aim for elasticity (dynamically adding capacity to a running system) and high availability. These are hard to achieve using traditional database systems. They show that new protocols are being developed to address that issue, such as that: \textit{two-phase commit} and \textit{paxos}.
+Cooper et al touch on that subject in their work \cite{Ycsb}. They claim that in scaling out the database layer one should aim for elasticity (dynamically adding capacity to a running system) and high availability. These are hard to achieve using traditional database systems. They show that new protocols are being developed to address that issue, such as that: \textit{two-phase commit protocol} (provides atomicity for distributed transactions) and \textit{paxos}.
 
 
-The authors \cite{Ycsb} also give an overview of different database systems, including \textit{PNUTS}, \textit{BigTable}, \textit{HBase}, \textit{Cassandra}, \textit{Sharded MySQL}, \textit{Azure}, \textit{CouchDB}, and \textit{SimpleDB}. Mysql they use does not support elastic growth and dynamic data repartitioning;  sharded MySQL is inherently inelastic.
+The authors \cite{Ycsb} also give an overview of different database systems, including \textit{PNUTS}, \textit{BigTable}, \textit{HBase}, \textit{Cassandra}, \textit{Sharded MySQL}, \textit{Azure}, \textit{CouchDB}, and \textit{SimpleDB}.
 
 
 In their work \cite{Ycsb}, we can find enumeration of classic data-related scalability trade-offs:
@@ -221,18 +222,33 @@ In their work \cite{Ycsb}, we can find enumeration of classic data-related scala
     \item data partitioning (column and row-based storage).
   \end{itemize}
 
-Mysql White paper [MMPROJ19] gives us a good overview of how scalability works in Mysql’s case. Authors suggest identify which characteristic the application falls into - lots of write operations, real-time user experience, 24 x 7 user experience or agility and ease-of-use. My application falls into the second tier.
-They claim to support (among others) auto-sharding for write-scalability, active / active geographic replication and online scaling and schema upgrades.  Geographic replications offers distribution of clusters across remote data centers, which they claim helps reduce latency (important in our case). Authors show how mysql is optimized for real-timeness: data structures are optimized for in-memory access, persistence run in background processes, all indexed columns are stored in memory. They claim that mysql clustered is very well-suited for on-line, on-demand scaling, which provides a contrast to what cooper et al have found  (careful here, son) \cite{Ycsb}.
-
-Ruflin et al in Social-Data Storage-Systems [21] evaluate different storage system types: rdbms,  key-value, column store, document store and graph databases. Two first are of my interest, especially since they evaluate technologies I use - redis and mysql. The authors mention unconventional usages of Mysql, as a key value store e.g. by Twitter. Reddit also uses it, with a single table [SOURCE]
-
-They show how mysql can be scaled horizontally by both sharding and data replication. They also indicate that the more structured the RDBMS data, the harder it is to scale horizontally. Mysql is optimized for writes, since only one record in one table is touched, whereas reads can prove expensive if they contain joints, especially spreading across multiple cluster nodes. Facebook and Twitter solved it by putting a cache on top of mysql [21].
-
-Redis is said to be of limited scalability, because of the fact that for good performance the whole data set should fit into memory.
-
-Further improvements to mysql: Pakkonen and Pakkala show how MySQL performance can be increased [22], e.g. by disabling automatic committing or binary logging (binlog) output. They used the already mentioned YCSB benchmarking tool [7]. They also present the results of the tests they performed - switching off auto committing changes the latency from (1.4s to 130 ms) on their data sample, which is a huge improvement.
 
 The technology stack I have been working with in the scope of this project consists of \textit{MySQL} as persistent storage and \textit{Redis} as a key-value cache. It is described in details in a dedicated chapter \ref{Technology Stack}.
+
+\subsubsection{MySQL Scalability}
+
+Mysql White paper \cite{MySQL} gives us a good overview of how scalability works in case of MySQL Cluster. Authors suggest starting the design of the scaling process by identifying which characteristic the application posseses: lots of write operations, real-time user experience, 24x7 user experience or agility and ease-of-use. The System Under Test \ref{The System Under Test} falls into the first and second categories.
+
+They claim to support (among others) auto-sharding for write-scalability, active / active geographic replication and online scaling and schema upgrades.  Geographic replication offers distribution of clusters across remote data centers, which they claim helps reduce latency (which is extremely important case of The System Under Test \ref{The System Under Test}).
+
+Authors show how MySQL Cluster is optimized for real-timeness:
+\begin{itemize}
+  \item data structures are optimized for in-memory access,
+  \item persistence of updates runs in the background,
+  \item all indexed columns are stored in memory.
+\end{itemize}
+According to the white paper \cite{MySQL}, MySQL Cluster is very well-suited for on-line, on-demand scalin.
+
+MySQL can also be used to scale in unconventional ways. Ruflin et al, in Social-Data Storage-Systems \cite{SoDaSS}, mention that Twitter uses MySQL as a key value store.
+
+They show how MySQL can be scaled horizontally by both sharding and data replication. They also indicate that the more structured the RDBMS data, the harder it is to scale horizontally. MySQL is optimized for writes, since only one record in one table is touched, whereas reads can prove expensive if they contain joints, especially spreading across multiple cluster nodes. Facebook and Twitter solved it by putting a cache on top of MySQL \cite{SoDaSS}.
+
+\subsubsection{Redis Scalability}
+Single Redis installation is said to be of limited scalability, because of the fact that for good performance the whole data set should fit into memory \cite{SoDaSS}. Redis offers cluster\footnote{\url{http://redis.io/topics/cluster-spec}} and replication\footnote{\url{http://redis.io/topics/replication}} solutions.
+
+In a Redis Cluster, data is automatically sharded (not replicated) among multiple nodes. One has control over sharding; it is possible to ensure that certain data points end up on the same (or on a given) node. Redis Cluster does not guarantee strong consistency - under certain conditions the Cluster can lose writes that were acknowledged to the client. Support for synchronous writes exists, through the command \textit{WAIT}, which highly (but not entirely) decreases the likelihood of lost writes. Nevertheless, using it is discouraged unless absolutely necessary.
+
+Redis can also be scaled for reads using a simple replication in a single master - multiple slaves topology.
 
 \subsection{Websocket Scalability}
 
