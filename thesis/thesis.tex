@@ -184,21 +184,45 @@ One of the biggest advantages of deploying one's architecture to the cloud that 
 As Grozev and Buyya \cite{GroBuy} put it, to fully facilitate cloud capabilities, software engineers need to design for the cloud, not only to deploy to it.
 
 \subsection{Data-layer Scalability}
-Data layer is often a performance bottleneck because of requirements for transactional access and atomicity - it is hard to scale out because of this \cite{GroBuy}.
 
-The technology stack I am working with in this scope consists of mysql as a persistent storage and redis as a key-value cache. Described in details \ref{Technology Stack}.
+Data layer scalability is an important part of system scalability. In a distributed system, multiple system agents share the data. There exist multiple strategies for operating on a shared, distributed data layer.
 
-Many solutions and strategies for dealing with database scalability have emerged, including nosql and newsql databases, data replication, caching and database sharding [MMPROJ8]. In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \cite{GroBuy}. We cannot use this, also described in \ref{Cloud architecture setup}.
+Data layer is often a performance bottleneck because of requirements for transactional access and atomicity - it is hard to scale out when system uses a relational data store \cite{GroBuy}.
 
-Cooper et al touch on that subject in their work [MMPROJ7]. They claim that in scaling out one should aim for elasticity and high availability. These are hard to achieve using traditional database systems. They emphasize that there are protocols that help achieve strong transaction: two-phase commit and paxos.
-They also give an overview of different database systems, including PNUTS, BigTable, HBase, Cassandra, Sharded MySQL, Azure, CouchDB, and SimpleDB. Mysql they use does not support elastic growth and dynamic data repartitioning -  Sharded MySQL is inherently inelastic.
-In their work [MMPROJ7], we can find enumeration of classic data-related scalability tradeoffs, such as latency and durability. They talk about different replication techniques - synchronous and asynchronous and different data partitioning solutions.
+\begin{description}
+  \item[CAP Theorem]
+   put forward by Eric Brewer \cite{Cap} states that it is impossible for a distributed system to provide all of the following guarantees:
+  \begin{itemize}
+    \item consistency,
+    \item availability,
+    \item partition tolerance.
+  \end{itemize}
+  Therefore, a trade-off needs to be made, depending on stakeholder priorities, which of the three to give up.
+  \item[ACID]
+  \item[BASE]
+  Dekhtyar writes about BASE property \cite{EveCon} - basically available, soft state, eventually consistent. It’s a complement of ACID. Author claims we lack precise metrics to measure BASE aspects and that’s why every system implements eventual consistency differently.
+
+  Most importantly for this research, he explains \textit{MySQL Cluster} - it performs much like an ACID database but with the performance benefits of a cluster. Aside from that, \textit{MySQL Replication} can be put to use. It can be configured at multiple topologies, not only the basic master-slave; consistency differs per configuration.
+\end{description}
+
+Many solutions and strategies for dealing with database scalability have emerged, including \textit{NoSQL} and \textit{NewSQL} databases, data replication and sharding \cite{Amza}.
+
+Cooper et al touch on that subject in their work \cite{Ycsb}. They claim that in scaling out the database layer one should aim for elasticity (dynamically adding capacity to a running system) and high availability. These are hard to achieve using traditional database systems. They show that new protocols are being developed to address that issue, such as that: \textit{two-phase commit} and \textit{paxos}.
+
+
+The authors \cite{Ycsb} also give an overview of different database systems, including \textit{PNUTS}, \textit{BigTable}, \textit{HBase}, \textit{Cassandra}, \textit{Sharded MySQL}, \textit{Azure}, \textit{CouchDB}, and \textit{SimpleDB}. Mysql they use does not support elastic growth and dynamic data repartitioning;  sharded MySQL is inherently inelastic.
+
+
+In their work \cite{Ycsb}, we can find enumeration of classic data-related scalability trade-offs:
+\begin{itemize}
+    \item read performance and write performance,
+    \item latency and durability,
+    \item synchronous and asynchronous replication,
+    \item data partitioning (column and row-based storage).
+  \end{itemize}
 
 Mysql White paper [MMPROJ19] gives us a good overview of how scalability works in Mysql’s case. Authors suggest identify which characteristic the application falls into - lots of write operations, real-time user experience, 24 x 7 user experience or agility and ease-of-use. My application falls into the second tier.
-They claim to support (among others) auto-sharding for write-scalability, active / active geographic replication and online scaling and schema upgrades.  Geographic replications offers distribution of clusters across remote data centers, which they claim helps reduce latency (important in our case). Authors show how mysql is optimized for real-timeness: data structures are optimized for in-memory access, persistence run in background processes, all indexed columns are stored in memory. They claim that mysql clustered is very well-suited for on-line, on-demand scaling, which provides a contrast to what cooper et al have found  (careful here, son) [MMPROJ7].
-
-Liu in his Eventual Consistency [MMPROJ20] writes about BASE property - basically available, soft state, eventually consistent. It’s a complement of ACID.  Author claims we lack precise metrics to measure its aspects and that’s why every implementation implements eventual consistency differently.
-He writes about different implementations. Most importantly for my research, he explains mysql cluster implementation - that it performs much like an ACID database but with the performance benefits of a cluster and can be configured at multiple topologies, not only the basic master-slave. Consistency differs per configuration.
+They claim to support (among others) auto-sharding for write-scalability, active / active geographic replication and online scaling and schema upgrades.  Geographic replications offers distribution of clusters across remote data centers, which they claim helps reduce latency (important in our case). Authors show how mysql is optimized for real-timeness: data structures are optimized for in-memory access, persistence run in background processes, all indexed columns are stored in memory. They claim that mysql clustered is very well-suited for on-line, on-demand scaling, which provides a contrast to what cooper et al have found  (careful here, son) \cite{Ycsb}.
 
 Ruflin et al in Social-Data Storage-Systems [21] evaluate different storage system types: rdbms,  key-value, column store, document store and graph databases. Two first are of my interest, especially since they evaluate technologies I use - redis and mysql. The authors mention unconventional usages of Mysql, as a key value store e.g. by Twitter. Reddit also uses it, with a single table [SOURCE]
 
@@ -207,6 +231,8 @@ They show how mysql can be scaled horizontally by both sharding and data replica
 Redis is said to be of limited scalability, because of the fact that for good performance the whole data set should fit into memory.
 
 Further improvements to mysql: Pakkonen and Pakkala show how MySQL performance can be increased [22], e.g. by disabling automatic committing or binary logging (binlog) output. They used the already mentioned YCSB benchmarking tool [7]. They also present the results of the tests they performed - switching off auto committing changes the latency from (1.4s to 130 ms) on their data sample, which is a huge improvement.
+
+The technology stack I have been working with in the scope of this project consists of \textit{MySQL} as persistent storage and \textit{Redis} as a key-value cache. It is described in details in a dedicated chapter \ref{Technology Stack}.
 
 \subsection{Websocket Scalability}
 
@@ -263,7 +289,7 @@ What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAP
 
 \section{Benchmarking}
 
-[MMPROJ7] important to have random distributions(uniform, zipfian, latest, multinomial)
+\cite{Ycsb} important to have random distributions(uniform, zipfian, latest, multinomial)
 
 [MMPROJ2] https://homes.cs.washington.edu/~bornholt/post/performance-evaluation.html
 computer science experiments tend to be among the most non-deterministic and prone to omitted-variable bias
@@ -438,7 +464,7 @@ jmeter, thor (low extensibility which we needed), autobahn (max available connec
 gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
 
-\subsection{Kernel tuning}
+\section{Kernel tuning}
 all websocket updates
 http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
 Also, and very important, you may need to check if your application has a memory/file descriptor leak. Use lsof to see all it has open to see if they are valid or not. Don't try to change your system to work around applications bugs.
@@ -455,6 +481,8 @@ on\_close() from tornado only kicks in on client close
 when server terminates through self.close() sockets ends in TIME\_WAIT for a minute (also makes sense according to docs)
 describe how you can influence that (reusing web sockets + delay time )
 
+ulimit, nofile, fs.max\-file, net.ipv4.ip\_local\_port\_range = 32768 65535  to /etc/sysctl.conf for ip ranges on the clients
+
 \section{Baseline architecture on a local network}
 Architecture diagrams.
 Technical details - local server capabilities.
@@ -465,6 +493,8 @@ Load testing.
 selected aws
 
 multiple availability zones very important in a shared cloud environment - often because another customer is getting hit by a DDoS.\cite{GroBuy}
+
+In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \cite{GroBuy}. We cannot use this, also described in \ref{Cloud architecture setup}.
 
 \subsection{Route53}
   dns mapped to inscance ips / load balancer dns names
@@ -643,7 +673,7 @@ Each test client should gradually ramp up its load over the course of a few hour
 Tools described here \cite{Load Testing Framework}
 
 \subsubsection{Users Distribution}
-The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial[MMPROJ7]. Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
+The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
 
 \section{Baseline, Deployed in the cloud}
 
