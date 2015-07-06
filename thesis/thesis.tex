@@ -271,36 +271,38 @@ As this is a crucial topic to my research, this topic is explored in detail in a
 
 \section{Geographical Distribution}
 
-The topic is nicely introduced by Tom Leighton in his article Improving performance of the internet [10]. He provides a few arguments why it is important to keep data as close to end users as possible. Apart from obvious latency benefits, by doing this one reduces the chances of suffering from a big “middle mile” provider outage.
-He introduces a scale to reason about internet locality:
+With the rise of global internet services, single applications have to server users who are distributed around the whole globe. With the distribution of the users, comes distribution of the data. Multiple solutions exist that, through data distribution, aim at improving the \textit{Quality of Service}.
 
-Scale name
-Range
-Latency range
-local
-< 100 miles
-1ms
-regional
-500 - 1000 miles
-15ms
-cross-continent
-~ 3000 miles
-50ms
-multi-continent
-~ 6000 miles
-100ms
+The topic is nicely introduced by Tom Leighton in his article \textit{Improving performance of the internet} \cite{Akamai}. He provides a few arguments why it is important to keep data as close to end users as possible. Apart from obvious latency benefits, by doing this, one reduces the chances of suffering from a big \textit{middle mile} provider outage.
+He introduces a scale to reason about internet locality.
 
-The longer data must travel through the middle mile, the more it is subject to congestion, packet loss, and poor performance. This is why the company he works for, Akamai, locates servers close to smaller network, end users (on a scale that I cannot reproduce in this research - requires control over infrastructure, in this case it's Amazon's). He claims that big websites have at least two geographically dispersed mirror locations to improve performance, reliability and scalability [MMPROJ10].
-In his work, Leighton includes a set of guidelines to follow when thinking about geographical scalability:
-reduce transport layer overhead (this is achieved partly in my case by using websockets),
-prefetch embedded content,
-assemble pages at the edge,
-offload computations to the edge,
-ensure significant redundancy in all systems to facilitate failover,
-software logic to provide message reliability,
-distributed control or coordination.
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Scale Name}       & \texttt{Range}        & \texttt{Latency Range}  & \texttt{Typical Packet Loss}\\
+  \hline
+  local                     & less than 100 miles   & 1ms                     & 0.6\% \\
+  regional                  & 500 - 1000 miles      & 15ms                    & 0.7\% \\
+  cross-continent           & 3000 miles            & 50ms                    & 1.0\% \\
+  multi-continent           & 6000 miles            & 100ms                   & 1.4\% \\
+\end{tabular}
+\end{center}
+\caption{Internet Locality}
+\label{table:internetLocality}
+\end{table}
+As the table \ref{table:internetLocality} shows, the longer data must travel through the middle mile, the more it is subject to congestion, packet loss, and poor performance \cite{Akamai}. This is why companies try to locate servers close to end users (on a scale that cannot be reproduced in this research - requires finer control over infrastructure). The lowest granular scale I am able to work with within this research is \textit{regional}. Leighton writes that big websites have at least two geographically dispersed mirror locations to improve performance, reliability and scalability.
 
-Ed Howorka in his interesting paper “Colocation beats the speed of light” [MMPROJ13] focuses on the best placement of servers for traders trading on multiple exchanges. His paper demonstrates that traders gain nothing by positioning their computer at the midpoint between two financial exchanges. He claims that  every algorithm on a central machine talking to surrounding servers (users in my case) can be replaced by colocated servers (located next to, in my case, users). What is more, he implies that server colocation provides a better solution for high-speed applications (as opposed to using a big, centralized server located in the middle). His formal proof in the article (why isn't this a case for us).
+In his work, he includes a set of guidelines to consider when performing geographical scalability:
+\begin{itemize}
+  \item reduce transport layer overhead (I am achieving this with usage of the websocket protocol),
+  \item prefetch embedded content,
+  \item assemble pages at the edge (even on an end client machine),
+  \item offload computations to the edge,
+  \item ensure significant redundancy in all systems to facilitate failover,
+  \item use software logic to provide message reliability.
+\end{itemize}
+
+Ed Howorka in his interesting paper \textit{Colocation beats the speed of light} \cite{EdHoColoc}  about trading system geographical distributions focuses on the best placement of servers for traders trading on multiple exchanges. His paper demonstrates that traders gain nothing by positioning their computer at the midpoint between two financial exchanges. He claims that  every algorithm on a central machine talking to surrounding servers (users in case of the System Under Test \ref{The System Under Test}) can be replaced by colocated servers (located in geographical proximity to users). Furthermore, he implies and sets out to prove that server colocation provides a better solution for high-speed applications (as opposed to using a big, centralized server located in the middle).
 
 \section{Benchmarking}
 
