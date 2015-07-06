@@ -252,20 +252,24 @@ Redis can also be scaled for reads using a simple replication in a single master
 
 \subsection{Websocket Scalability}
 
-A nice introduction into push-base communication over the internet can be found in Agarwal’s work - Toward a Push-Scalable Global Internet [MMPROJ11]. The key message in this paper is that push message delivery on the World Wide Web is not scalable for servers, intermediate network elements, and battery-operated mobile device clients. And yet, most of modern day websites have highly dynamic content updated multiple times a minute.
-Author here proposes a content-based, machine-learning optimized solution for closing and opening connections when needed. The result he achieves is that the number of hours of active always-on connections can be cut by half while still achieving real-time message delivery for up to 90 percent of all messages.
+An introduction into push-base communication over the internet can be found in Agarwal’s work - Toward a Push-Scalable Global Internet \cite{PushScale}. The key message in the article is that push message delivery on the World Wide Web is not scalable for servers, intermediate network elements, and battery-operated mobile device clients. And yet, most of modern day websites have highly dynamic content updated even up to multiple times a minute (very much so for The System Under Test \ref{The System Under Test}).
 
-The author performs the following reasoning in his study. Most of internet communications happens over HTTP Running over TCP. Real-time message delivery requires an always-on connection from the server to the client. HTTP proxies have limited memory and tcp ports, are shared among multiple users. Servers need to be provisioned in order to maintain active tcp connections from large populations of user clients. These all provide challenges that need to be dealt with in scalable applications.
+Most of internet communications happens over HTTP Running over TCP. Real-time message delivery requires an always-on connection from the server to the client. HTTP proxies have limited memory and tcp ports, are shared among multiple users. Servers need to be provisioned in order to maintain active tcp connections from large populations of user clients. These all provide challenges that need to be dealt with in scalable applications \cite{PushScale}.
 
-my own research has shown - difficult, one needs to tweak kernels, cloud scalability built for http
+On a more positive note, Cassetti and Luz \cite{WebsApi} claim that overhead introduced by the websocket protocol and websocket API is rather small as compared to other communication methods. Furthermore, one data intensive applications can achieve superior bandwidth and performance when using websockets.
 
-previous: ajax, long polling, short polling, websocket [MMPROJ11]
+My own research has proven preparing websocket-based communication scalability to be difficult and tedious. Most of the cloud scalability stack that is available and that I have been working with was designed and built to support http-based -- and not websocket-based -- communication. On top of that, one needs to tweak the host operating system kernel in multiple ways to increase the number of concurrent websocket connections the system can maintain. Details of the tuning process are described later \ref{Kernel tuning}.
 
-M. Franklin and S. Zdonik provide an insight into the history of push-based technologies. Their paper from 1998 [MMPROJ12] classifies communication mechanisms into aperiodic pull, periodic pull, aperiodic push and periodic push.
+The Websocket Protocol is described in details in a dedicated section \ref{Websocket Protocol}.
 
-Cassetti and Luz [MMPROJ15] claim that overhead introduced by the websocket protocol and WebSocket API is rather small as compared to other communication methods. Furthermore, you can achieve superior bandwidth and performance when using websockets.
+\subsection{Measuring Scalability} \label{Measuring Scalability}
+proves a challenge, especially in a cloud environment
+wicked problem
+Even in 'locked down' cloud computing environments such as EC2 where the developer has little control over network topology or hardware platform, understanding the performance bottlenecks imposed by the offered infrastructure is valuable [http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.163.7403 ,http://www.cs.berkeley.edu/~fox/Cloudstone-Sep08-DRAFT.pdf]
 
-\subsection{Geographical Distribution}
+What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAPTER \ref{Scalability Measurements} ON THIS.
+
+\section{Geographical Distribution}
 
 The topic is nicely introduced by Tom Leighton in his article Improving performance of the internet [10]. He provides a few arguments why it is important to keep data as close to end users as possible. Apart from obvious latency benefits, by doing this one reduces the chances of suffering from a big “middle mile” provider outage.
 He introduces a scale to reason about internet locality:
@@ -297,11 +301,6 @@ software logic to provide message reliability,
 distributed control or coordination.
 
 Ed Howorka in his interesting paper “Colocation beats the speed of light” [MMPROJ13] focuses on the best placement of servers for traders trading on multiple exchanges. His paper demonstrates that traders gain nothing by positioning their computer at the midpoint between two financial exchanges. He claims that  every algorithm on a central machine talking to surrounding servers (users in my case) can be replaced by colocated servers (located next to, in my case, users). What is more, he implies that server colocation provides a better solution for high-speed applications (as opposed to using a big, centralized server located in the middle). His formal proof in the article (why isn't this a case for us).
-
-\subsection{Measuring Scalability} \label{Measuring Scalability}
-Even in 'locked down' cloud computing environments such as EC2 where the developer has little control over network topology or hardware platform, understanding the performance bottlenecks imposed by the offered infrastructure is valuable [http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.163.7403 ,http://www.cs.berkeley.edu/~fox/Cloudstone-Sep08-DRAFT.pdf]
-
-What we have from literature study. ONLY THE GENERAL STUFF - WE HAVE A FULL CHAPTER \ref{Scalability Measurements} ON THIS.
 
 \section{Benchmarking}
 
@@ -359,9 +358,12 @@ The proper way to average (i.e. arrive at a single figure of merit) is to use th
 [MMPROJ3] http://dl.acm.org/citation.cfm?id=5673
 Using the arithmetic mean to summarize normalized benchmark results leads to mistaken conclusions that can be avoided by using the preferred method: the geometric mean.
 
-\section{Websocket Protocol}
+\section{Websocket Protocol}\label{Websocket Protocol}
 
 \subsection{Client-Server Communication Improvements}\label{Client-Server Communication Improvements}
+M. Franklin and S. Zdonik provide an insight into the history of push-based technologies. Their paper from 1998 [MMPROJ12] classifies communication mechanisms into aperiodic pull, periodic pull, aperiodic push and periodic push.
+
+previous: ajax, long polling, short polling, websocket \cite{PushScale}
 Before the rise of the websocket protocol, different techniques were used to improve communication between server to client. Among them, the following can be listed (some of them serving different purposes):
 ajax - a request / response model; was an improvement since the page didn’t have to be refreshed anymore to get new data,
 short polling - using a timer to regulate sending requests to server, similar to refreshing the page, useful when data doesn’t change too often,
@@ -480,7 +482,7 @@ jmeter, thor (low extensibility which we needed), autobahn (max available connec
 gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
 
-\section{Kernel tuning}
+\section{Kernel tuning}\label{Kernel tuning}
 all websocket updates
 http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
 Also, and very important, you may need to check if your application has a memory/file descriptor leak. Use lsof to see all it has open to see if they are valid or not. Don't try to change your system to work around applications bugs.
