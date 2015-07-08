@@ -351,7 +351,7 @@ If the file descriptors are tcp sockets, etc, then you risk using up a large amo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Benchmarking}
 
-\epigraph{"If you're not keeping score, you're just practicing."}{--- \textit{Vince Lombardi}}
+\epigraph{"If you're not keeping score, you're just practicing."}{--- Vince Lombardi, American Footbal Player}
 
 As this projects concerns benchmarking different architecture decompositions of The System Under Test \ref{The System Under Test}, it is important to define and describe the benchmarking process.
 
@@ -392,40 +392,51 @@ From my own experience, I have drawn that against a complex system like our util
 
 Gernot Heiser prepared a list \cite{GerHeiBench} of \textit{benchmarking crimes} which should be avoided when attempting to benchmark a system.
 
+\subsubsection{Selective benchmarking}
+\begin{enumerate}
+  \item Not covering the full evaluation space.
+  \item Not evaluating potential performance degradation.
+    \begin{enumerate}
+      \item \texttt{Progressive Criterion} - performance actually does improve significantly in area of interest.
+      \item \texttt{Conservative Criterion} - performance does not significantly degrade elsewhere.
+    \end{enumerate}
+    For a benchmark to be reliable, both criterions need to be demonstrated. I trust the models that have been selected to reason about system properties \ref{Selected models} are living up that task.
 
-\subsection{Selective benchmarking}
-\begin{itemize}
-  \item not covering the full evaluation space
-  \item not evaluating potential performance degradation
-    Progressive criterion - performance actually does improve significantly in area of interest
-    Conservative criterion - performance does not significantly degrade elsewhere
-    both need to be demonstrated - we wrote our testing scenarios to cover the full area of interest
-    “Reality is that techniques that improve performance generally require some degree of extra work: extra bookkeeping, caching, etc. These things always have a cost, and it is dishonest to pretend otherwise. This is really at the heart of systems: it's all about picking the right trade-offs. A new technique will therefore almost always introduce some overheads, and you need to demonstrate that they are acceptable.” - how do we fit in here?
-\end{itemize}
+    As an economist Mielton Friedman uded to put it, \textit{there's no such thing as free lunch}\footnote{\url{http://www.amazon.com/Theres-Such-Thing-Free-Lunch/dp/087548297X}}.
 
+    In this context, we can iterpret it in the following way. Techniques improving performance in some capacity usually entail an additional cost (extra bookkeeping, caching). As Heiser writes: "This is really at the heart of systems: it's all about picking the right trade-offs" \cite{GerHeiBench}. In our case the potential improved performance comes at a cost of increased data transfers between data centers (and therefore costs) and simply increased complexity of certain system layers.
+  \item Subsetting a benchmark without strong justification. A warning sign that one might sin in this way:
+    \begin{itemize}
+      \item "we picked a representative subset", "typical results are shown" - reads as "we cherry picked the data to fit our expected results".
+    \end{itemize}
+    If benchmarking is performed on a subset of a system, a strong justification needs to be as to why a given subset of funcionalities / components was selected. I am benchmarking a real-life system use case.
+  \item Selective data set hiding deficiencies. Luckily, more and more statistical tools are being developed to detect that \footnote{\url{http://dataskeptic.com/epnotes/ep55_detecting-cheating-in-chess.php}}.
+\end{enumerate}
 
-benchmark subsetting without strong justification - WARNING SIGNS: “we picked a representative subset”, “typical results are shown” (reads as cherry picked to fit our results), “I want to understand why you picked the particular subset [of benchmarks].” If your selection contains many obscure or outdated devices, or is heavily biased towards X and Y drivers, then I suspect that you have something to hide.
-Selective data set hiding deficiencies. Luckily we have statistical tools to detect that (chess data skeptic podcast)
+\subsubsection{Using the same dataset for calibration and validation}
+The way to avoid this is to calibrate the system first (using calibration workload). Then, one should use evaluation workload to show how accurate the model is. Both workloads need to be disjoint.
 
-Same dataset for calibration and validation
-Calibrate the system first (using calibration workload). Use evaluation workload to show how accurate the model is. Both workloads need to be totally disjoint. - TODO: DOEST THIS APPLY TO OUR CASE?
+\subsubsection{Providing o indication of significance of data}
+An example of this fallacy would be providing raw averages, without any indication of variance. At least standard deviations must be quoted. If in doubt, Heiser recommends using student's t-test to check significance \cite{GerHeiBench}.
 
-No indication of significance of data.
-Raw averages, without any indication of variance. At least standard deviations must be quoted. If in doubt use student's t-test to check significance.
+\subsubsection{Benchmarking of simplified simulated system}
+I am performing the tests on the full system deployed in the exact same environment as the production system.
 
-Benchmarking of simplified simulated system - WE'RE DOING THE REAL DEAL.
+\subsubsection{Using inappropriate and misleading benchmarks}
+The tests are being performed on different versions of the proprietary system. The business goal of the host organization of the research is to find the best architecture - the benchmarking proccess is supposed to help with this. There is no incentive to be dishonest.
 
-Inappropriate and misleading benchmarks, Unfair benchmarking of competitors - We care about our system's best setup so no incentive to lie.
+\subsubsection{Unfair benchmarking of competitors}
+The aforementioned applies.
 
-Relative numbers only, Reads as I am covering that the results are really bad or irrelevant. - happy to provide absolutes but sometimes the unit will be made up so numbers only make sense in context
+\subsubsection{Providing relative numbers only}
+Heiser suggests this reads as "I am covering that the results are really bad or irrelevant" \cite{GerHeiBench}. In the case of this research, some results need to stary relative since this is what the selected scalability measurement models \ref{Selected models} require. Absolutes might not make sense in this context.
 
-No proper baseline - Often the state-of-the-art solution, we couldn't find data to prove that what we are comparing against is bad. occam's razor, simple solution proves best - only known limitation is the number of sockets.
+\subsubsection{Providing no proper baseline}
+Often the state-of-the-art solution can be used as a baseline. I believe the solution we picked as a baseline (the simplest architecture decomposition) is a good one. The research leading up to the test did not yield any data to prove that statement wrong.
 
-Arithmetic mean for averaging across benchmark scores
-The proper way to average (i.e. arrive at a single figure of merit) is to use the geometric mean of the normalised scores [http://dl.acm.org/citation.cfm?id=5673]
-
-[MMPROJ3] http://dl.acm.org/citation.cfm?id=5673
-Using the arithmetic mean to summarize normalized benchmark results leads to mistaken conclusions that can be avoided by using the preferred method: the geometric mean.
+\subsubsection{Using arithmetic mean for averaging across benchmark scores}
+Wallace and Fleming \cite{Fleming} point out that this is an incorrect way to approaching averaging.
+The proper way to do this (i.e. arrive at a single figure of merit) is to use the \textit{geometric mean of the normalised scores.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -498,7 +509,7 @@ New data is generated every few seconds by the users so caching the content and 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Experiment Outline}
+\chapter{Experiment Outline} \label{Experiment Outline}
 
 \begin{enumerate}
   \item Baseline architecture on a local network.
@@ -734,7 +745,7 @@ pidstat
 latencies by our custom client suite
 for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
 
-\section{Selected model}
+\section{Selected models}\label{Selected models}
 [MMPROJ3] With CRUMs, SPMs etc.
 four different types of needs:
 resource utilization and allocation measurement
@@ -810,8 +821,7 @@ network is inherently non-deterministic, load tests needed to actually test avai
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % BELOW WE HAVE ORIGINAL TEMPLATE STUFF THAT NEEDS TO BE REMOVED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Everything below that needs to be removed (except for bib)}
-\chapter{Front Matter}
+\chapter{Everything below that needs to be removed (except for bib), Front Matter}
 
 The first thing is to connect the class by saying:
 
