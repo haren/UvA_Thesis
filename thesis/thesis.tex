@@ -306,6 +306,8 @@ Ed Howorka in his interesting paper \textit{Colocation beats the speed of light}
 
 \section{Benchmarking}
 
+benchamrking run a few times for caches to fill up etc
+
 \cite{Ycsb} important to have random distributions(uniform, zipfian, latest, multinomial)
 
 [MMPROJ2] https://homes.cs.washington.edu/~bornholt/post/performance-evaluation.html
@@ -413,7 +415,9 @@ in stadium
 on couch
 dekstop
 tablet
-mobile
+mobile (The bandwidth of a wireless network is more physically constrained in size and scope than a wired network. With less overall bandwidth to work with, the number and size of connections that are using that bandwidth must be managed more carefully because they have a greater impact on performance. This is why latency is more of an issue or wireless networks than on wired ones.
+http://developer.att.com/application-resource-optimizer/docs/best-practices/multiple-simultaneous-tcp-connections
+)
 Users of the platform are mostly on mobile networks (that often drop), so reconnecting them quick to the right (providing lowest latencies) instance is important.
 lumpy demand - it comes in 2-hour-long spikes and then can go quiet for days
 
@@ -446,6 +450,7 @@ The reality is probably not without some optimizations to the application and th
 
 \section{System Scaleup Delay}
 Delays: up to 2 minutes to get metrics, up to ????? minutes for instance to be accessible to clients + ???? for DNS changes to propagate (TTL set to 60 seconds but TODO VERITYF)
+Unfortunately there are a large number of (misbehaving) DNS servers out there that don’t properly obey TTLs on records and will still serve up stale records for an indefinite amount of time. [http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/]
 
 \section{Unique Aspects of The System}
 critical data flows over websockets
@@ -485,9 +490,50 @@ gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
 
 \section{Kernel tuning}\label{Kernel tuning}
+
+\subsection{Measurements}
+etsy, logster, graphite etc.
+
+\subsection{Linux TCP stack}
+all lab notes from 08.05
 all websocket updates
 http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
 Also, and very important, you may need to check if your application has a memory/file descriptor leak. Use lsof to see all it has open to see if they are valid or not. Don't try to change your system to work around applications bugs.
+
+Although the causes for such symptoms can vary, there's one scenario that can cause a complete lock of systems handling a very large number of web requests per second without any hint of what's going on: TCP/IP port exhaustion. [https://www.outsystems.com/forums/discussion/6956/how-to-tune-the-tcp-ip-stack-for-high-volume-of-web-requests/]
+
+describe close\_wait, time\_wait etc
+
+only 65k per (tcp 16 bit) ip address, one can add virtual ips to machines and up the number this way
+(recent lab notes)
+
+increasing the number of clients
+The solution is more quadruplets5. This can be done in several ways (in the order of difficulty to setup):
+use more client ports by setting net.ipv4.ip\_local\_port\_range to a wider range,
+use more server ports by asking the web server to listen to several additional ports (81, 82, 83, …),
+use more client IP by configuring additional IP on the load balancer and use them in a round-robin fashion,
+use more server IP by configuring additional IP on the web server6.
+
+But there are ways to tune the TCP/IP stack to reduce the impact of this problem, allowing the system to take advantage of all resources at its disposal. Basically, we can tune several TCP/IP stack parameters, but in this context, there are 2 that really make the different:
+The time that the ports is in "waiting" status since it was released from the application, and it's in fact released by the system for reuse. It's called the TIME WAIT
+The maximum number of ephemeral ports that the system can use, from the total pool of 65535 available ports. Let's just call it RANGE EPHEMERAL PORTS
+Reduce the TIME\_WAIT by setting the tcp\_fin\_timeout kernel value on /proc/sys/net/ipv4/tcp\_fin\_timeout, using the command echo 30 > /proc/sys/net/ipv4/tcp\_fin\_timeout to set it to 30 seconds.
+
+Increase the range of ephemeral ports by setting ip\_local\_port\_range kernel value on /proc/sys/net/ipv4/ip\_local\_port\_range, using the command echo "32768 65535" > /proc/sys/net/ipv4/ip\_local\_port\_range, this will set the port range from 32768 to 65535.
+
+A common misunderstanding is that a server cannot accept more than 65,536 (216) TCP sockets because TCP ports are 16-bit integer numbers.
+First, the number of ports is limited to 65,536, but this limitation applies only to a single IP address. Supposing that we are limited by the number of ports to have more than 65,536 clients, then adding more IP addresses to the server machine (either by adding new network cards, or simply by using IP aliasing for the existing network card) would solve the problem (even if, for opening 12 million client would need 184 network cards or IP aliases on the server machine).
+In fact, the misunderstanding comes from the fact that the server does not use its listening IP address and a different ephemeral port for each new socket to distinguish among the sockets, but it uses the same listening IP address and the same listening port for all sockets and it distinguishes among sockets by using the IP address and the ephemeral port of each client. Therefore, MigratoryData Server uses a single port to accept any number of clients and optionally it uses another few ports for JMX monitoring, HTTP monitoring, etc
+https://mrotaru.wordpress.com/category/websockets/
+
+max descriptors per process:
+Because one cannot increase the maximum number of socket descriptors per process to a value larger than the current kernel maximum (fs.nr\_open) and because the kernel maximum defaults to 1048576 (10242), prior to running the ulimit command, we increased the kernel maximum accordingly as follows:
+echo 20000500 > /proc/sys/fs/nr\_open 
+CHECK LAB NOTES RECENT TESTS, A LOT
+https://mrotaru.wordpress.com/category/websockets/
+
+The kernel value parameters aren't saved with these commands, and are reset to the default values on system reboot, thus make sure to place the commands on a system startup script such as /etc/rc.local.
+https://www.outsystems.com/forums/discussion/6956/how-to-tune-the-tcp-ip-stack-for-high-volume-of-web-requests/
 
 look for \_what can limit concurrent sockets?\_ in lab notes
 
@@ -507,6 +553,7 @@ ulimit, nofile, fs.max\-file, net.ipv4.ip\_local\_port\_range = 32768 65535  to 
 Architecture diagrams.
 Technical details - local server capabilities.
 Load testing.
+LOCAL NETWORK DESCRIPTION
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 
