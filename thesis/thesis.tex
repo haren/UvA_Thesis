@@ -306,27 +306,44 @@ Ed Howorka in his interesting paper \textit{Colocation beats the speed of light}
 
 \section{Benchmarking}
 
-benchamrking run a few times for caches to fill up etc
+\begin{quote}
+"If you're not keeping score, you're just practicing." - \textit{Vince Lombardi}
+\end{quote}
 
-\cite{Ycsb} important to have random distributions(uniform, zipfian, latest, multinomial)
+As this projects concerns benchmarking different architecture decompositions of The System Under Test \ref{The System Under Test}, it is important to define and describe the benchmarking process.
 
-[MMPROJ2] https://homes.cs.washington.edu/~bornholt/post/performance-evaluation.html
-computer science experiments tend to be among the most non-deterministic and prone to omitted-variable bias
-Computer systems have many moving parts in both hardware and software, researchers are unlikely to have a complete understanding of every part in those systems, and controlling each of those components is often next to impossible.
-linking order can significantly bias the results of a benchmark
-the size of your UNIX environment variables biases performance - we made sure this are consistent across tests
+\begin{description}
+  \item[Benchmarking]
+  - the term is most commonly defined as an execution of a set of operations against a given object / program, in order to determin it's relative performance. Usually, it consists of a set of standardized tests. The same term is often used to describe benchmarking programs themselves. It is crucial for researchers, tool developers and users \cite{BenRM}.
+\end{description}
 
-Most researchers I’ve met tend to rebuild their infrastructure over and over again, writing new scripts to parse, tabulate and plot their results for every experiment. This approach clearly doesn’t scale.
-This is where we can come in and contribute to the scientific and open source communities. Plan to release the deployment and whatever is possible.
+As James Bornholt describes in his article \cite{BornBen}, computer science research is among the most non-deterministic. A huge risk of omitted-variable bias exists. This is due to the fact that computer systems have a tremendous number of dynamic parts (both in hardware and software). It is virtually impossible for researches and other experts to have complete knowledge of every bit of the system they are working with. Controlling all the involved variables is insurmountable.
 
+Furthermore, many of the system parts factors are non-deterministic; e.g. networks and multi-threading. Because of that, researchers need to be very careful when attempting to draw statistically meaningful conclusions from their research.
 
-[MMPROJ5] http://www.sosy-lab.org/~dbeyer/Publications/2015-SPIN.Benchmarking\_and\_Resource\_Measurement.pdf
-benchmarking good and well established for very specific tasks ( https://www.spec.org/ 2 http://www.tpc.org/ 3 http://nlrp.ipd.kit.edu/), our case more complex (as describd below)
-non-deterministic aspects (networks, multi-threading etc.)
-Results are reproducible if it is guaranteed that the same results can be obtained later again (assuming a deterministic tool) by re-running the benchmarks on a machine with the same hardware and the same software versions. Reproducibility of experimental results requires reliable measurement. We call a measurement reliable, if the measurement method ensures accuracy (small systematic and random measurement error, i.e., no bias or “volatile” effects, resp.) and sufficient precision
+Benchmarking a distributed system is even more complex \cite{BornBen}. If it is hosted in a cloud environment, the control over the hardware is in the hands of the cloud provider, not the researcher. This is situation I am in performing this research.
 
-Benchmarking a distributed tool (3) is much more complex and out of scope. [3rd paper from http://www.sosy-lab.org/~dbeyer/Publications/2015-SPIN.Benchmarking\_and\_Resource\_Measurement.pdf]
-extremely difficult to get all variables under control in IT - hardware, all the layers of software, non deterministic stuff like networks, etc. Don't even get me started on clouds where you basically give up control over hardware to the cloud host.
+Bornholt \cite{BornBen} lists some of the many environmental factors that can have influence on the performance of a computer system. The most striking example is the \textit{linking order}, which can significantly bias the results of a benchmark. As UNIX systems are highly customizable, it is important to keep the values of environmental variables as consistent as possible across benchmarking sessions.
+
+Author also states a need for the scientific community to unify and stardize the tools for benchmarking systems. A lot of researchers rebuild their infrastructures and build their scripts anew on every project. This is where I hope to contribute to the scientific and open source communities with releasing all the possible parts of the tooling build for the purpose of this project (decribed in details later \ref{Experiment deliverables}).
+
+For a benchmark to be depandable, results need to be reproducible \cite{BornBen}. That means the same results can be obtained reruning the benchmark later on a machine with the same hardware and the same software versions. Reproducibility of experimental results requires measurements to be reliable. A measurement can be called reliable, if the method guarantees accuracy (small systematic and random measurement error, i.e., no bias or “volatile” effects, resp.) and sufficient precision.
+
+Beyer et al \cite{BenRM} list well-established benchmarks for specific tasks:
+\begin{description}
+  \item[SPECi]
+  - The Standard Performance Evaluation Corporation\footnote{\url{https://www.spec.org/}}. They provide benchmarks for CPUs, Graphic Cards, Java Client/Servers, Mail Servers and others.
+  \item[TPC]
+  - Transaction Processing Performance Council\footnote{\url{http://www.tpc.org/}}. They provide benchmarks for Transaction Processing (OLTP), Decision Support, Virtualization and Big Data.
+  \item[nlrpBENCH]
+  - Natural Language Requirements Processing\footnote{\url{http://nlrp.ipd.kit.edu/}}. They provide benchmarks for Requirements Engineering.
+\end{description}
+
+In case of the system being benchmarked in this research \ref{The System Under Test}, it is hard to reuse any of these since the performance depends on a custom set of operations spreading across multiple system layers.
+
+Authors of "Benchmarking cloud serving systems with YCSB" \cite{Ycsb} point out that it is important to have random distributions for benchmarking loads - \textit{uniform}, \textit{zipfian}, \textit{latest}, \textit{multinomial}, etc.
+
+From my own experience, I have drawn that against a complex system like our utilizing a wide stack of technologies, benchamrking tool should do a few "dry runs" in order to give caches a chance to fill up, internal tables to get populated or cloud comopotents to be warmed up (e.g. Elastic Load Balancers in case of our stack \ref{Cloud architecture setup}).
 
 \subsection{Benchmarking Crimes}
 
@@ -528,7 +545,7 @@ https://mrotaru.wordpress.com/category/websockets/
 
 max descriptors per process:
 Because one cannot increase the maximum number of socket descriptors per process to a value larger than the current kernel maximum (fs.nr\_open) and because the kernel maximum defaults to 1048576 (10242), prior to running the ulimit command, we increased the kernel maximum accordingly as follows:
-echo 20000500 > /proc/sys/fs/nr\_open 
+echo 20000500 > /proc/sys/fs/nr\_open
 CHECK LAB NOTES RECENT TESTS, A LOT
 https://mrotaru.wordpress.com/category/websockets/
 
@@ -626,7 +643,7 @@ The above explain why, for a scaled out solution we had to roll with our custom 
 
 \subsection{Improved architecture deployed in the cloud}
 
-\section{Experiment deliverables}
+\section{Experiment deliverables}\label{Experiment deliverables}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -739,7 +756,9 @@ Each test client should gradually ramp up its load over the course of a few hour
 Tools described here \cite{Load Testing Framework}
 
 \subsubsection{Users Distribution}
-The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
+The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
+
+Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
 
 \section{Baseline, Deployed in the cloud}
 
