@@ -533,7 +533,24 @@ Due to the nature of the platform, the demand is extremely lumpy and comes in a 
 
 \section{Basic Architecture}
 
-Diagram
+The most basic architecture, in its non-distributed form, of the main WebSocket API system components is depicted on the figure \ref{figure:architecture}.
+
+The system consists of the following units:
+\begin{description}
+  \item[Event Server]
+  - receives and processes the external game/match related stream of events. Notifies the WebSocket API server so that it can broadcast the updates to the users.
+  \item[Resolver]
+  - upon an arrival of a new event, collects all the outstanding pools related to it, resolves accordingly, calculates winnings, updates accounts. Notifies the WebSocket API server so that it can broadcast the updates to the users.
+  \item[WebSocket API Server]
+  - handles all end-user communication. Receives requests, sends out response and broadcasts game and prediction pool updates.
+\end{description}
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.15]{architecture}
+\caption{Basic System Architecture}
+\label{figure:architecture}
+\end{figure}
 
 \section{Technology Stack} \label{Technology Stack}
 Python + redis + mysql + redis (cluster) all versions
