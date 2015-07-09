@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex thesis"] 1436393674 "thesis.aux" "thesis.bbl" "thesis" 1436393749
+["bibtex thesis"] 1436473065 "thesis.aux" "thesis.bbl" "thesis" 1436473133
   "/usr/local/texlive/2014/texmf-dist/bibtex/bst/urlbst/alphaurl.bst" 1311291550 33980 c8409be7db470882c31229bb09deb6ac ""
-  "thesis.aux" 1436393748 16419 0b76b7ac1850d01af508985811225cfd ""
+  "thesis.aux" 1436473132 16857 72141a0698720ff2b9d3f82dcd716b56 ""
   "thesis.bcf" 0 -1 0 ""
   "thesis.bib" 1436393556 11337 ce1a83a71cdfda48eed80a91534a8f9a ""
   (generated)
   "thesis.blg"
   "thesis.bbl"
-["pdflatex"] 1436393746 "thesis.tex" "thesis.pdf" "thesis" 1436393749
+["pdflatex"] 1436473130 "thesis.tex" "thesis.pdf" "thesis" 1436473133
   "/usr/local/texlive/2014/texmf-dist/tex/context/base/supp-pdf.mkii" 1337017135 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/local/texlive/2014/texmf-dist/tex/generic/ifxetex/ifxetex.sty" 1284331290 1458 43ab4710dc82f3edeabecd0d099626b2 ""
   "/usr/local/texlive/2014/texmf-dist/tex/generic/oberdiek/gettitlestring.sty" 1303254447 8237 52810bdb4db2270e717422560a104aea ""
@@ -64,15 +64,16 @@
   "figures/title1.pdf" 1431173289 108831 386aca6a01c6e1d617fa4bd775c4c398 ""
   "figures/title2.pdf" 1431173289 282606 847d9872fd57b008e6a81a60206848b1 ""
   "figures/title3.pdf" 1431173289 196179 ed053ae4df7e073efbcaea6efab46610 ""
+  "figures/ws.png" 1436471520 34620 d30ded3179bb8ebd7be1ba8ea6b71d3a ""
   "program-listings.tex" 1431173289 1143 dbaa952895ee1516c890f3ac0c002c3c ""
-  "thesis.aux" 1436393748 16419 0b76b7ac1850d01af508985811225cfd ""
-  "thesis.bbl" 1436393675 8535 bc64e7065e25f74fd1f7d78c31dc0cb7 "bibtex thesis"
-  "thesis.tex" 1436393746 90879 eb65dbf50d85879ecbdf73316a53e85d ""
-  "thesis.toc" 1436393748 8567 c3de4ca0546ead0202ab44369d0a3e5c ""
+  "thesis.aux" 1436473132 16857 72141a0698720ff2b9d3f82dcd716b56 ""
+  "thesis.bbl" 1436473065 8535 bc64e7065e25f74fd1f7d78c31dc0cb7 "bibtex thesis"
+  "thesis.tex" 1436473129 93828 83083877a75d840cc304cd45aaf4668e ""
+  "thesis.toc" 1436473132 8631 21a089d9199bc7bf54252b1645422a2c ""
   "uva.pdf" 1431173289 1677 ca941aecd8bffdac245d574f2ea5950f ""
   "uvamscse.cls" 1431188922 4748 7f6a90c12bf04dde4ebf6934779cba01 ""
   (generated)
   "thesis.toc"
-  "thesis.log"
-  "thesis.pdf"
   "thesis.aux"
+  "thesis.pdf"
+  "thesis.log"

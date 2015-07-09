@@ -3,6 +3,7 @@
 \usepackage{color}
 \usepackage{url}
 
+
 \usepackage{epigraph}
 \setlength\epigraphwidth{8cm}
 \setlength\epigraphrule{0pt}
@@ -14,6 +15,13 @@
 
 \input{program-listings}
 \newcommand{\cmd}[1]{\texttt{$\backslash$#1}}
+
+\usepackage{graphicx}
+\graphicspath{ {figures/} }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Title page.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \title{Geographically-aware scaling for real-time persistent websocket applications.}
 % \coverpic[100pt]{figures/terminal.png}
@@ -315,9 +323,68 @@ In his work, he includes a set of guidelines to consider when performing geograp
 Ed Howorka in his interesting paper \textit{Colocation beats the speed of light} \cite{EdHoColoc}  about trading system geographical distributions focuses on the best placement of servers for traders trading on multiple exchanges. His paper demonstrates that traders gain nothing by positioning their computer at the midpoint between two financial exchanges. He claims that  every algorithm on a central machine talking to surrounding servers (users in case of the System Under Test \ref{The System Under Test}) can be replaced by colocated servers (located in geographical proximity to users). Furthermore, he implies and sets out to prove that server colocation provides a better solution for high-speed applications (as opposed to using a big, centralized server located in the middle).
 
 
-\section{Websocket Protocol}\label{Websocket Protocol}
+\section{WebSocket Protocol}\label{Websocket Protocol}
 
-\subsection{Client-Server Communication Improvements}\label{Client-Server Communication Improvements}
+WebSockets is an independent, TCP-based communication protocol. The protocol was standardized by the Internet Engineering Task Force (IEFT) in 2011\footnote{\url{https://tools.ietf.org/html/rfc6455}} and has been gaining popularity ever since. All major web browsers and mobile operating system support it network\footnote{\url{http://caniuse.com/\#feat=websockets}}.
+
+\subsection{Technical details}
+
+Every WebSocket communication has to start with an opening handshake. WebSocket us a protocol related to HTTP, in a sense that its handshake is interpreted by HTTP servers as an \textit{Upgrade request}. Websocket also operates on the same ports as HTTP (80 and 443), so as not to get the communication blocked by all the internet's intermediaries configured e.g. to allow exclusively HTTP traffic.
+
+A sample handshake included in the client's request is depicted below. It is a simple \texttt{GET} request. A set of random bytes - \texttt{Sec-WebSocket-Key} - needs to be included.
+
+\begin{sourcecode}
+\begin{lstlisting}[style=mono]
+GET HTTP/1.1
+Upgrade: websocket
+Connection: Upgrade
+Host: echo.websocket.org
+Origin: http://www.websocket.org
+Sec-WebSocket-Key: i9ri`AfOgSsKwUlmLjIkGA==
+Sec-WebSocket-Version: 13
+Sec-WebSocket-Protocol: chat
+\end{lstlisting}
+\caption{Websocket Upgrade Client Request}
+\end{sourcecode}
+
+The server taes the \texttt{Sec-WebSocket-Key}, appends a globally unique identifier (GUID) string, computes a \texttt{SHA1} hash from it and \texttt{Base64}-encodes it. The computed value is sent in the response header confirming the upgrade as \texttt{Sec-WebSocket-Accept}:
+
+\begin{sourcecode}
+\begin{lstlisting}[style=mono]
+HTTP/1.1 101 Web Socket Protocol Handshake
+Upgrade: WebSocket
+Connection: Upgrade
+Sec-WebSocket-Accept: Qz9Mp4/YtIjPccdpbvFEm17G8bs=
+Sec-WebSocket-Protocol: chat
+Access-Control-Allow-Origin: http://www.websocket.org
+\end{lstlisting}
+\caption{Websocket Upgrade Server Response}
+\end{sourcecode}
+
+That leads to opening a websocket (\textit{ws://}) communication channel between the client and the server. Secure websocket connections (\textit{wss://}) are also possible.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.3]{ws}
+\caption{WebSocket Protocol}
+\end{figure}
+
+Typically mentioned benefits of using WebSocket protocol include reduced overhead in comparison with HTTP communication. After the initial handshake, only application-specific data travels between client server, as opposed to HTTP where every request/response contains headers, cookies, content type, content length, user-agent, server id, date, last-modified etc.
+
+WebSocket protocol has an another advantage over HTTP on a TCP protocol level (on which both are based) - TCP connection only needs to be opened once per WebSocket communication, whereas for HTTP it is opened for every request (which introduces overhead).
+
+What is more, HTTP servers are often configured to persist in a log form the start and completion of every HTTP request. This entails additional CPU cycles and costly I/O operations. Unless an application is configured to log its proprietary data, this additional logging cost is much smaller in case of WebSockets (since there is only one initial request).
+
+Configuring a server for high-scalability WebSocket communication is no easy task, as I have learned the hard way during this research. The whole process is decribed in details in a dedicated section \ref{Kernel tuning}.
+
+
+\subsection{Usage and Origins}\label{Client-Server Communication Improvements}
+
+- interactive applications that use AJAX either continuously poll or use some sort of long-poll mechanism. WebSockets is a much cleaner (and lower resource) way of doing a more event'd model where the server and client notify each other when they have something to report over the existing connection.
+
+
+Websockets are used for a bidirectional, real-time communication between the server and the client. One of the biggest advantages of websockets is that the server can easily send unsolicited messages to the client, rather than simply respond to client's requests (as is the case with HTTP protocol). Before websockets, other solutions were being developed to enable bi-directional client-server communication, yet none of them has gained such popularity and is considered as elegant.
+
 M. Franklin and S. Zdonik provide an insight into the history of push-based technologies. Their paper from 1998 [MMPROJ12] classifies communication mechanisms into aperiodic pull, periodic pull, aperiodic push and periodic push.
 
 previous: ajax, long polling, short polling, websocket \cite{PushScale}
@@ -327,25 +394,6 @@ short polling - using a timer to regulate sending requests to server, similar to
 long polling - now considered to be a workaround of preventing creating connections for each request, keeps a connection artificially alive for some time, clients have to reconnect periodically,
 webRTC - a peer to peer connection
 server-side events - only allow for a server-initiated communication.
-
-websocket draft - RFC6455
-
-[http://stackoverflow.com/questions/4852702/do-html-websockets-maintain-an-open-connection-for-each-client-does-this-scale/25340220\#25340220]
-Each TCP connection in itself consumes very little in terms server resources. Often setting up the connection can be expensive but maintaining an idle connection it is almost free. The first limitation that is usually encountered is the maximum number of file descriptors (sockets consume file descriptors) that can be open simultaneously. This often defaults to 1024 but can easily be configured higher.
-http connections more expensive:
-- Each HTTP connection carries a lot of baggage that isn't used most of the time: cookies, content type, conetent length, user-agent, server id, date, last-modified, etc. Once a WebSockets connection is established, only the data required by the application needs to be sent back and forth.
-- TYPICALLY: HTTP servers are configured to log the start and completion of every HTTP request taking up disk and CPU time. It will become standard to log the start and completion of WebSockets data, but while the WebSockets connection doing duplex transfer there won't be any additional logging overhead (except by the application/service if it is designed to do so)
-- interactive applications that use AJAX either continuously poll or use some sort of long-poll mechanism. WebSockets is a much cleaner (and lower resource) way of doing a more event'd model where the server and client notify each other when they have something to report over the existing connection.
-obviously don't support cdn
-
-As for decreased latency via WS vs. HTTP, it's true since there's no more parsing of HTTP headers beyond the initial WS handshake. Plus, as more and more packets are successfully sent, the TCP congestion window widens, effectively reducing the RTT.
-
-Think of it this way: what is cheaper, keeping an open connection, or opening a new connection for every request (with the negotiation overhead of doing so, remember it's TCP.)
-
-http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
-the number of client connections that a server can support has nothing to do with ports in this scenario, since the server is [typically] only listening for WS/WSS connections on one single port. I think what the other commenters meant to refer to were file descriptors. You can set the maximum number of file descriptors quite high, but then you have to watch out for socket buffer sizes adding up for each open TCP/IP socket.  MAKE SURE THIS IS CONSISTENT THROUGHOUT THE PAPER.
-If the file descriptors are tcp sockets, etc, then you risk using up a large amount of memory for the socket buffers and other kernel objects; this memory is not going to be swappable.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -443,7 +491,7 @@ The proper way to do this (i.e. arrive at a single figure of merit) is to use th
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The System Under Test}\label{The System Under Test}
 
-real time prediction parmet
+real time prediction market
 parimutuel pools
 directed contracts
 sort of a stock market for real-time prediction on anything, e.g. live sport
@@ -540,6 +588,15 @@ tsung - looked promising, highly scalable erlang, but hard to understand what wa
 etsy, logster, graphite etc.
 
 \subsection{Linux TCP stack}
+
+
+http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
+the number of client connections that a server can support has nothing to do with ports in this scenario, since the server is [typically] only listening for WS/WSS connections on one single port. I think what the other commenters meant to refer to were file descriptors. You can set the maximum number of file descriptors quite high, but then you have to watch out for socket buffer sizes adding up for each open TCP/IP socket.  MAKE SURE THIS IS CONSISTENT THROUGHOUT THE PAPER.
+If the file descriptors are tcp sockets, etc, then you risk using up a large amount of memory for the socket buffers and other kernel objects; this memory is not going to be swappable.
+
+[http://stackoverflow.com/questions/4852702/do-html-websockets-maintain-an-open-connection-for-each-client-does-this-scale/25340220\#25340220]
+Each TCP connection in itself consumes very little in terms server resources. Often setting up the connection can be expensive but maintaining an idle connection it is almost free. The first limitation that is usually encountered is the maximum number of file descriptors (sockets consume file descriptors) that can be open simultaneously. This often defaults to 1024 but can easily be configured higher.
+
 all lab notes from 08.05
 all websocket updates
 http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
