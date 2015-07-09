@@ -496,19 +496,18 @@ The proper way to do this (i.e. arrive at a single figure of merit) is to use th
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The System Under Test}\label{The System Under Test}
 
-real time prediction market
-parimutuel pools
-directed contracts
-sort of a stock market for real-time prediction on anything, e.g. live sport
+A system under test can be best described as a \textit{real-time, dynamic, parimutuel prediction market}. It is a platform with a publicly exposed RESTful and WebSocket APIs \footnote{\url{http://instamrkt.github.io/slate/}}, through which system clients can connect their websites and mobile applications to access funcionality. The scope of this project concerns the WebSocket API.
 
-\section{General Purpose of The System}
-first applicatoin - live sports
-low manageable latencies important
+The core functionality of the platform is to allow users to make predictions on (near) future events. Users can also ask their own questions regarding these events and send them out globally or to their friends. The events can literally be anything - user's imagination is the limit. A simple use case of the system would be a live football match or an e-game match broadcast on a streaming service like \textit{twitch.tv\footnote{\url{http://www.twitch.tv/}}}.
 
-\subsection{Sample Use Case}
+What is important for this research is that questions (and predictions user make on them) are organized as parimutuel pools. That means that every prediction in the pool affetcs the future distribution of winnings. Pennock describes it in details in his work on dynamic parimutuel markets \cite{Pari}.
+
+In order to keep the users informed on what the current distribution is (and thus what are the multipliers for each of the available options), the updated distribution needs to be broadcast as quickly as possible to all interested users (and reach them around the same time). In a sense, every user is therefore both a consumer and a producer of data. In case when users are globally distributed this provides a set of data-distribution related challenges on which I focus in this research.
+
+\section{Sample Use Case}
 A good example e.g. can be predicting the outcomes of certain drives in the football match as they happen. A sample case: Manchester United - Liverpool live game, live data coming from UK servers, introduced into the system through a UK node, most users (who also generate data that needs to be distributed) in China (10k), India(10k), Australia(3k). Where should websocket servers which distribute messages spun up for minimal latencies for all clients? Is it faster to spin up db replicas on that nodes too?
 
-\subsection{Users of the System}
+\section{Users of the System}
 in stadium
 on couch
 dekstop
