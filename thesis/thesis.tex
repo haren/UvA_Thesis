@@ -524,16 +524,12 @@ This raises a few interesting questions that are explored within this research:
 \end{enumerate}
 
 \section{Users of the System}
-"Best platform available."
-in stadium
-on couch
-dekstop
-tablet
-mobile (The bandwidth of a wireless network is more physically constrained in size and scope than a wired network. With less overall bandwidth to work with, the number and size of connections that are using that bandwidth must be managed more carefully because they have a greater impact on performance. This is why latency is more of an issue or wireless networks than on wired ones.
-http://developer.att.com/application-resource-optimizer/docs/best-practices/multiple-simultaneous-tcp-connections
-)
-Users of the platform are mostly on mobile networks (that often drop), so reconnecting them quick to the right (providing lowest latencies) instance is important.
-lumpy demand - it comes in 2-hour-long spikes and then can go quiet for days
+
+The users have a possibility to connect to the platform from any mobile and desktop device that supports WebSocket communication protocol. That means they can use the platform during live games in stadiums (more and more of which provide good network connectivity), watching sports on TV or e-gaming streams from their couch or in bars and other gatherings with their friends.
+
+That means the platform has to be capable of working efficiently not only on cable and strong wi-fi networks, but also on 4g and 3g networks to facilitate mobile usage. As the experts at AT\&T inform\footnote{\url{http://developer.att.com/application-resource-optimizer/docs/best-practices/multiple-simultaneous-tcp-connections}}, latency is more of an issue or wireless networks than on wired ones. This is because wireless network is more constrained in size and scope than a wired one. The wireless connections there need to be managed more carefully. Most usage is expected to come from mobile networks (which often drop), so reconnecting them quick to the right instance is of huge importance.
+
+Due to the nature of the platform, the demand is extremely lumpy and comes in a few-hour-long spikes for the big events.
 
 \section{Basic Architecture}
 
