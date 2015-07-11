@@ -135,7 +135,24 @@ In order to answer the Research Questions, a solution consisting of the followin
 \end{enumerate}
 
 \subsection{Research Method}
-Software engineering is a relatively difficult field to investigate in terms of lack of clarity on how to do it. Most of the problems are of design, rather than pure scientific, nature. West Churchman coined a specific term for these kind of modern problems - wicked (since they are resistant to resolutions) [MMPROJ1]. Eastbrook et al claim it is often difficult to identify the true underlying nature of the research problem and thus the best method to research it [MMPROJ2]. In their work, they name and compare five most classes of research methods to select from: controlled experiments, case studies, survey research, ethnographies, action research. They help to select the method by first establishing the type of research question being asked - existence question (“Does X exist”?), description and classification question (“What is X like?”), and descriptive-comparative questions(“How does X offer from Y?”). The questions of this research are of the last type. The authors suggest pinpointing up-front what will be accepted as a valid answer to the research question [MMPROJ2]. The detailed description of each of the methods helps me to settle for the controlled experiment. It’s well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of me research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described below.
+Software Engineering is a relatively difficult field to investigate. Most of the problems are of design (rather than pure scientific) nature. West Churchman coined a specific term for these kind of problems \cite{Wckd}. He calls them \texttt{wicked}, since they are resistant to resolutions.
+
+Easterbrook et al. \cite{EastBr} claim it is often difficult to identify the true underlying nature of the research problem and thus the best method to research it. In their work, they name and compare five most common classes of research methods to select from:
+\begin{itemize}
+  \item controlled experiments,
+  \item case studies,
+  \item survey research,
+  \item ethnographies,
+  \item action research.
+\end{itemize}
+They help to select the method by first establishing the type of research question being asked:
+\begin{itemize}
+  \item existence question - \textit{Does X exist?},
+  \item description and classification question - \textit{What is X like?},
+  \item descriptive-comparative question - \textit{How does X differ from Y?}.
+\end{itemize}
+The questions of this research are of the last type. The authors \cite{EastBr} suggest pinpointing up-front what will be accepted as a valid answer to the research question. I answer this question in a separate section \ref{Expected Answers}.
+The detailed description of each of the methods helped me to settle for the \texttt{controlled experiment} as a research method for this research. It is well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of my research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described in Scalabality Measurements \ref{Scalability Measurements} chapter.
 
 \subsection{Research Difficulty}
 The experiments will be performed in a shared cloud environment, which is inherently unpredictable and changing. Designing and executing a test yielding statistically relevant results where all the necessary variables are controlled (within reasonable boundaries) will be a challenge.
@@ -850,6 +867,8 @@ cycle time for different workflow
 number of threads of different processes in the configuration
 virtual memory utilization of different processes
 P-scalabilityP(k1,k2) - take from [mmproj]
+
+\section{Expected Answers}\label{Expected Answers}
 
 \section{Selected metrics}
 latency (messaging + handhsaking) (our suite)
