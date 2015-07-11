@@ -97,6 +97,13 @@ The models I selected to use for measurements in this research were proposed by 
 Selection and application of literature-based models is described in full in Scalability Measurements chapter \ref{Scalability Measurements}.
 
 \section{Problem Statement}
+
+The problem that I study in this research concerns application stack decomposition of the System Under Test \ref{The System Under Test}. It can be generalized to scalability of systems with similar characteristics - utilizing real-time, user-generated data, broadcast globally using the WebSocket protocol \ref{Websocket Protocol}.
+
+This regards the size and geographical placement of WebSocket server instances, database and cache server instances (with data distribution), routing between them and iternal layer communication.
+
+\subsection{Research Questions}
+
 what's the best architecture that answers that best:
 how to deliver data to geographically distributed users with minimal, consistent and manageable latency
 how to react
@@ -104,7 +111,7 @@ scales up and down in response to demand changes (WEBSOCKETS - DISCONNECT SESSIO
 Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center. \cite{GroBuy}
 according to the models based on the set of metrics described in detail later \ref{Selected metrics}
 Also, there is an inherent limitation for scaling a websocket application - a number of TCP ports (and file descriptors available to a ws/wss connections) on a server instance. Hardware limitations are different in an http-based application.
-\subsection{Research Questions}
+
 \begin{enumerate}
   \item Does architecture with geographically aware scaling case can produce better results than the baseline architecture?
   \item What is the preferred architecture decomposition for a system with given characteristics - stateless, deployed in the cloud, dynamically scaled up and down, with persistent connections, clients distributed globally and uncacheable data generated in real time?
