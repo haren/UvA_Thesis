@@ -66,7 +66,7 @@ Kent Beck~\cite{JohnsonBBCGW93} proposes to have four sentences in a good abstra
 
 Everyone these days, probably more than ever, wants to build solutions that scale. Together with the globalization of our lifes and businesses grows the need for global, distributed, scalable software systems.
 
-To address this needs, more and more providers offer Cloud Computing solutions \ref{Cloud Scalability}, giving rise to the new architecture model called \textit{Infrastructure as a Service (IaaS)}. This makes building scalable software systems easier, since the system engineers do not have to design and maintain their proprietary server infrastructure anymore. This also allows to build systems that are more efficient in terms of resource usage - the existing \textit{IaaS} solutions offer scaling up and down capabilities in response to changes in demand for system's services. 
+To address this needs, more and more providers offer Cloud Computing solutions \ref{Cloud Scalability}, giving rise to the new architecture model called \textit{Infrastructure as a Service (IaaS)}. This makes building scalable software systems easier, since the system engineers do not have to design and maintain their proprietary server infrastructure anymore. This also allows to build systems that are more efficient in terms of resource usage - the existing \textit{IaaS} solutions offer scaling up and down capabilities in response to changes in demand for system's services.
 
 As more and more systems are deployed to the cloud, a need for measuring their properties becomes more and more ubiquitous.
 
@@ -76,10 +76,25 @@ In order to reason about scalablity-related properties of the system, one needs 
 \cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload by repeatedly applying a cost-effective strategy for extending a system’s capacity.
 \end{quote}
 
-Furthermore, to have a scientific discussion about scalability, quantifiable models and metrics are necessary. The models I decided to use were introduced by Pattabhiraman et al. \cite{Models} and are described in details in a dedicated chapter \ref{Scalability Measurements}.
+Furthermore, to have a scientific discussion about scalability, quantifiable models and metrics are necessary. Selection of an appropriate scalabality measurement model was a big part of my initial study.
 
 \section{Initial Study}
-What we found out researching.
+
+Initial study pointed me to the relevant scalability vectors discussed by researchers and engineers regarding cloud computing. Each of them has a dedicated section in the Background Chapter \ref{Scalability}:
+
+\begin{itemize}
+  \item General Cloud Scalability (\ref{Cloud Scalability})
+  \item Data Layer Scalability (\ref{Data Layer Scalability})
+  \item WebSocket Scalability (\ref{Websocket Scalability})
+\end{itemize}
+
+The study yielded multipile scalability measurement models. I analyzed the work of Jogalekar and Woodside \cite{EvaScaDS}, Srinivas and Janakiram \cite{SriJan}, Cooper et al. \cite{Ycsb} and multiple others.
+
+Some of the proposed models are note applicable since they were designed for different types of scalability - not for a cloud-based distributed system, but for instance for multiprocessor or multithreading scalabilities.
+
+The models I selected to use for measurements in this research were proposed by Pattabhiraman et al. \cite{Models}. They were designed specifically for the task I am performing - measuring properties of a distributed system deployed in a cloud environment. Their models are also customizable - one can plug in metrics one deems relevant, which allowed us to select metrics that are representative of the business goal of the System Under Test \ref{The System Under Test}.
+
+Selection and application of literature-based models is described in full in Scalability Measurements chapter \ref{Scalability Measurements}.
 
 \section{Problem Statement}
 what's the best architecture that answers that best:
@@ -146,7 +161,7 @@ Here we outline the structure of the thesis. A short paragraph on what happens i
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Background}
 
-\section{Scalability}
+\section{Scalability}\label{Scalability}
 
 Scalability seems to be a notion that everyone intuitively grasps, but has difficulties when it comes to clear explanations. In my literature study I came across a few definitions, which might help with that, of which three can be found below:
 
@@ -215,7 +230,7 @@ One of the biggest advantages of deploying one's architecture to the cloud that 
 
 As Grozev and Buyya \cite{GroBuy} put it, to fully facilitate cloud capabilities, software engineers need to design for the cloud, not only to deploy to it.
 
-\subsection{Data-layer Scalability}
+\subsection{Data Layer Scalability}\label{Data Layer Scalability}
 
 Data layer scalability is an important part of system scalability. In a distributed system, multiple system agents share the data. There exist multiple strategies for operating on a shared, distributed data layer.
 
@@ -282,7 +297,7 @@ In a Redis Cluster, data is automatically sharded (not replicated) among multipl
 
 Redis can also be scaled for reads using a simple replication in a single master - multiple slaves topology.
 
-\subsection{Websocket Scalability}
+\subsection{Websocket Scalability}\label{Websocket Scalability}
 
 An introduction into push-base communication over the internet can be found in Agarwal’s work - Toward a Push-Scalable Global Internet \cite{PushScale}. The key message in the article is that push message delivery on the World Wide Web is not scalable for servers, intermediate network elements, and battery-operated mobile device clients. And yet, most of modern day websites have highly dynamic content updated even up to multiple times a minute (very much so for The System Under Test \ref{The System Under Test}).
 
@@ -453,7 +468,7 @@ In case of the system being benchmarked in this research \ref{The System Under T
 
 Authors of "Benchmarking cloud serving systems with YCSB" \cite{Ycsb} point out that it is important to have random distributions for benchmarking loads - \textit{uniform}, \textit{zipfian}, \textit{latest}, \textit{multinomial}, etc.
 
-From my own experience, I have drawn that against a complex system like our utilizing a wide stack of technologies, benchamrking tool should do a few "dry runs" in order to give caches a chance to fill up, internal tables to get populated or cloud comopotents to be warmed up (e.g. Elastic Load Balancers in case of our stack \ref{Cloud architecture setup}). 
+From my own experience, I have drawn that against a complex system like our utilizing a wide stack of technologies, benchamrking tool should do a few "dry runs" in order to give caches a chance to fill up, internal tables to get populated or cloud comopotents to be warmed up (e.g. Elastic Load Balancers in case of our stack \ref{Cloud architecture setup}).
 
 One also has to be aware of what the potential congestions are. For instance, without properly tuning the operating system's TCP stack, one has to wait a few minutes between load testing runs to let all the TCP sockets return to a usable state (that is exit the TIME\_WAIT state, unless the operating system is tuned to reuse such sockets). Details of the process of tuning are desciber in detail later \ref{Kernel tuning}. In the process of testing, I have also realized our API Server takes a substantial amount of time to handle disconnectis by huge number of clients (test suite disconnects all of them at the same time). That means there needs to be a non-zero pause between load test suite reruns.
 
@@ -522,7 +537,7 @@ In order to keep the users informed on what the current distribution is (and thu
 
 \section{Sample Use Case}
 
-As mentioned above, one of the simplest use cases of the platform is a live football match. A client, who has connected his application to the platform can now offer users real time questions and placing predictions on them. 
+As mentioned above, one of the simplest use cases of the platform is a live football match. A client, who has connected his application to the platform can now offer users real time questions and placing predictions on them.
 
 A case illustrating the need for the research well would be \textit{UEFA Champions League}\footnote{\url{http://www.uefa.com/uefachampionsleague/}} final, for instance between \textit{Real Madrid} and \textit{FC Barcelona}. These events generate viewership in the range of hundreds of millions \footnote{\url{http://www.uefa.com/uefachampionsleague/news/newsid=2111684.html}}.
 
@@ -797,8 +812,18 @@ Cloud limitations need to be taken into account. One needs to be aware of hidden
 many others:
 There is much more work related to the general scalability of distributed systems. Srinivas and Janakiram in their work [MMPROJ5] mention a metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor. They propose another model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability.
 Jogalekar and Woodside [6] propose a strategy-based scalability metric based on cost effectiveness (a function of system's throughput and it’s quality of service). It separates evaluation of throughput or quantity of work from QoS (which, according to the authors, can be any suitable expression).[MMPROJ6]
-
 PASA[MMPROJ17]
+
+\cite{SriJan} Srinivas and Janakiram in their work mention a metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor - include formula
+\cite{EvaScaDS} work on Performance, Reliability, Scalability testing [last most relevant],
+In their research, we also find some interesting, relevant to my case, advice concerning reliability testing. Authors offer suggestions on how to identify potential problem areas using these sample criteria:
+performance bottlenecks that can be attributed to size of data
+system performs with stability beyond x hours from startup time (as defined by the following) under the given loading conditions and does not change more than y percent with regard to:
+system throughput measured by the total number of requests served per second
+cycle time for different workflow
+number of threads of different processes in the configuration
+virtual memory utilization of different processes
+P-scalabilityP(k1,k2) - take from [mmproj]
 
 \section{Selected metrics}
 latency (messaging + handhsaking) (our suite)
@@ -851,7 +876,7 @@ latencies by our custom client suite
 for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
 
 ss -s
-netstat -s 
+netstat -s
 
 plugged into statsd and graphite for real time monitoring
 
