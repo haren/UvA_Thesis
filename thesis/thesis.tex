@@ -439,7 +439,9 @@ In case of the system being benchmarked in this research \ref{The System Under T
 
 Authors of "Benchmarking cloud serving systems with YCSB" \cite{Ycsb} point out that it is important to have random distributions for benchmarking loads - \textit{uniform}, \textit{zipfian}, \textit{latest}, \textit{multinomial}, etc.
 
-From my own experience, I have drawn that against a complex system like our utilizing a wide stack of technologies, benchamrking tool should do a few "dry runs" in order to give caches a chance to fill up, internal tables to get populated or cloud comopotents to be warmed up (e.g. Elastic Load Balancers in case of our stack \ref{Cloud architecture setup}).
+From my own experience, I have drawn that against a complex system like our utilizing a wide stack of technologies, benchamrking tool should do a few "dry runs" in order to give caches a chance to fill up, internal tables to get populated or cloud comopotents to be warmed up (e.g. Elastic Load Balancers in case of our stack \ref{Cloud architecture setup}). 
+
+One also has to be aware of what the potential congestions are. For instance, without properly tuning the operating system's TCP stack, one has to wait a few minutes between load testing runs to let all the TCP sockets return to a usable state (that is exit the TIME\_WAIT state, unless the operating system is tuned to reuse such sockets). Details of the process of tuning are desciber in detail later \ref{Kernel tuning}. In the process of testing, I have also realized our API Server takes a substantial amount of time to handle disconnectis by huge number of clients (test suite disconnects all of them at the same time). That means there needs to be a non-zero pause between load test suite reruns.
 
 \section{Benchmarking Crimes}
 
@@ -542,7 +544,7 @@ The system consists of the following units:
   \item[Resolver]
   - upon an arrival of a new event, collects all the outstanding pools related to it, resolves accordingly, calculates winnings, updates accounts. Notifies the WebSocket API server so that it can broadcast the updates to the users.
   \item[WebSocket API Server]
-  - handles all end-user communication. Receives requests, sends out response and broadcasts game and prediction pool updates.
+  - handles all end-user communication. Receives requests, sends out response and broadcasts game, prediction pool and all other updates. User's subscribe to game-specific channels in order to receive updates.
 \end{description}
 
 \begin{figure}[h]
@@ -553,39 +555,34 @@ The system consists of the following units:
 \end{figure}
 
 \section{Technology Stack} \label{Technology Stack}
-Python + redis + mysql + redis (cluster) all versions
-cloud stack described here: \ref{Cloud architecture setup}
 
-\subsection{Programming languages}
+The platform is written mostly in Python \texttt{2.7.6}. Data storages used by the platform consist of Redis \texttt{2.8.10} as a caching solution and Mysql \texttt{2.8.6} as persitent storage. A sample client application is written in Ampersand.js\footnote{\url{http://ampersandjs.com/}}. Cloud stack used to which the application is deployed is fully described later \ref{Cloud architecture setup}.
 
-python
+% \subsection{Database Technologies}
 
-\subsection{Database Technologies}
-
-\subsubsection{Mysql Cluster}
-write scalable, important for us, multi master, automatic / manual sharding
-distributed, shared-nothing data that provides very high, scalable performance for applications that largely use primary key access and have high concurrency, but it incurs a cost in network access when accessing data between a MySQL Server and tables distributed across Data Nodes
-In terms of CAP, MySQL Cluster will sacrifice availability to maintain consistency in the event of an unsurvivable network partition.
-at least 3 machines (otherwise split brain problem)
-data nodes (ndbd) - need memory, single-threaded
-sql nodes (mysqld) - need cpu, multithreaded
-Important:
-Will MySQL Cluster “out of the box” run an application faster than my existing MySQL database?
-The reality is probably not without some optimizations to the application and the database. However, by following the guidelines and best practices in the Guide to Optimizing Performance of the MySQL Cluster Database1 , significant performance gains can be realized, especially as you start to scale write operations while maintaining very high levels of availability and low latency.
-[http://openquery.com.au/files/mysql-cluster-intro-use.pdf]
-
-
-\section{System Scaleup Delay}
-Delays: up to 2 minutes to get metrics, up to ????? minutes for instance to be accessible to clients + ???? for DNS changes to propagate (TTL set to 60 seconds but TODO VERITYF)
-Unfortunately there are a large number of (misbehaving) DNS servers out there that don’t properly obey TTLs on records and will still serve up stale records for an indefinite amount of time. [http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/]
+% \subsubsection{Mysql Cluster}
+% write scalable, important for us, multi master, automatic / manual sharding
+% distributed, shared-nothing data that provides very high, scalable performance for applications that largely use primary key access and have high concurrency, but it incurs a cost in network access when accessing data between a MySQL Server and tables distributed across Data Nodes
+% In terms of CAP, MySQL Cluster will sacrifice availability to maintain consistency in the event of an unsurvivable network partition.
+% at least 3 machines (otherwise split brain problem)
+% data nodes (ndbd) - need memory, single-threaded
+% sql nodes (mysqld) - need cpu, multithreaded
+% Important:
+% Will MySQL Cluster “out of the box” run an application faster than my existing MySQL database?
+% The reality is probably not without some optimizations to the application and the database. However, by following the guidelines and best practices in the Guide to Optimizing Performance of the MySQL Cluster Database1 , significant performance gains can be realized, especially as you start to scale write operations while maintaining very high levels of availability and low latency.
+% [http://openquery.com.au/files/mysql-cluster-intro-use.pdf]
 
 \section{Unique Aspects of The System}
-critical data flows over websockets
-Users receiving data shared locally should receive it at the same time as data shared globally (with as low a latency as possible). This creates a need for globally consistent and manageable latency between end user and the system.
-Connected users and sources of data are geographically changing.
-Users geographical center of mass is changing for each peak of demand.
-Extremely lumpy demand (peaks lasting around 2 hours). This creates a need for being able to quickly scale up and scale down.
-New data is generated every few seconds by the users so caching the content and distributing geographically is difficult.
+
+There are multiple unique aspects of the system that make this research interesting:
+
+\begin{itemize}
+  \item Critical data is communicated using the WebSocket protocol.
+  \item Users receiving data shared locally should receive it at the same time as data shared globally (with as small a latency as possible). This creates a need for globally consistent and manageable latency between end user and the system.
+  \item Connected users (who serve both as consumers and producers of data) and sources of data are geographically changing. Users geographical center of mass is changing for each peak of demand.
+  \item Demand is extremely lumpy. This creates a need for being able to quickly the system up and down.
+  \item New data is generated constantly by the users so caching the content for geographical distribution is difficult.
+\end{itemize}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -622,7 +619,6 @@ tsung - looked promising, highly scalable erlang, but hard to understand what wa
 etsy, logster, graphite etc.
 
 \subsection{Linux TCP stack}
-
 
 http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
 the number of client connections that a server can support has nothing to do with ports in this scenario, since the server is [typically] only listening for WS/WSS connections on one single port. I think what the other commenters meant to refer to were file descriptors. You can set the maximum number of file descriptors quite high, but then you have to watch out for socket buffer sizes adding up for each open TCP/IP socket.  MAKE SURE THIS IS CONSISTENT THROUGHOUT THE PAPER.
@@ -761,6 +757,10 @@ The above explain why, for a scaled out solution we had to roll with our custom 
 \subsection{Baseline architecture deployed in the cloud}
 
 \subsection{Improved architecture deployed in the cloud}
+
+\section{System Scaling Delay}
+Delays: up to 2 minutes to get metrics, up to ????? minutes for instance to be accessible to clients + ???? for DNS changes to propagate (TTL set to 60 seconds but TODO VERITYF)
+Unfortunately there are a large number of (misbehaving) DNS servers out there that don’t properly obey TTLs on records and will still serve up stale records for an indefinite amount of time. [http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/]
 
 \section{Experiment deliverables}\label{Experiment deliverables}
 
