@@ -125,11 +125,19 @@ This regards the size and geographical placement of WebSocket server instances, 
 Answers to these questions are evaluated using the models and a set of metrics described in detail in a dedicated chapter \ref{Scalability Measurements}.
 
 \subsection{Solution Outline}
-How our solution works in short.
+
+In order to answer the Research Questions, a solution consisting of the following steps was developed:
+\begin{enumerate}
+  \item \texttt{Preparing the load test suite}. It is used to simulate geographical distribution of users and load they generate as well as to collect latency-related metrics of WebSocket handshakes and message delivery. Described in details in a Load Testing Framework section \ref{Load Testing Framework}.
+  \item \texttt{Preparing the load test suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{EC2 Available metrics}.
+  \item \texttt{Feeding the collected metric into scalability measurement models}.
+  \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include our custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) was built.
+\end{enumerate}
 
 \subsection{Research Method}
 Software engineering is a relatively difficult field to investigate in terms of lack of clarity on how to do it. Most of the problems are of design, rather than pure scientific, nature. West Churchman coined a specific term for these kind of modern problems - wicked (since they are resistant to resolutions) [MMPROJ1]. Eastbrook et al claim it is often difficult to identify the true underlying nature of the research problem and thus the best method to research it [MMPROJ2]. In their work, they name and compare five most classes of research methods to select from: controlled experiments, case studies, survey research, ethnographies, action research. They help to select the method by first establishing the type of research question being asked - existence question (“Does X exist”?), description and classification question (“What is X like?”), and descriptive-comparative questions(“How does X offer from Y?”). The questions of this research are of the last type. The authors suggest pinpointing up-front what will be accepted as a valid answer to the research question [MMPROJ2]. The detailed description of each of the methods helps me to settle for the controlled experiment. It’s well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of me research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described below.
-\subsubsection{Research Difficulty}
+
+\subsection{Research Difficulty}
 The experiments will be performed in a shared cloud environment, which is inherently unpredictable and changing. Designing and executing a test yielding statistically relevant results where all the necessary variables are controlled (within reasonable boundaries) will be a challenge.
 The focus of the project is on scaling a websocket application. This is a relatively new technology, thus finding proper scientific coverage is not trivial.
 Some of the necessary development and data collection might be in relatively low-level technology.
@@ -169,7 +177,7 @@ compute latency using PingER (To approximate the latency between a user and a cl
 CloudSim
 Small mentions of the others.
 
-\section{Outline}
+\section{Document Outline}
 Here we outline the structure of the thesis. A short paragraph on what happens in each chapter.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -864,7 +872,7 @@ architecture reaction speed to changes in demand (scaling up and scaling down) (
 CRAM METRICS
 TODO: review
 
-\subsection{EC2 Available metrics}
+\subsection{EC2 Available metrics} \label{EC2 Available metrics}
 collectible every minute (in detailed mode), by default every 5 minute, paid additionaly - delay up to 2 minutes
 the current EC2 cloud technology does not provide any CloudWatch API to monitor the allocation and utilization of memory for EC2 instances (we do it on our own)
 limits exist (10 metric, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications per month for free
@@ -888,7 +896,7 @@ status checks
 \subsubsection{Cloud (group) Specific}
 Collected from Elastic Load Balancer for all instances connected.
 
-\subsubsection{Custom Metric Collection}
+\subsubsection{Custom Metric Collection} \label{Custom Metric Collection}
 pidstat
 latencies by our custom client suite
 for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
