@@ -152,15 +152,21 @@ They help to select the method by first establishing the type of research questi
   \item descriptive-comparative question - \textit{How does X differ from Y?}.
 \end{itemize}
 The questions of this research are of the last type. The authors \cite{EastBr} suggest pinpointing up-front what will be accepted as a valid answer to the research question. I answer this question in a separate section \ref{Expected Answers}.
+
 The detailed description of each of the methods helped me to settle for the \texttt{controlled experiment} as a research method for this research. It is well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of my research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described in Scalabality Measurements \ref{Scalability Measurements} chapter.
 
 \subsection{Research Difficulty}
-The experiments will be performed in a shared cloud environment, which is inherently unpredictable and changing. Designing and executing a test yielding statistically relevant results where all the necessary variables are controlled (within reasonable boundaries) will be a challenge.
+The experiments is performed in a shared cloud environment, which is inherently unpredictable and changing. Non-deterministic network conditions play a significant role here. Aside from that, one has to acknowledge the fact that control over hardware in a cloud environment is by definition given up by the researcher.
+
+Designing and executing a test, yielding statistically relevant results, where all the necessary variables are controlled (within reasonable boundaries) is a huge challenge. Bornholt \cite{BornBen} mentions that even the linking order in the process of generating binaries can have an effect of the performance of the benchmarked system!
+
 The focus of the project is on scaling a websocket application. This is a relatively new technology, thus finding proper scientific coverage is not trivial.
-Some of the necessary development and data collection might be in relatively low-level technology.
-The geo-location with reasonable accuracy of the clients might prove difficult too.
-Overall, it’s a complex project requiring knowledge of both hardware (protocol), software (architecture) and consisting of multiple disciplines.
-even linking order in the compiler can change the performance!!! [one of CRIMES]
+
+Some of the necessary development and data collection tools are relatively low-level and require thorough understanding of UNIX operating systems, on which the servers are deployed. The same is applicable to tuning the operating system for optimal TCP-related performance \ref{Kernel tuning}.
+
+Simluating the geo-location of clients with reasonable accuracy also proves problematic.
+
+Overall, it’s a complex project requiring knowledge of multiple aspects of both hardware (TCP, WebSocket protocol, networks, operating system), software (architecture, cloud computing, data replication/sharding).
 
 \subsection{Hypothesis}
 The correct geographical decomposition of application stack can lead to vastly improved performance in comparison with baseline architecure(TODO:S????).
