@@ -98,26 +98,35 @@ Selection and application of literature-based models is described in full in Sca
 
 \section{Problem Statement}
 
-The problem that I study in this research concerns application stack decomposition of the System Under Test \ref{The System Under Test}. It can be generalized to scalability of systems with similar characteristics - utilizing real-time, user-generated data, broadcast globally using the WebSocket protocol \ref{Websocket Protocol}.
+The problem that I study in this research concerns application stack decomposition of the System Under Test \ref{The System Under Test}. It can be generalized to scalability of systems with similar characteristics:
+
+\begin{itemize}
+  \item utilizing real-time, uncacheable data,
+  \item utilizing user-generated data,
+  \item broadcast to user base distributed globally,
+  \item broadcast using the WebSocket protocol \ref{Websocket Protocol},
+  \item deployed in the cloud,
+  \item dynamically scalable (up and down).
+\end{itemize}
 
 This regards the size and geographical placement of WebSocket server instances, database and cache server instances (with data distribution), routing between them and iternal layer communication.
 
 \subsection{Research Questions}
-
-what's the best architecture that answers that best:
-how to deliver data to geographically distributed users with minimal, consistent and manageable latency
-how to react
-scales up and down in response to demand changes (WEBSOCKETS - DISCONNECT SESSIONS? WHEN?  This provides some additional challenges when it comes to websockets, since in order to stop an instance one needs to make sure it does not serve any sessions. \cite{GroBuy})
-Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center. \cite{GroBuy}
-according to the models based on the set of metrics described in detail later \ref{Selected metrics}
-Also, there is an inherent limitation for scaling a websocket application - a number of TCP ports (and file descriptors available to a ws/wss connections) on a server instance. Hardware limitations are different in an http-based application.
-
 \begin{enumerate}
-  \item Does architecture with geographically aware scaling case can produce better results than the baseline architecture?
-  \item What is the preferred architecture decomposition for a system with given characteristics - stateless, deployed in the cloud, dynamically scaled up and down, with persistent connections, clients distributed globally and uncacheable data generated in real time?
+  \item What's the architecture decomposition stack that:
+    \begin{enumerate}
+      \item guarantees data delivery to geographically distributed users with minimal, consistent and manageable latency?
+      \item scales up and down most effectively in response to demand changes? (This provides an additional challenge for applications using the WebSocket protocol, since in order to stop an instance one needs to make sure it does not serve any sessions; stateful connections need to be terminated \cite{GroBuy}.)
+      \item guarantees lowest cost and best degree of utilization of the employed resources within a data center?
+    \end{enumerate}
+  \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
 \end{enumerate}
+
+Answers to these questions are evaluated using the models and a set of metrics described in detail in a dedicated chapter \ref{Scalability Measurements}.
+
 \subsection{Solution Outline}
 How our solution works in short.
+
 \subsection{Research Method}
 Software engineering is a relatively difficult field to investigate in terms of lack of clarity on how to do it. Most of the problems are of design, rather than pure scientific, nature. West Churchman coined a specific term for these kind of modern problems - wicked (since they are resistant to resolutions) [MMPROJ1]. Eastbrook et al claim it is often difficult to identify the true underlying nature of the research problem and thus the best method to research it [MMPROJ2]. In their work, they name and compare five most classes of research methods to select from: controlled experiments, case studies, survey research, ethnographies, action research. They help to select the method by first establishing the type of research question being asked - existence question (“Does X exist”?), description and classification question (“What is X like?”), and descriptive-comparative questions(“How does X offer from Y?”). The questions of this research are of the last type. The authors suggest pinpointing up-front what will be accepted as a valid answer to the research question [MMPROJ2]. The detailed description of each of the methods helps me to settle for the controlled experiment. It’s well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of me research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described below.
 \subsubsection{Research Difficulty}
@@ -308,7 +317,9 @@ Redis can also be scaled for reads using a simple replication in a single master
 
 An introduction into push-base communication over the internet can be found in Agarwal’s work - Toward a Push-Scalable Global Internet \cite{PushScale}. The key message in the article is that push message delivery on the World Wide Web is not scalable for servers, intermediate network elements, and battery-operated mobile device clients. And yet, most of modern day websites have highly dynamic content updated even up to multiple times a minute (very much so for The System Under Test \ref{The System Under Test}).
 
-Most of internet communications happens over HTTP Running over TCP. Real-time message delivery requires an always-on connection from the server to the client. HTTP proxies have limited memory and tcp ports, are shared among multiple users. Servers need to be provisioned in order to maintain active tcp connections from large populations of user clients. These all provide challenges that need to be dealt with in scalable applications \cite{PushScale}.
+Most of internet communications happens over HTTP Running over TCP. Real-time message delivery requires an always-on connection from the server to the client. HTTP proxies have limited memory and TCP ports, are shared among multiple users. Servers need to be provisioned in order to maintain active TCP connections from large populations of user  clients. These all provide challenges that need to be dealt with in scalable applications \cite{PushScale}.
+
+A number of TCP ports available (and file descriptors available to a server process) on a server instance is an inherent scalability limitation of an application using the WebSocket protocol. Hardware limitations are different in an HTTP-based communication.
 
 On a more positive note, Cassetti and Luz \cite{WebsApi} claim that overhead introduced by the websocket protocol and websocket API is rather small as compared to other communication methods. Furthermore, one data intensive applications can achieve superior bandwidth and performance when using websockets.
 
