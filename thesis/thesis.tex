@@ -188,8 +188,10 @@ The research will result in the following contributions:
 \end{enumerate}
 
 \section{Related Work}
+
 The big paper on measuring scalability in the clouds.
 custom routing between regions. A lot on page 14/21 MMPROJ.
+
 The big paper on deploying different scalability structures \cite{GroBuy}.
 Software engineers need to design for the cloud, not only deploy in the cloud. This is even more important when using multiple data centers situated in different legislative domains; constructed with different hardware, network, and software components; and prone to different environmental risks.
 Both Route 53 and ELB do not consider applications’ regulatory requirements when selecting a data center site. Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center.
@@ -211,13 +213,30 @@ compute latency using PingER (To approximate the latency between a user and a cl
 CloudSim
 Small mentions of the others.
 
+DESCRIBED IN DETAILS IN THE Background chapter \ref{Background}.
+
+
 \section{Document Outline}
-Here we outline the structure of the thesis. A short paragraph on what happens in each chapter.
+In this section I outline the structure of the thesis - all chapters with short summaries.
+
+\begin{enumerate}
+  \item \texttt{Background} - contains a short summary of the literature study. Describes researched work in the relevant fields \ref{Background}.
+  \item \texttt{Benchmarking} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{Benchmarking}.
+  \item \texttt{The System Under Test} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{The System Under Test}.
+  \item \texttt{Experiment Outline} - contains a description of the conducted experiment, its goals and deliverables. Full description of the compared architectures and cloud stack on which the research is performed is also included in this chapter \ref{Experiment Outline}.
+  \item \texttt{Scalability Measurements} - contains a description of literature-based scalability metrics and models. Lists the models and metrics selected for measurements in this research, as well as all metrics collectible from the AWS cloud environment \ref{Scalability Measurements}
+  \item \texttt{Experiment results} - contains the data collected in the experiments \ref{Experiment results}.
+  \item \texttt{Evaluation} - contains evaluation of the experiment and analysis of the results \ref{Evaluation}.
+  \item \texttt{Conclusions} - contains a list of conclusions derived from the analysis of the experiment results \ref{Conclusions}.
+  \item \texttt{Further Work} - contains a description of relevant, testabl variables I did not have enough time to cover in this research. \ref{Further Work}
+\end{enumerate}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Background}
+\chapter{Background}\label{Background}
 
 \section{Scalability}\label{Scalability}
 
@@ -491,7 +510,7 @@ Agarwal presents us with an overview of protocols previously used for the same k
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Benchmarking}
+\chapter{Benchmarking}\label{Benchmarking}
 
 \epigraph{"If you're not keeping score, you're just practicing."}{--- Vince Lombardi, American Footbal Player}
 
@@ -999,11 +1018,11 @@ Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson di
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Experiment results}
+\chapter{Experiment results}\label{Experiment results}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Evaluation}
+\chapter{Evaluation}\label{Evaluation}
 
 \section{Statistical Significance}
 http://technology.stitchfix.com/blog/2015/05/26/significant-sample/
@@ -1016,11 +1035,11 @@ network is inherently non-deterministic, load tests needed to actually test avai
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Conclusion}
+\chapter{Conclusions}\label{Conclusions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Further work}
+\chapter{Further Work}\label{Further Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
