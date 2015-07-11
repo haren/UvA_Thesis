@@ -24,7 +24,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \title{Geographically-aware scaling for real-time persistent websocket applications.}
-% \coverpic[100pt]{figures/terminal.png}
+\coverpic[100pt]{figures/logo.png}
 \subtitle{Master's Project in Software Engineering}
 \date{Summer 2015}
 
@@ -61,10 +61,22 @@ Kent Beck~\cite{JohnsonBBCGW93} proposes to have four sentences in a good abstra
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}
-Software scalability.
-Cloud scalability.
-Why is it important
-Importance of measuring in the clouds and testing optimal architectures.
+
+\epigraph{"Does this solution scale?"}{--- Every business person ever}
+
+Everyone these days, probably more than ever, wants to build solutions that scale. Together with the globalization of our lifes and businesses grows the need for global, distributed, scalable software systems.
+
+To address this needs, more and more providers offer Cloud Computing solutions \ref{Cloud Scalability}, giving rise to the new architecture model called \textit{Infrastructure as a Service (IaaS)}. This makes building scalable software systems easier, since the system engineers do not have to design and maintain their proprietary server infrastructure anymore. This also allows to build systems that are more efficient in terms of resource usage - the existing \textit{IaaS} solutions offer scaling up and down capabilities in response to changes in demand for system's services. 
+
+As more and more systems are deployed to the cloud, a need for measuring their properties becomes more and more ubiquitous.
+
+In order to reason about scalablity-related properties of the system, one needs to define this notion considered by many as vague. For reasoning about cloud scalability, I find the following definition most relevant:
+
+\begin{quote}
+\cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload by repeatedly applying a cost-effective strategy for extending a system’s capacity.
+\end{quote}
+
+Furthermore, to have a scientific discussion about scalability, quantifiable models and metrics are necessary. The models I decided to use were introduced by Pattabhiraman et al. \cite{Models} and are described in details in a dedicated chapter \ref{Scalability Measurements}.
 
 \section{Initial Study}
 What we found out researching.
@@ -93,13 +105,14 @@ Some of the necessary development and data collection might be in relatively low
 The geo-location with reasonable accuracy of the clients might prove difficult too.
 Overall, it’s a complex project requiring knowledge of both hardware (protocol), software (architecture) and consisting of multiple disciplines.
 even linking order in the compiler can change the performance!!! [one of CRIMES]
+
 \subsection{Hypothesis}
 The correct geographical decomposition of application stack can lead to vastly improved performance in comparison with baseline architecure(TODO:S????).
 
 \section{Contributions}
 Case study on AWS.
 Architecture decomposition analysis.
-Deliverable piece of code - metrics framework and auto-scaling scripts.
+Deliverable open source piece of code - metrics framework and auto-scaling scripts.
 
 \section{Related Work}
 The big paper on measuring scalability in the clouds.
@@ -161,8 +174,8 @@ According to this definition, one could determine system scalability failure if 
   \item a newly added server instance might not contribute to handling a higher user demand if slows down the routing process.
 \end{itemize}
 
-\subsection{Scalability Cost}
-Scalability is generally desired in the software systems, yet, as all architectural software decisions come at a cost \cite{GerHeiBench}, one must be aware of the trade-offs usually associated with it. Weinstock and Goodenough \cite{WeinstockOnSystem2006} point these out:
+\subsection{Scalability Trade-offs}
+Scalability is generally desired in the software systems, yet, as all architectural software decisions come at a cost \cite{GerHeiBench}; one must be aware of the trade-offs usually associated with it. Weinstock and Goodenough \cite{WeinstockOnSystem2006} point these out:
 \begin{itemize}
   \item performance and scalability (non-scalable system will often demonstrate degrading performance with increasing demand, but scalable systems require performance sacrifice on lower usage levels),
   \item cost and scalability (designing a system to be scalable up-front entails additional costs),
@@ -193,8 +206,9 @@ There exist multiple scalability vectors for web applications. Different decompo
   An architecture different from client - server, where users communicate with each other directly. It handles adding and removing nodes to and from the network dynamically very well.
 \end{description}
 
-\subsection{Cloud Scalability}
-Cloud computing has become virtually ubiquitous. All biggest internet services are either deployed to a cloud, or run their proprietary cloud systems. A lot of companies running proprietary clouds also make them available for hosting to the external clients. Netflix\footnote{\url{https://aws.amazon.com/solutions/case-studies/netflix/}} and Spotify\footnote{\url{https://aws.amazon.com/solutions/case-studies/spotify/}} (both deployed to Amazon's AWS) are examples of the first approach, with Microsoft(Azure)\footnote{\url{https://azure.microsoft.com/}}, Google(Google Cloud Platform)\footnote{\url{https://cloud.google.com/}} and Amazon(Amazon Web Services)\footnote{\url{https://aws.amazon.com/}} being the example of the second.
+\subsection{Cloud Scalability}\label{Cloud Scalability}
+Cloud computing has become virtually ubiquitous. All biggest internet services are either deployed to a cloud, or run their proprietary cloud systems. A lot of companies running proprietary clouds also make them available for hosting to the external clients. Netflix\footnote{\url{https://aws.amazon.com/solutions/case-studies/netflix/}} and Spotify\footnote{\url{https://aws.amazon.com/solutions/case-studies/spotify/}} (both deployed to Amazon's AWS) are examples of the first approach, with Microsoft(Azure)\footnote{\url{https://azure.microsoft.com/}}, Google(Google Cloud Platform)\footnote{\url{https://cloud.google.com/}} and Amazon(Amazon Web Services)\footnote{\url{https://aws.amazon.com/}} being the example of the second. These services are typically billed on a resource utility basis.
+
 General cloud capabilities and the cloud stack I am working with for the scope of this project is discribed in a dedicated chapter \ref{Cloud architecture setup}.
 
 One of the biggest advantages of deploying one's architecture to the cloud that aforementioned companies offer is the ability to dynamically scale up and in response to application traffic changes.
@@ -835,6 +849,11 @@ Collected from Elastic Load Balancer for all instances connected.
 pidstat
 latencies by our custom client suite
 for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
+
+ss -s
+netstat -s 
+
+plugged into statsd and graphite for real time monitoring
 
 \section{Selected models}\label{Selected models}
 [MMPROJ3] With CRUMs, SPMs etc.
