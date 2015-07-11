@@ -96,7 +96,7 @@ The models I selected to use for measurements in this research were proposed by 
 
 Selection and application of literature-based models is described in full in Scalability Measurements chapter \ref{Scalability Measurements}.
 
-\section{Problem Statement}
+\section{Problem Statement}\label{Problem Statement}
 
 The problem that I study in this research concerns application stack decomposition of the System Under Test \ref{The System Under Test}. It can be generalized to scalability of systems with similar characteristics:
 
@@ -169,12 +169,23 @@ Simluating the geo-location of clients with reasonable accuracy also proves prob
 Overall, it’s a complex project requiring knowledge of multiple aspects of both hardware (TCP, WebSocket protocol, networks, operating system), software (architecture, cloud computing, data replication/sharding).
 
 \subsection{Hypothesis}
-The correct geographical decomposition of application stack can lead to vastly improved performance in comparison with baseline architecure(TODO:S????).
+The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecure \ref{Baseline Architecture}.
 
 \section{Contributions}
-Case study on AWS.
-Architecture decomposition analysis.
-Deliverable open source piece of code - metrics framework and auto-scaling scripts.
+The research will result in the following contributions:
+
+\begin{enumerate}
+  \item Architecture decomposition analysis for system's meeting the criteria described in the Problem Statement section \ref{Problem Statement}.
+  \item Case Study on Amazon Web Services\footnote{\url{http://aws.amazon.com/}} and usability of their cloud stack for applications using WebSocket protocol.
+  \item Open sourced pieces of code for:
+  \begin{itemize}
+    \item metrics collection (both from the load test suite and the servers),
+    \item auto-scaling execution,
+    \item constructing scalability models and populating them with collected metrics,
+    \item remote execution of load tests on a fleet of client-simulating servers.
+  \end{itemize}
+  These are described in details in Experiment Deliverables section \ref{Experiment deliverables}.
+\end{enumerate}
 
 \section{Related Work}
 The big paper on measuring scalability in the clouds.
@@ -685,6 +696,9 @@ The goal of the project is to design a scalability framework for a real-time per
 The goal of the project is to see if the proposed architecture decomposition can perform better (quantitatively, according to the selected metric model) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 TODO: REFERENCE CURRENT APPROACHES HERE.
 
+\section{Baseline Architecture}\label{Baseline Architecture}
+TODO: describe here.
+
 \section{Load Testing Framework}\label{Load Testing Framework}
 all the analyzed tools, list also in lab notes from may 11 [FOR EACH WHY WASN'T SATISFACTORY]
 jmeter, thor (low extensibility which we needed), autobahn (max available connections but no further control),
@@ -841,6 +855,11 @@ Delays: up to 2 minutes to get metrics, up to ????? minutes for instance to be a
 Unfortunately there are a large number of (misbehaving) DNS servers out there that don’t properly obey TTLs on records and will still serve up stale records for an indefinite amount of time. [http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/]
 
 \section{Experiment deliverables}\label{Experiment deliverables}
+open sourced code for:
+using scalability models
+managing the cloud (built on boto)
+remote execution of load test and metric collection
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
