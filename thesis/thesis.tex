@@ -2,6 +2,7 @@
 
 \usepackage{color}
 \usepackage{url}
+\usepackage{amsmath}
 
 
 \usepackage{epigraph}
@@ -187,7 +188,7 @@ The research will result in the following contributions:
   These are described in details in Experiment Deliverables section \ref{Experiment deliverables}.
 \end{enumerate}
 
-\section{Related Work}
+\section{Related Work}\label{Related Work}
 
 There is two key papers this research is based on. First of them is \textit{Multi-Cloud Provisioning and Load Distribution for Three-Tier Applications} by Grozev and Buyya \cite{GroBuy}. The second one is \textit{SaaS performance and scalability evaluation in clouds} by Pattabhiraman et al \cite{Models}.
 
@@ -225,7 +226,7 @@ Pattabhiraman et al realized that cloud computing and its measurement provides a
  How to use a transparent approach to monitor and evaluate the correctness of the utility bill based on a posted price model during system performance evaluation and scalability measurement?
 \end{quote}
 
-The authors divide the performance indicators into three groups and propose formal quantifiable models for each of them:
+The authors divide the performance indicators into three groups and propose formal quantifiable meters for each of them:
 \begin{enumerate}
   \item computing resource indicators (CPU, disk, memory, networks, etc.),
   \begin{itemize}
@@ -241,7 +242,7 @@ The authors divide the performance indicators into three groups and propose form
     \item System Performance Meter (SPM).
   \end{itemize}
 \end{enumerate}
-They also propose model which allow to combine the above: System Capacity Meter (SCM), System Effective Capacity Meter (SEC), Effective System Scalability (ESS), and Effective Scalable Range (ESR). Values that are fed into these models are customizable. The models are described in detail in the Scalability Measurements chapter \ref{Scalability Measurements}.
+They also propose model which allow to combine the above: System Capacity Meter (SCM), System Effective Capacity Meter (SEC), Effective System Scalability (ESS), and Effective Scalable Range (ESR). Values that are fed into these meters are customizable. The meters are described in detail in the Scalability Measurements chapter \ref{Scalability Measurements}.
 
 Authors perform a case study with Amazon's AWS stack. The case study consists of performed tests and measurements taken on scaling up and scaling down their application. It provides some warnings for me to consider:
 \begin{itemize}
@@ -786,6 +787,9 @@ jmeter, thor (low extensibility which we needed), autobahn (max available connec
 gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
 
+\subsection{Users Distribution}
+The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
+
 \section{Kernel tuning}\label{Kernel tuning}
 
 \subsection{Measurements}
@@ -946,19 +950,79 @@ remote execution of load test and metric collection
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Scalability Measurements} \label{Scalability Measurements}
-Here we describe the metrics we settled for.
+In this chapter I describe most relevant models and metrics from scientific literature and the subsets I decided to use in this research \ref{Selected metrics}, \ref{Selected models}.
 
-Most of what is necessary for the purpose of this research has been covered by Pushkala Pattabiraman et al [MMPROJ3].
-They realized that cloud computing and its measurement provides a new set of challenges when it comes to measuring performance testing, as opposed to measuring performance of  traditional software systems. They list some key points for measuring cloud applications, among them we can find: validating and ensuring the elasticity of scalability and evaluating utility service billings and pricing models. The latter is also important in my case since cost is one of the driving factors in assessing the scalability of my system. A question they raise regarding this is: How to use a transparent approach to monitor and evaluate the correctness of the utility bill based on a posted price model during system performance evaluation and scalability measurement?.
-The authors divide the performance indicators into three groups:
-computing resource (CPU, disk, memory, networks) - they can be helpful in establishing baseline architecture in my case,
-workload indicators (connected users, throughput and latency),
-performance indicators - processing speed, system reliability and scalability based on the given QoS standards.
-For each they propose formal models with pluggable values and graphic representations (BELOW).
-On top of that, the research contains a case study performed in the Amazon EC2 environment [MMPROJ3].
-Cloud limitations need to be taken into account. One needs to be aware of hidden costs (e.g. autoscaling service is free on EC2, but it requires cloudwatch, which is not). The authors also advise to pay attention to inconsistencies in performance and scalability data [MMPROJ3].
+\section{Scalability Meters}
+Models I find most useful were proposed by Pattabiraman et al \cite{Models}. As mentioned in Related Work section \ref{Related Work}, they divide the performance indicators into three groups and propose formal quantifiable meters for each of them:
+\begin{enumerate}
+  \item computing resource indicators (CPU, disk, memory, networks, etc.),
+  \begin{itemize}
+    \item Computing Resource Allocation Meter (CRAM),
+    \item Computing Resource Utilization Meter (CRUM),
+  \end{itemize}
+  \item workload indicators (connected users, throughput and latency, etc.),
+  \begin{itemize}
+    \item System Load Meter (SLM),
+  \end{itemize}
+  \item performance indicators (processing speed, system reliability, availability)
+  \begin{itemize}
+    \item System Performance Meter (SPM).
+  \end{itemize}
+\end{enumerate}
+They also propose model which allow to combine the above: System Capacity Meter (SCM), System Effective Capacity Meter (SEC), Effective System Scalability (ESS), and Effective Scalable Range (ESR).
 
-many others:
+\subsubsection{Computing Meter Values}
+
+The geometric interpretation of each of these meters is a polygon. The quantifiable value of the meter is the area of the polygon. Sample meter is plotted on the figure \ref{figure:polygon}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{angleradius}
+\caption{Polygon's radius and central angle}
+\label{figure:polygon1}
+\end{figure}
+
+The value of each metric plugged into the meter is represented by the radial distance between the center of the polygon and the vertex. Since all the metrics that serve as inputs to the meter have equal weights, the central angle (as shown of figure \ref{figure:polygon1}) between two consecutive radial distances is always going to be equal. For \textit{$n$} metrics in a meter, each central angle will have a value of \textit{$2\Pi/n$}.
+
+The area of a polygon can be computed as a sum of areas of the triangles that constitute it. The sides of each of these triangles consist of the side of the polygon and 2 radii.
+
+Area of a triangle can be computed using the formula:
+\begin{center}
+  $$A_t = 0.5 * a*b * \sin(\alpha_{ab}) $$
+  where \textit{$a$} and \textit{$b$} are to sides of the triangle and $\alpha_{ab}$ is the angle between them.
+\end{center}
+
+In case of these meters, $\alpha_{ab}$ is always equal to $2\Pi/n$. The area of a triangle limited by two radii with values of two metrics $x_i$ and $x_{i+1}$ would look like this:
+\begin{center}
+  $$A_t = 0.5 * x_i*x_{i+1} * \sin(2\Pi/n) $$
+\end{center}
+
+To compute the area of the polygon one needs to sum all the areas of the triangles formed by radii, and thus the formula is the following:
+\begin{center}
+  \texttt{$$A_p = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}x_i*x_{i+1}$$}
+  where \textit{$x_i$} is a value of an input metric and \textit{n} is the count of input metrics.
+\end{center}
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{polygon}
+\caption{Sample Meter Geometric Interpretation (SPM)}
+\label{figure:polygon}
+\end{figure}
+
+\subsubsection{Computing Resource Allocation Meter (CRAM)}
+\begin{center}
+  % CRAM(S,t) = 0.5 * sin(2*\prod/n)
+\end{center}
+
+\subsubsection{Computing Resource Utilization Meter (CRUM)}
+\subsubsection{System Load Meter (SLM)}
+\subsubsection{System Performance Meter (SPM)}
+\subsubsection{System Capacity Meter (SCM)}
+\subsubsection{System Effective Capacity Meter (SEC)}
+\subsubsection{Effective System Scalability (ESS)}
+\subsubsection{Effective Scalable Range (ESR)}
+\subsubsection{Other Models}
 There is much more work related to the general scalability of distributed systems. Srinivas and Janakiram in their work [MMPROJ5] mention a metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor. They propose another model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability.
 Jogalekar and Woodside [6] propose a strategy-based scalability metric based on cost effectiveness (a function of system's throughput and it’s quality of service). It separates evaluation of throughput or quantity of work from QoS (which, according to the authors, can be any suitable expression).[MMPROJ6]
 PASA[MMPROJ17]
@@ -976,7 +1040,7 @@ P-scalabilityP(k1,k2) - take from [mmproj]
 
 \section{Expected Answers}\label{Expected Answers}
 
-\section{Selected metrics}
+\section{Selected metrics}\label{Selected metrics}
 latency (messaging + handhsaking) (our suite)
 sustainable concurrent websocket connectoins (our suite)
 infrastructure cost (per unit of time, supporting the same number of users) (manual calculation)
@@ -1068,9 +1132,6 @@ Use 12 test clients for every availability zone you have enabled on the ELB. The
 Each test client should gradually ramp up its load over the course of a few hours. Each client can begin at (for example) one connection per second, and increase its rate of connections-per-second every X minutes until the load reaches your desired target after a few hours. - WE CANNOT DO THAT
 
 Tools described here \cite{Load Testing Framework}
-
-\subsubsection{Users Distribution}
-The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
 
 Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
 
