@@ -334,6 +334,13 @@ There exist multiple scalability vectors for web applications. Different decompo
   An architecture different from client - server, where users communicate with each other directly. It handles adding and removing nodes to and from the network dynamically very well.
 \end{description}
 
+\subsection{Scaling up vs Scaling out}
+Tsai et al. \cite{WeiTek} provide us with a distinction between these two notions:
+\begin{description}
+  \item[Scaling up] (aka. vertical scaling) means deploying an application to a stronger machine, or with a better configuration, including more computing resource, more memory, higher disk bandwidth and larger disk space.
+  \item[Scaling out] (aka. horizontal scaling) means deploying an application to multiple machines with similar configurations.
+\end{description}
+
 \subsection{Cloud Scalability}\label{Cloud Scalability}
 Cloud computing has become virtually ubiquitous. All biggest internet services are either deployed to a cloud, or run their proprietary cloud systems. A lot of companies running proprietary clouds also make them available for hosting to the external clients. Netflix\footnote{\url{https://aws.amazon.com/solutions/case-studies/netflix/}} and Spotify\footnote{\url{https://aws.amazon.com/solutions/case-studies/spotify/}} (both deployed to Amazon's AWS) are examples of the first approach, with Microsoft(Azure)\footnote{\url{https://azure.microsoft.com/}}, Google(Google Cloud Platform)\footnote{\url{https://cloud.google.com/}} and Amazon(Amazon Web Services)\footnote{\url{https://aws.amazon.com/}} being the example of the second. These services are typically billed on a resource utility basis.
 
