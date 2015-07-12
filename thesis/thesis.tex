@@ -303,13 +303,16 @@ According to this definition, one could determine system scalability failure if 
 \end{itemize}
 
 \subsection{Scalability Trade-offs}
-Scalability is generally desired in the software systems, yet, as all architectural software decisions come at a cost \cite{GerHeiBench}; one must be aware of the trade-offs usually associated with it. Weinstock and Goodenough \cite{WeinstockOnSystem2006} point these out:
+Scalability is generally desired in the software systems, yet, as all architectural software decisions come at a cost \cite{GerHeiBench}; one must be aware of the trade-offs usually associated with it. Weinstock and Goodenough \cite{WeinstockOnSystem2006} and Tsai et al. \cite{WeiTek} point these out:
 \begin{itemize}
   \item performance and scalability (non-scalable system will often demonstrate degrading performance with increasing demand, but scalable systems require performance sacrifice on lower usage levels),
   \item cost and scalability (designing a system to be scalable up-front entails additional costs),
   \item operability and scalability (it is difficult for humans to operate large systems),
   \item usability and scalability (it may be possible to increase servable demand with limiting system's service scope - e.g. removing personalization and displaying generic, cacheable data),
   \item data consistency and scalability (higher scalability can be achieved if system allows for data inconsistencies).
+  \item levels of scalability mechanisms and automated migration
+  \item workload support and database access
+  \item Software architecture and database access
 \end{itemize}
 
 \subsection{Need for Scalability}
@@ -321,25 +324,42 @@ In case of many software systems (the system under test \ref{The System Under Te
 Huge parts of the internet are shifting towards real-time. This trend is giving rise to new technologies for exchanging messages between clients and servers in the client-server architecture. Traditionally, client would send a request to a server and receive a response. This is hugely inefficient when there is a need for continuous bidirectional exchange of messages. As an improvement, new mechanisms for server-client communication have been introduced recently \ref{Client-Server Communication Improvements} to enhance the process and reduce overhead. One of them - websockets - are a huge next step on this path, but introduce new challenges. One of them is scalability of applications which make use of this technology.
 
 \subsection{Existing Approaches}
+Scalability has been studied in parallel computing, distributed computing, databases, and service-oriented architectures (SOA) \cite{WeiTek}. Scalable design principles for application servers include: divide-and-conquer, asynchrony, encapsulation, concurrency, parsimony, system partitioning, service-based layered architecture, pooling and multiplexing, queuing and background processes, data synchronization, distributed session tracking, and intelligent load distribution.
+
 There exist multiple scalability vectors for web applications. Different decompositions of application stack can be applied to achieve the goal of scalability. A few traditional approaches of tackling an issue like that exist already \cite{Akamai}:
 \begin{description}
   \item[Scaling up.]
-  Increasing volume of system allocated resources. As internet is unreliable and so called "middle-mile bottlenecks" exist,
-  a web application end-user latency and throughput experience is not fully deterministic. Traffic levels fluctuate tremendously, so the need to provision for peak traffic levels means that expensive infrastructure will sit underutilized most of the time. It is easy to implement, but costly, even extremely when you start pushing at current hardware limits.\cite{Qvef}
+  Increasing volume of system allocated resources (a stronger machine, or with a better configuration, including more computing resource, more memory, higher disk bandwidth and larger disk space \cite{WeiTek}). As internet is unreliable and so called "middle-mile bottlenecks" exist, a web application end-user latency and throughput experience is not fully deterministic. Traffic levels fluctuate tremendously, so the need to provision for peak traffic levels means that expensive infrastructure will sit underutilized most of the time. It is easy to implement, but costly, even extremely when you start pushing at current hardware limits.\cite{Qvef} Because the resources of a single machine cannot be increased infinitely, and increase of the cost is not proportional to the increase of the resources, scale-up is not feasible in an Internet scale \cite{WeiTek}.
   \item[Scaling out.]
-  Scaling out horizontally - increasing the number of units of resources comprising the system. Cost of hardware can be reduced dramatically this way. In a web application, one can deploy multiple instances of servers. Different types of balancing can be applied to distribuet traffic among them: application layer balancing, business load balancing, and anticipating load. The overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer. Client state needs to be stored in a layer shared between the webservers.\cite{Qvef}
+  Scaling out horizontally - increasing the number of units of resources comprising the system. Cost of hardware can be reduced dramatically this way. In a web application, one can deploy multiple instances of servers. Different types of balancing can be applied to distribuet traffic among them: application layer balancing, business load balancing, and anticipating load. The overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer. Client state needs to be stored in a layer shared between the webservers.\cite{Qvef}  Scale-out is usually adopted in a cloud \cite{WeiTek}.
   \item[Content Delivery Networks.]
   These only handle static assets. Communication in our system \ref{The System Under Test} happens mainly over websockets, which are not supported by CDNs. CDNs can be divided into Big Data Center CDNs and Highly Distributed CDNs, which put application data within end-user ISPs.\cite{Akamai}
   \item[Peer to peer networks.]
   An architecture different from client - server, where users communicate with each other directly. It handles adding and removing nodes to and from the network dynamically very well.
 \end{description}
 
-\subsection{Scaling up vs Scaling out}
-Tsai et al. \cite{WeiTek} provide us with a distinction between these two notions:
-\begin{description}
-  \item[Scaling up] (aka. vertical scaling) means deploying an application to a stronger machine, or with a better configuration, including more computing resource, more memory, higher disk bandwidth and larger disk space.
-  \item[Scaling out] (aka. horizontal scaling) means deploying an application to multiple machines with similar configurations.
-\end{description}
+\subsection{Scalability Factors}
+There exist multiple scalability factors one has to be aware of when designing and implementing scalability of a software system\cite{WeiTek}.
+
+\subsubsection{Levels of Scalability Mechanisms}
+Most applications deployed in the cloud adopt a tiered application - typically the storage, application and presentation tiers. Cross-tier scaling is not very common because of the high cost of duplicating the whole application stack. Hybrid approach is more popular - the whole stack is duplicated but single tier scaling within the stack is leveraged.
+
+Scalability mechanisms for each tier might be different, since each of them has its own intrinsic properties, objectives and constraints.
+
+\subsubsection{Automated Migration}
+For many systems, automatic migration of data is critical for scalability. This migration can be performed online (the application continous operating throughout the whole process) or offline (the application is taken down for maintenance).
+
+\subsubsection{Workload Support}
+Different workloads require different scalability mechanisms. Online Analytical Processing (OLAP) applications have to be prepared to scale for high volume of read operations, whereas Online Transaction Processing (OLTP) applications have to be prepared to scale for a lot of write operations. Mixed workloads (as is the case for The System Under Test \ref{The System Under Test}) require an architecture ensuring no biases towards either type of operations.
+
+\subsubsection{Recovery and Fault-tolerance}
+A scalable system needs to detect failures of nodes and scale down to exclude the failed node from operation. Similarily, when the failed node comes back to the system, it should scale up including the recovered node. In a fully scalable system, this process should be autonomous.
+
+\subsubsection{Software Architecture}
+In a scalable system, architecture should be devided into decoupled modules which can be scaled independently. Authors \cite{WeiTek} use Service-Oriented Architecture as a model example of an architecture that many scalable systems adopt.
+
+\subsubsection{Database Access}
+Accessing data is often time consuming. This is why data layer is likely to be a bottleneck of a SaaS application. Indirect access (acessing the data layer through an exposed API) allows data tier and other tiers to scale independently using their own preferred mechanisms.
 
 \subsection{Cloud Scalability}\label{Cloud Scalability}
 Cloud computing has become virtually ubiquitous. All biggest internet services are either deployed to a cloud, or run their proprietary cloud systems. A lot of companies running proprietary clouds also make them available for hosting to the external clients. Netflix\footnote{\url{https://aws.amazon.com/solutions/case-studies/netflix/}} and Spotify\footnote{\url{https://aws.amazon.com/solutions/case-studies/spotify/}} (both deployed to Amazon's AWS) are examples of the first approach, with Microsoft(Azure)\footnote{\url{https://azure.microsoft.com/}}, Google(Google Cloud Platform)\footnote{\url{https://cloud.google.com/}} and Amazon(Amazon Web Services)\footnote{\url{https://aws.amazon.com/}} being the example of the second. These services are typically billed on a resource utility basis.
@@ -1069,6 +1089,10 @@ Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson di
 
 \section{Statistical Significance}
 http://technology.stitchfix.com/blog/2015/05/26/significant-sample/
+http://insightdatascience.com/blog/ab\_testing\_statistics.html
+http://www.qubit.com/sites/default/files/pdf/mostwinningabtestresultsareillusory\_0.pdf
+http://www.evanmiller.org/how-not-to-run-an-ab-test.html
+
 
 \section{Threats to validity}
 ec2 whacky, control over hardware released to amazon (can be dedicated machines)
@@ -1083,6 +1107,7 @@ network is inherently non-deterministic, load tests needed to actually test avai
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
+dynamodb
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
