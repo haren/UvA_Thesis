@@ -1012,10 +1012,21 @@ To compute the area of the polygon one needs to sum all the areas of the triangl
 
 \subsubsection{Computing Resource Allocation Meter (CRAM)}
 \begin{center}
-  % CRAM(S,t) = 0.5 * sin(2*\prod/n)
+  $$CRAM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}a_i*a_{i+1}$$
 \end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which total resource allocation for the system is evaluated, \\*
+  \texttt{$a_i$} - represents the values of different types of \textit{allocated} computing resources to S by a cloud (network traffic boundary, cache allocated, memory allocated, cpu allocated, etc.), \\*
+  \texttt{$n$} - represents the count of different types of allocated computing resources to S by a cloud.
 
 \subsubsection{Computing Resource Utilization Meter (CRUM)}
+\begin{center}
+  $$CRUM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}u_i*u_{i+1}$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which total resource allocation for the system is evaluated, \\*
+  \texttt{$u_i$} - represents the values of different types of computing resources \textit{utilized} by S in a cloud (network traffic boundary, cache allocated, memory allocated, cpu allocated, etc.), \\*
+  \texttt{$n$} - represents the count of different types of computing resources utilized by S in a cloud.
 \subsubsection{System Load Meter (SLM)}
 \subsubsection{System Performance Meter (SPM)}
 \subsubsection{System Capacity Meter (SCM)}
