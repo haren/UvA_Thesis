@@ -189,32 +189,41 @@ The research will result in the following contributions:
 
 \section{Related Work}
 
-The big paper on measuring scalability in the clouds.
-custom routing between regions. A lot on page 14/21 MMPROJ.
+There is two key papers this research is based on. First of them is \textit{Multi-Cloud Provisioning and Load Distribution for Three-Tier Applications} by Grozev and Buyya \cite{GroBuy}. The second one is \textit{SaaS performance and scalability evaluation in clouds} by Pattabhiraman et al \cite{Models}.
 
-The big paper on deploying different scalability structures \cite{GroBuy}.
-Software engineers need to design for the cloud, not only deploy in the cloud. This is even more important when using multiple data centers situated in different legislative domains; constructed with different hardware, network, and software components; and prone to different environmental risks.
-Both Route 53 and ELB do not consider applications’ regulatory requirements when selecting a data center site. Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center.
-because they want custom metrics routing they
-Selecting the cloud:
-As a first step, the user authenticates to one of the entry points. At this point, the entry point has the user’s identity and geographical location (extracted from the IP address). As a second step, the entry point broadcasts the user’s identifier to the admission controllers of all data centers. We call this step matchmaking broadcast.
-As a first step, the user authenticates to one of the entry points. At this point, the entry point has the user’s identity and geographical location (extracted from the IP address). As a second step, the entry point broadcasts the user’s identifier to the admission controllers of all data centers. We call this step matchmaking broadcast.
-The admission controllers respond to the entry point whether the user’s data are present and if they are allowed (in terms of legislation and regulations) to serve the user. In the response, they also include information about costs within the data center.
-Based on the admission controllers’ responses, the entry point selects the data center to serve the user and redirects him or her to the load balancer deployed within it. The entry point filters all clouds that have the user’s data and are eligible to serve him or her. If there is more than one such cloud, the entry point selects the most suitable with respect to network latency and pricing. If no cloud meets the data location and legislative requirements, the user is denied service.
-After a data center is selected, the user is served by the AS and DB servers within the chosen cloud as prescribed by the standard three-tier architecture.
-they do:
-sticky load balancing
-it is not beneficial to terminate a running VM ahead of its next billing time. It is better to keep it running until its billing time in order to reuse it if resources are needed again.
-their objectives - cost minimization and latency minimization
-they use front VMs and each cloud runs an ELB an Admission Controller
-latency approximation
-GeoLite db (ip->geo coordinates)
-compute latency using PingER (To approximate the latency between a user and a cloud, we select the three pairs of PingER hosts that are closest to the user and the cloud, respectively, and define the latency as a weighted sum of the three latencies between the hosts in these three pairs)
-CloudSim
-Small mentions of the others.
+\subsubsection{Multi-Cloud Provisioning and Load Distribution for Three-Tier Applications}
 
-DESCRIBED IN DETAILS IN THE Background chapter \ref{Background}.
+In this work, the authors tackle the problem of deploying applications across multiple clouds while satisfying sytem's nonfunctional requirements (in their understanding, application deployed in Amazon's \textit{us-east-1} region and \textit{eu-west-1} region would be deployed to multiple clouds). They propose algorithms for resource provising and load distribution. They focus on resource utilization and cost and legal regulations regarding serving users and servers geographical location and include them in their algorithms.
 
+In order to satisfy the requirements, the authors had to develop their own routing stack. Both Amazon's services involved in the routing process -- Route 53 \footnote{\url{http://aws.amazon.com/route53/}} and Elastic Load Balancing\footnote{\url{http://aws.amazon.com/elasticloadbalancing/}} -- do not consider application's regulatory requirements when selecting a data center site. Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center.
+
+This is how they perform cloud selection to serve a user:
+\begin{enumerate}
+  \item As a first step, the user authenticates with one of their entry point servers. At this point, the entry point has the user’s identity and geographical location (extracted from the IP address).
+  \item As a second step, the entry point broadcasts the user’s identifier to the admission controllers of all data centers. They call this step \textit{matchmaking broadcast}.
+  \item The admission controllers respond to the entry point whether the user’s data are present and if they are allowed (in terms of legislation and regulations) to serve the user. In the response, they also include information about costs within the data center.
+  \item Based on the admission controllers’ responses, the entry point selects the data center to serve the user and redirects him or her to the load balancer deployed within it. The entry point filters all clouds that have the user’s data and are eligible to serve him or her. If there is more than one such cloud, the entry point selects the most suitable with respect to network latency and pricing. If no cloud meets the data location and legislative requirements, the user is denied service.
+  \item After a data center is selected, the user is served by the Application Server and Database servers within the chosen cloud.
+\end{enumerate}
+
+Below I list most relevant takeaways from their work.
+
+\begin{description}
+  \item[Sticky Load Balancing] - it is a technique of load balancing that routes same users to the same backend server instaces. They utilize it in their work - I cannot in this research. Amazon's stack does not offer sticky load balancing for protocols other than HTTP.
+  \item[Cloud Server Instance Termination] - it is not beneficial to terminate a running VM ahead of its next billing time. It is better to keep it running until its billing time in order to reuse it if resources are needed again.
+  \item[Cost Minimization] - this is not an automated feature cloud providers offer. Authors advice on how to include it in a cloud controlling stack. It is an important business goal in my researh.
+  \item[Latency Minimization and Approximation] - authors, just as myself, treat latency as one of the key objectives in the process of optimizing their cloud stack. They approximate latencies and users geographic location using tools PingER\footnote{\url{http://www-iepm.slac.stanford.edu/pinger/}} and GeoLite\footnote{\url{http://dev.maxmind.com/geoip/legacy/geolite/}}. PingER is used to approximate latencies between user and a cloud and GeoLite to map users IP addresses to geographical coordinates. In my research, I do not need to use tools like that since Amazon's stack offers this in sufficient capacity.
+\end{description}
+
+Why is this work relevant? The authors are attempting to solve the same problem - how to distribute and route users between multiple clouds given arbitrary conditions. They work with a similar technology stack as I do.
+
+\subsubsection{SaaS performance and scalability evaluation in clouds}
+
+how they build their models, sample image etc.
+
+The models are described in detail in the Scalability Measurements chapter \ref{Scalability Measurements}.
+
+More related work is described in the following Background chapter \ref{Background}.
 
 \section{Document Outline}
 In this section I outline the structure of the thesis - all chapters with short summaries.
