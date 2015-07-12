@@ -310,9 +310,8 @@ Scalability is generally desired in the software systems, yet, as all architectu
   \item operability and scalability (it is difficult for humans to operate large systems),
   \item usability and scalability (it may be possible to increase servable demand with limiting system's service scope - e.g. removing personalization and displaying generic, cacheable data),
   \item data consistency and scalability (higher scalability can be achieved if system allows for data inconsistencies).
-  \item levels of scalability mechanisms and automated migration
-  \item workload support and database access
-  \item Software architecture and database access
+  \item levels of scalability mechanisms and automated migration (automated migration has to be aware of every level of scalability mechanism; the more of them the more complex the migration),
+  \item workload support and database access (different workloads need support for different database access mechanisms, such as row-oriented storages, colum-oriented storages or hybrid approaches).
 \end{itemize}
 
 \subsection{Need for Scalability}
