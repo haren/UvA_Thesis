@@ -1143,14 +1143,19 @@ CloudWatch Alarms \footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGu
 
 A very important limitation for the case of this research is that data cannot be aggregated automatically across AWS regions \footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html}}.
 
-\subsection{Instance Specific}
+For each metric collected for a given time window (1 or 5 minutes), CloudWatch offers the following statistics: min, max, average, sum and sample count (count (number) of data points used for the statistical calculation).
 
-custom possible
-available statistics for each: min, max, sum, avg, sampleCount (count of data points but research that)
-cpu utilization
-network in / out (in bytes)
-disk read / disk write (number of ops + bytes)
-status checks
+Metrics can be aggregated over different domains - instances, AutoScaling groups, Elastic Load Balancers (all instances behind it) or availability zones. Metrics for groups of instances differ from metrics for single instances.
+
+\subsection{Instance Specific}
+The following metrics can be collected on an EC2 instance level:
+\begin{itemize}
+  \item CPU utilization (\% and absolute),
+  \item Network in/out (in bytes),
+  \item Disk read/write (number of operations and bytes),
+  \item Custom user-defined metrics,
+  \item Instance status checks data.
+\end{itemize}
 
 \subsection{Cloud (group) Specific}
 Collected from Elastic Load Balancer for all instances connected.
