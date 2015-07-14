@@ -1082,25 +1082,32 @@ Since all the meters above use the values sampled over a period of time as input
 
 Using the last two models (ESR and ESS), one can compare scalability of two systems/architectures in absolute quantifiable terms.
 
+The meters I decided to use in this research are described below \ref{Selected models}.
+
 \subsection{Other Models}
-There is much more work related to the general scalability of distributed systems. Srinivas and Janakiram in their work [MMPROJ5] mention a metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor. They propose another model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability.
-Jogalekar and Woodside [6] propose a strategy-based scalability metric based on cost effectiveness (a function of system's throughput and it’s quality of service). It separates evaluation of throughput or quantity of work from QoS (which, according to the authors, can be any suitable expression).[MMPROJ6]
-PASA[MMPROJ17]
+There is much more work related to the measuring scalability of distributed systems. Srinivas and Janakiram in their work \cite{SriJan} mention similar metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor.
 
-\cite{SriJan} Srinivas and Janakiram in their work mention a metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor - include formula
-\cite{EvaScaDS} work on Performance, Reliability, Scalability testing [last most relevant],
-In their research, we also find some interesting, relevant to my case, advice concerning reliability testing. Authors offer suggestions on how to identify potential problem areas using these sample criteria:
-performance bottlenecks that can be attributed to size of data
-system performs with stability beyond x hours from startup time (as defined by the following) under the given loading conditions and does not change more than y percent with regard to:
-system throughput measured by the total number of requests served per second
-cycle time for different workflow
-number of threads of different processes in the configuration
-virtual memory utilization of different processes
-P-scalabilityP(k1,k2) - take from [mmproj]
+They propose a model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability:
+\begin{center}
+  $$scalability = f(availability, synchronization, consistency ,workload, faultload)$$ \\*
+\end{center}
 
-\section{Expected Answers}\label{Expected Answers}
+Jogalekar and Woodside \cite{EvaScaDS} propose a strategy-based scalability metric based on productivity and cost effectiveness (a function of system's throughput and it’s Quality of Service). It separates evaluation of throughput or quantity of work from Quality of Service (which, according to the authors, can be any suitable expression). Productivity can be computed as follows:
+\begin{center}
+  $$F(k) = \lambda(k) * f(k) / C(k)$$ \\*
+\end{center}
+  \texttt{$F(k)$} - represents the productivity of system at scale k, \\*
+  \texttt{$\lambda(k)$} - represents throughput in responses/s of the system at scale k, \\*
+  \texttt{$f(k)$} - represents the average value of a responses of the system at scale k, calculated from its QoS, \\*
+  \texttt{$f(k)$} - represents the running cost per second of the system at scale k. \\*
+
+Based on that, one can compute scalability metric relating systems at two different scale factors as the ratio of their productivity figures:
+\begin{center}
+  $$\upsilon(k_1,k_2) = (F(k_1)/F(k_2)) $$\\*
+\end{center}
 
 \section{Selected metrics}\label{Selected metrics}
+TODO
 latency (messaging + handhsaking) (our suite)
 sustainable concurrent websocket connectoins (our suite)
 infrastructure cost (per unit of time, supporting the same number of users) (manual calculation)
@@ -1182,6 +1189,9 @@ Basic metrics
   \item latency, throughput, concurrent connections, messages dropped?
 \end{itemize}
 
+\section{Expected Answers}\label{Expected Answers}
+TODO
+
 \subsection{Load Testing}
 http://stackoverflow.com/questions/3871886/ssl-and-load-balancing
 
@@ -1191,7 +1201,7 @@ One test client equals one public IP address. ELB machines seem to route all tra
 Use 12 test clients for every availability zone you have enabled on the ELB. These test clients do not need to be in different availability zones – they do not even need to be in EC2 (although it is quite attractive to use EC2 instances for test clients). If you have configured your ELB to balance among two availability zones then you should use 24 test clients.
 Each test client should gradually ramp up its load over the course of a few hours. Each client can begin at (for example) one connection per second, and increase its rate of connections-per-second every X minutes until the load reaches your desired target after a few hours. - WE CANNOT DO THAT
 
-Tools described here \cite{Load Testing Framework}
+Tools described here \ref{Load Testing Framework}
 
 Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
 
