@@ -971,7 +971,7 @@ Models I find most useful were proposed by Pattabiraman et al \cite{Models}. As 
 \end{enumerate}
 They also propose model which allow to combine the above: System Capacity Meter (SCM), System Effective Capacity Meter (SEC), Effective System Scalability (ESS), and Effective Scalable Range (ESR).
 
-\subsubsection{Computing Meter Values}
+\subsection{Scalability Meters}
 
 The geometric interpretation of each of these meters is a polygon. The quantifiable value of the meter is the area of the polygon. Sample meter is plotted on the figure \ref{figure:polygon}.
 
@@ -1027,13 +1027,62 @@ To compute the area of the polygon one needs to sum all the areas of the triangl
   \texttt{$t$} - represents the time over which total resource allocation for the system is evaluated, \\*
   \texttt{$u_i$} - represents the values of different types of computing resources \textit{utilized} by S in a cloud (network traffic boundary, cache allocated, memory allocated, cpu allocated, etc.), \\*
   \texttt{$n$} - represents the count of different types of computing resources utilized by S in a cloud.
-\subsubsection{System Load Meter (SLM)}
+
 \subsubsection{System Performance Meter (SPM)}
+\begin{center}
+  $$SPM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}p_i*p_{i+1}$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which system performance is evaluated, \\*
+  \texttt{$p_i$} - represents the values of different performance metrics of the S in a cloud  (throughput ratio, reliability, availability, utilization, response time, etc.), \\*
+  \texttt{$n$} - represents the count of different performance metrics measured in S.
+
 \subsubsection{System Capacity Meter (SCM)}
+\begin{center}
+  $$SCM(S,t) = 0.5 * \sin(2\Pi/3) * [SL(t)*SP(t)+SL(t)*AR(t)+SP(t)*AR(t)]$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which load for the system is evaluated, \\*
+  \texttt{$SL(t)$} - represents system load based on SLM, \\*
+  \texttt{$SP(t)$} - represents system performance based on SPM, \\*
+  \texttt{$AR(t)$} - represents system resource allocation based on CRAM. \\*
+
 \subsubsection{System Effective Capacity Meter (SEC)}
-\subsubsection{Effective System Scalability (ESS)}
+\begin{center}
+  $$SEC(S,t) = 0.5 * \sin(2\Pi/3) * [SL(t)*SP(t)+SL(t)*RU(t)+SP(t)*RU(t)]$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which load for the system is evaluated, \\*
+  \texttt{$SL(t)$} - represents system load based on SLM, \\*
+  \texttt{$SP(t)$} - represents system performance based on SPM, \\*
+  \texttt{$RU(t)$} - represents system resource utilization based on CRUM. \\*
+
+Since all the meters above use the values sampled over a period of time as input, for each of the mentioned meters one can talk about \textit{min} and \textit{max} values. This is useful for the last two meters.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.3]{sec}
+\caption{Sample System Effective Capacity Meter (SEC)}
+\label{figure:sec}
+\end{figure}
+
 \subsubsection{Effective Scalable Range (ESR)}
-\subsubsection{Other Models}
+\begin{center}
+  $$ESS = [SL(t) / SL_{min}] / [SEC(t) / SEC_{min}]$$
+\end{center}
+  \texttt{$t$} - represents the time over which the system is evaluated, \\*
+  \texttt{$SL(t)$} - represents system load based on SLM, \\*
+  \texttt{$SEC(t)$} - represents system effective capacity based on SEC. \\*
+
+\subsubsection{Effective System Scalability (ESS)}
+\begin{center}
+  $$ESR = (SEC_{max} - SEC_{min})$$
+\end{center}
+  \texttt{$SEC$} - represents \textit{max} and \textit{min} system effective capacity based on SEC. \\*
+
+Using the last two models (ESR and ESS), one can compare scalability of two systems/architectures in absolute quantifiable terms.
+
+\subsection{Other Models}
 There is much more work related to the general scalability of distributed systems. Srinivas and Janakiram in their work [MMPROJ5] mention a metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor. They propose another model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability.
 Jogalekar and Woodside [6] propose a strategy-based scalability metric based on cost effectiveness (a function of system's throughput and it’s quality of service). It separates evaluation of throughput or quantity of work from QoS (which, according to the authors, can be any suitable expression).[MMPROJ6]
 PASA[MMPROJ17]
