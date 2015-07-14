@@ -130,7 +130,7 @@ Answers to these questions are evaluated using the models and a set of metrics d
 In order to answer the Research Questions, a solution consisting of the following steps was developed:
 \begin{enumerate}
   \item \texttt{Preparing the load test suite}. It is used to simulate geographical distribution of users and load they generate as well as to collect latency-related metrics of WebSocket handshakes and message delivery. Described in details in a Load Testing Framework section \ref{Load Testing Framework}.
-  \item \texttt{Preparing the load test suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{EC2 Available metrics}.
+  \item \texttt{Preparing the load test suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{AWS Available metrics}.
   \item \texttt{Feeding the collected metric into scalability measurement models}.
   \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include our custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) was built.
 \end{enumerate}
@@ -1128,20 +1128,23 @@ architecture reaction speed to changes in demand (scaling up and scaling down) (
 CRAM METRICS
 TODO: review
 
-\subsection{EC2 Available metrics} \label{EC2 Available metrics}
-collectible every minute (in detailed mode), by default every 5 minute, paid additionaly - delay up to 2 minutes
-the current EC2 cloud technology does not provide any CloudWatch API to monitor the allocation and utilization of memory for EC2 instances (we do it on our own)
-limits exist (10 metric, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications per month for free
-no limits on custom metrics
-up to 5gb of incoming data logs for free
-up to 5gb of data archiving for free) but we don't expect to hit them.
-small delay (up to 2 minutes, that's what we experienced - delays in autoscaling)
+\section{AWS Available metrics} \label{AWS Available metrics}
 
-alarms can be configured based on this -  http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html
-data not aggregated across regions [lab2]
+Since the System Under Test \ref{The System Under Test} is deployed to Amazon's Cloud \ref{Cloud architecture setup}, the metrics of the system need to be collected as a combination of metrics offered by Amazon's measurement service (CloudWatch\footnote{\url{https://aws.amazon.com/cloudwatch/}} and our custom collection process (described here \ref{Custom Metric Collection}).
 
-\subsubsection{Instance Specific}
-[Lab2 - http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch\_concepts.html]
+Metrics from CloudWatch are collectible by default every 5 minutes. They offer a paid \textit{detailed mode}, with which one can collect metrics every minute. From what I have experienced, even in the detailed mode, the requested metrics show up in the CloudWatch API results with a delay as high as 2 minutes.
+
+The CloudWatch API has its limitations - for instance, the allocation and utilization of memory for EC2 instances and processes is not available. This is something we are collecting in our custom metric collection process \ref{Custom Metric Collection}.
+
+As Pattabhiraman et al. \cite{Models} warn, there exist additional costs which are not apparent from the start.
+If one exceeds 10 metrics, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications, 5GB of incoming data logs or 5GB of data archiving per month then additional costs accrue. This is included in the cost estimates.
+
+CloudWatch Alarms \footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html}} can be configured based on these metrics. They can be applied to trigger AutoScaling actions that scale the deployed system in or out automatically.
+
+A very important limitation for the case of this research is that data cannot be aggregated automatically across AWS regions \footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html}}.
+
+\subsection{Instance Specific}
+
 custom possible
 available statistics for each: min, max, sum, avg, sampleCount (count of data points but research that)
 cpu utilization
@@ -1149,10 +1152,10 @@ network in / out (in bytes)
 disk read / disk write (number of ops + bytes)
 status checks
 
-\subsubsection{Cloud (group) Specific}
+\subsection{Cloud (group) Specific}
 Collected from Elastic Load Balancer for all instances connected.
 
-\subsubsection{Custom Metric Collection} \label{Custom Metric Collection}
+\section{Custom Metric Collection} \label{Custom Metric Collection}
 pidstat
 latencies by our custom client suite
 for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
@@ -1162,7 +1165,12 @@ netstat -s
 
 plugged into statsd and graphite for real time monitoring
 
+\subsection{Real Time Metric Insights} \label{Real Time Metric Insights}
+statsd, graphite
+photo of our dashboard
+
 \section{Selected models}\label{Selected models}
+TODO
 [MMPROJ3] With CRUMs, SPMs etc.
 four different types of needs:
 resource utilization and allocation measurement
