@@ -877,7 +877,7 @@ smaller scale
 
 Adjust the ports opened for cloud instances - redis publishing (communication going the other way round)
 
-setting up custom cloudwatch metric collection - \ref{Custom Metric Collection}
+setting up custom cloudwatch metric collection - \ref{Custom Metric Collection}. what we thought would work didn't.
 
 running as cronjob
 had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
@@ -1205,6 +1205,8 @@ The following metrics can be collected on an EC2 instance level:
 Collected from Elastic Load Balancer for all instances connected.
 
 \section{Custom Metric Collection} \label{Custom Metric Collection}
+
+locally:
 pidstat
 latencies by our custom client suite
 for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
@@ -1213,6 +1215,8 @@ ss -s
 netstat -s
 
 plugged into statsd and graphite for real time monitoring
+
+THE ABOVE DOESN'T WORK ON AMAZON LINUX.
 
 perl scripts!!!!
 http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mon-scripts.html
@@ -1246,22 +1250,41 @@ CRAM METRICS
 TODO: review
 
 \section{Selected meters}\label{Selected meters}
-TODO
-[MMPROJ3] With CRUMs, SPMs etc.
-four different types of needs:
-resource utilization and allocation measurement
-performance measurement under allocated computing resources
-scalability measurement in different cloud infrastructures
-cost driven evaluation based on a pre-defined price model
+Computing Resource Utilization Meter
+Server CPU utilization, compiled over all server instances + RDS DB where applicable (Cloudwatch)
+Memory utilization, compiled over all server instances (Cloudwatch Custom)
+Disk utilization, compiled over all server instances (Cloudwatch)
 
-additional values we want to capture to proposed in the model:
-cost
-time to scale up / down
-What we will use to compare architectures:
-SCM (allocated resources) or SEC (used)
-(1/cost) as an additional metric to SEC? or amount of s you can run on a 100bucks
+System Performance Meter
+Handshaking latencies (Our suite)
+Request Handling latencies (Our suite)
+Broadcast latencies (Our suite)
+Mysql Read Latency (Cloudwatch)
+Mysql Write Latency (Cloudwatch)
+Dropped Connections (Our suite)
+Total Network In (Our suite / cloudwatch)
+Total Network Out (Our suite / cloudwatch) - include internal, billable transfer somehow
 
-Results of all setups get plugged into SCM / SEC and then ESS.
+System Load Meter
+Concurrent users  (Our suite)
+Data sent + data received  (Our suite)
+Handled requests count (Our suite)
+Broadcast messages count (Our suite)
+Redis Hits
+Mysql Read IOPS
+Mysql Write IOPS
+
+System Effective Capacity Meter
+SLM + SPM + CRUM + 1 / (Computed Cost of running the architecture per unit of time)
+
+That's an update as to the proposed model.
+
+We need a valuable that's inversely proportional to the cost value (e.g. how long you can run on x \$)
+
+Effective Scalable Range and Effective System Scalability
+$SEC_max$ + $SEC_min$ + $SLM_max$ + $SLM_min$
+
+The benchmark is run against each of the deployed architecture setups and the resulting metrics are used to populated the described meters.
 
 \section{Expected Answers}\label{Expected Answers}
 I am going to use the \textit{Effective System Scalability} and \textit{Effective Scalable Range} meters to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
