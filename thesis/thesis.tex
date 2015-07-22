@@ -863,6 +863,14 @@ Basic metrics
 \subsection{Nginx Optimizations}
 added round-robin routing for multiple backend instances
 
+worker\_processes auto; (x for x cores)
+worker\_connections 165535 (set to ulimit-n)
+tcp\_nopush off ((nagle’s algorithm)
+keepalive\_timeout 1000;
+proxy\_read\_timeout 1000;
+listen 443 backlog=16384 deferred;
+worker\_rlimit\_nofile 30000;
+
 \subsection{Mysql Optimizations}
 Mysql would periodically regularly stall for a very long time.
 
