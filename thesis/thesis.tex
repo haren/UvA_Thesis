@@ -1037,12 +1037,22 @@ To compute the area of the polygon one needs to sum all the areas of the triangl
   \texttt{$p_i$} - represents the values of different performance metrics of the S in a cloud  (throughput ratio, reliability, availability, utilization, response time, etc.), \\*
   \texttt{$n$} - represents the count of different performance metrics measured in S.
 
+\subsubsection{System Load Meter (SLM)}
+\begin{center}
+  $$SCM(S,t) = 0.5 * \sin(2\Pi/3) * [CTL(t)*UAL(t)+UAL(t)*SDL(t)+CTL(t)*CDL(t)]$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which load for the system is evaluated, \\*
+  \texttt{$CTL(t)$} - represents system communication traffic load, \\*
+  \texttt{$UAL(t)$} - represents system user access load, \\*
+  \texttt{$SDL(t)$} - represents system data load. \\*
+
 \subsubsection{System Capacity Meter (SCM)}
 \begin{center}
   $$SCM(S,t) = 0.5 * \sin(2\Pi/3) * [SL(t)*SP(t)+SL(t)*AR(t)+SP(t)*AR(t)]$$
 \end{center}
   \texttt{$S$} - represents the measured system, \\*
-  \texttt{$t$} - represents the time over which load for the system is evaluated, \\*
+  \texttt{$t$} - represents the time over which system capacity is evaluated, \\*
   \texttt{$SL(t)$} - represents system load based on SLM, \\*
   \texttt{$SP(t)$} - represents system performance based on SPM, \\*
   \texttt{$AR(t)$} - represents system resource allocation based on CRAM. \\*
