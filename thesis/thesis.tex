@@ -891,7 +891,6 @@ setting up custom cloudwatch metric collection - \ref{Custom Metric Collection}.
 
 running as cronjob
 had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
-
 had to update our node scripts for collecting data pushed through and received on the sockets - the node library we use [REF] had a different internal representation so had to dig in to report data properly.
 
 \subsubsection{Observations}
@@ -906,21 +905,16 @@ jmeter, thor (low extensibility which we needed), autobahn (max available connec
 gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
 
-
-\subsection{Load Testing}
-http://stackoverflow.com/questions/3871886/ssl-and-load-balancing
-
-elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit)
-in order for the full range of ELB machine IP addresses to be utilized, “make sure each [client] refreshes their DNS resolution results every few minutes.”
-One test client equals one public IP address. ELB machines seem to route all traffic from a single IP address to the same back-end instance, so if you run more than one test client process behind a single public IP address, ELB regards these as a single client.
-Use 12 test clients for every availability zone you have enabled on the ELB. These test clients do not need to be in different availability zones – they do not even need to be in EC2 (although it is quite attractive to use EC2 instances for test clients). If you have configured your ELB to balance among two availability zones then you should use 24 test clients.
-Each test client should gradually ramp up its load over the course of a few hours. Each client can begin at (for example) one connection per second, and increase its rate of connections-per-second every X minutes until the load reaches your desired target after a few hours. - WE CANNOT DO THAT
-
-Tools described here \ref{Load Testing Framework}
-
 Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
 
 Clients will come from all zones
+
+[TODO] explain the whole process.
+
+1. Remote execution start.
+2. Remote execution stop.
+3. Copying the result files locally.
+4. Collecting metrics from these files.
 
 \subsection{Users Distribution}
 The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
@@ -960,8 +954,6 @@ Redis cluster - each node sitting on the same node as API server.
 
 Mysql Read Replica nodes in each region - db.r3.large (2 cores, 15 GB)
 Writes still go to the master in main region.
-
-
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 
@@ -1243,6 +1235,20 @@ The following metrics can be collected on an EC2 instance level:
 \subsection{Cloud (group) Specific}
 Collected from Elastic Load Balancer for all instances connected.
 
+\subsection{Load Test Metric Collection}
+http://stackoverflow.com/questions/3871886/ssl-and-load-balancing
+
+elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit)
+in order for the full range of ELB machine IP addresses to be utilized, “make sure each [client] refreshes their DNS resolution results every few minutes.”
+One test client equals one public IP address. ELB machines seem to route all traffic from a single IP address to the same back-end instance, so if you run more than one test client process behind a single public IP address, ELB regards these as a single client.
+Use 12 test clients for every availability zone you have enabled on the ELB. These test clients do not need to be in different availability zones – they do not even need to be in EC2 (although it is quite attractive to use EC2 instances for test clients). If you have configured your ELB to balance among two availability zones then you should use 24 test clients.
+Each test client should gradually ramp up its load over the course of a few hours. Each client can begin at (for example) one connection per second, and increase its rate of connections-per-second every X minutes until the load reaches your desired target after a few hours. - WE CANNOT DO THAT
+
+[TODO] describe the process here - latency, handhskaing, all agreggarion, results snippet
+explain the difference between how broadcast latency is aggregated vs request handling
+
+Tools described here \ref{Load Testing Framework}
+
 \section{Custom Metric Collection} \label{Custom Metric Collection}
 
 locally:
@@ -1333,8 +1339,9 @@ network is inherently non-deterministic, load tests needed to actually test avai
 
 \section{Host Company Benefits}
 - measerment suite for further improvements
-- system performance objectively improved along the process, bottlenecks identified
-- real time measurments monitoring introduced into the system
+- real time telemetry introduced into the system
+- system performance objectively improved along the process, bottlenecks identified 
+- cloud management suite
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1344,6 +1351,7 @@ network is inherently non-deterministic, load tests needed to actually test avai
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
 dynamodb
+improvement to the models so that weighs can be added to the scalability meteres according to preferences.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
