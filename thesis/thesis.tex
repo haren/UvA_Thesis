@@ -761,16 +761,6 @@ There are multiple unique aspects of the system that make this research interest
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Experiment Outline} \label{Experiment Outline}
 
-\begin{enumerate}
-  \item Baseline architecture on a local network.
-  \item Baseline architecture deployed in the cloud.
-  \item Improved architecture in the cloud.
-\end{enumerate}
-
-All of them measured with the same set of metrics with a prepared framework for gathering them.
-
-Details below.
-
 \section{Goal of the experiment}
 
 The goal of the project is to design a scalability framework for a real-time persistent websocket distributed application (the system). The core researched topic will be whether a systems awareness of clients geographical distribution can improve the system performance according to selected metrics, in comparison with traditional approaches.
@@ -778,24 +768,19 @@ The goal of the project is to design a scalability framework for a real-time per
 The goal of the project is to see if the proposed architecture decomposition can perform better (quantitatively, according to the selected metric model) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 TODO: REFERENCE CURRENT APPROACHES HERE.
 
-\section{Baseline Architecture}\label{Baseline Architecture}
-TODO: describe here.
+\section{Baseline Architecture Preparations}\label{Baseline Architecture}
+to get meaningful results we had to do slight optimizatoins of our application code - that proved timely
 
-\section{Load Testing Framework}\label{Load Testing Framework}
-all the analyzed tools, list also in lab notes from may 11 [FOR EACH WHY WASN'T SATISFACTORY]
-jmeter, thor (low extensibility which we needed), autobahn (max available connections but no further control),
-gatling-websocket, http://www.opensourcetesting.org/performance.php
-tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
+code snippets of publishing code, messgae batching
 
-\subsection{Users Distribution}
-The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
+\subsection{Kernel tuning}\label{Kernel tuning}
 
-\section{Kernel tuning}\label{Kernel tuning}
-
-\subsection{Measurements}
+\subsubsection{Measurements}
 etsy, logster, graphite etc.
 
-\subsection{Linux TCP stack}
+syncling clocks on machines usint /etc/ntpd (polled from amazon servers)
+
+\subsubsection{Linux TCP stack}
 
 http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
 the number of client connections that a server can support has nothing to do with ports in this scenario, since the server is [typically] only listening for WS/WSS connections on one single port. I think what the other commenters meant to refer to were file descriptors. You can set the maximum number of file descriptors quite high, but then you have to watch out for socket buffer sizes adding up for each open TCP/IP socket.  MAKE SURE THIS IS CONSISTENT THROUGHOUT THE PAPER.
@@ -858,11 +843,49 @@ describe how you can influence that (reusing web sockets + delay time )
 
 ulimit, nofile, fs.max\-file, net.ipv4.ip\_local\_port\_range = 32768 65535  to /etc/sysctl.conf for ip ranges on the clients
 
-\section{Baseline architecture on a local network}
-Architecture diagrams.
-Technical details - local server capabilities.
-Load testing.
-LOCAL NETWORK DESCRIPTION
+What we used to cross-test our tools and make sure we're collecting reasonable values.
+
+Basic metrics
+\begin{itemize}
+  \item cpu, memory, disk usage (pidstat / CloudWatch)
+  \item network i/o (wireshark, list others analyzed)
+  \item latency, throughput, concurrent connections, messages dropped?
+\end{itemize}
+
+
+\section{Load Testing Framework}\label{Load Testing Framework}
+all the analyzed tools, list also in lab notes from may 11 [FOR EACH WHY WASN'T SATISFACTORY]
+jmeter, thor (low extensibility which we needed), autobahn (max available connections but no further control),
+gatling-websocket, http://www.opensourcetesting.org/performance.php
+tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
+
+
+\subsection{Load Testing}
+http://stackoverflow.com/questions/3871886/ssl-and-load-balancing
+
+elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit)
+in order for the full range of ELB machine IP addresses to be utilized, “make sure each [client] refreshes their DNS resolution results every few minutes.”
+One test client equals one public IP address. ELB machines seem to route all traffic from a single IP address to the same back-end instance, so if you run more than one test client process behind a single public IP address, ELB regards these as a single client.
+Use 12 test clients for every availability zone you have enabled on the ELB. These test clients do not need to be in different availability zones – they do not even need to be in EC2 (although it is quite attractive to use EC2 instances for test clients). If you have configured your ELB to balance among two availability zones then you should use 24 test clients.
+Each test client should gradually ramp up its load over the course of a few hours. Each client can begin at (for example) one connection per second, and increase its rate of connections-per-second every X minutes until the load reaches your desired target after a few hours. - WE CANNOT DO THAT
+
+Tools described here \ref{Load Testing Framework}
+
+Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
+
+
+\subsection{Users Distribution}
+The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
+
+\section{Compared Architectures}
+
+selection - similar computing resources [lab notes table]
+
+\subsection{Baseline Architecture}
+
+\subsection{Proposed Architecture I}
+
+\subsection{Proposed Architecture II}
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 
@@ -905,7 +928,7 @@ In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \c
 
   \subsubsection{Launch configurations}
 
-\section{Load balancing}
+\subsection{Load balancing}
   elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit), that's why they are not provided a static ip
   routing: request count-based for http(s), for others (tcp which is a workaround for websockets) they use tcp [http://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/how-elb-works.html\#request-routing]
   The client uses DNS round robin to determine which IP address to use to send the request to the load balancer. No control over routing without load balancing groups.
@@ -917,23 +940,19 @@ In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \c
   Once you have a testing tool in place, you will need to define the growth in the load. We recommend that you increase the load at a rate of no more than 50 percent every five minutes. B.oth step patterns and linear patterns for load generation should work well with Elastic Load Balancing. If you are going to use a random load generator, then it is important that you set the ceiling for the spikes so that they do not go above the load that Elastic Load Balancing will handle until it scales (see Pre-Warming the ELB).
   [https://aws.amazon.com/articles/1636185810492479\#pre-warming]
 
-\section{Data Layer}
+\subsection{Data Layer}
 
 Technologies we used described in \ref{Technology Stack}. We used Mysql and redis as a caching solution.
 
-\subsection{Amazon Relational Database Service}
+\subsubsection{Amazon Relational Database Service}
 Does not support mysql cluster as of July 2015. Support coming but not released yet.
 Offers mysql read replicas. With a single master. That obviously scales only reads
 You can create a MySQL Read Replica in a different region than the source DB instance to improve your disaster recovery capabilities, scale read operations into a region closer to end users, or make it easier to migrate from a data center in one region to a data center in another region.
 
-\subsection{Elasticache}
+\subsubsection{Elasticache}
 doesn't support crossregion (you cannot connect to an elasticache cluster from outisde of the region)
 
 The above explain why, for a scaled out solution we had to roll with our custom setup. We were suggested using technologies like DynamoDB and Kinesis, but out of scope.
-
-\subsection{Baseline architecture deployed in the cloud}
-
-\subsection{Improved architecture deployed in the cloud}
 
 \section{System Scaling Delay}
 Delays: up to 2 minutes to get metrics, up to ????? minutes for instance to be accessible to clients + ???? for DNS changes to propagate (TTL set to 60 seconds but TODO VERITYF)
@@ -1180,6 +1199,8 @@ netstat -s
 
 plugged into statsd and graphite for real time monitoring
 
+perl scripts!!!!
+
 \subsection{Real Time Metric Insights} \label{Real Time Metric Insights}
 statsd, graphite
 photo of our dashboard
@@ -1202,39 +1223,15 @@ SCM (allocated resources) or SEC (used)
 
 Results of all setups get plugged into SCM / SEC and then ESS.
 
-\section{Baseline, Local network}
-Lab notes from 11 of May go here:
-
-Basic metrics
-\begin{itemize}
-  \item cpu, memory, disk usage (pidstat / CloudWatch)
-  \item network i/o (wireshark, list others analyzed)
-  \item latency, throughput, concurrent connections, messages dropped?
-\end{itemize}
 
 \section{Expected Answers}\label{Expected Answers}
 TODO
 
-\subsection{Load Testing}
-http://stackoverflow.com/questions/3871886/ssl-and-load-balancing
-
-elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit)
-in order for the full range of ELB machine IP addresses to be utilized, “make sure each [client] refreshes their DNS resolution results every few minutes.”
-One test client equals one public IP address. ELB machines seem to route all traffic from a single IP address to the same back-end instance, so if you run more than one test client process behind a single public IP address, ELB regards these as a single client.
-Use 12 test clients for every availability zone you have enabled on the ELB. These test clients do not need to be in different availability zones – they do not even need to be in EC2 (although it is quite attractive to use EC2 instances for test clients). If you have configured your ELB to balance among two availability zones then you should use 24 test clients.
-Each test client should gradually ramp up its load over the course of a few hours. Each client can begin at (for example) one connection per second, and increase its rate of connections-per-second every X minutes until the load reaches your desired target after a few hours. - WE CANNOT DO THAT
-
-Tools described here \ref{Load Testing Framework}
-
-Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
-
-\section{Baseline, Deployed in the cloud}
-
-\section{Improved, Deployed in the cloud}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Experiment results}\label{Experiment results}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1252,6 +1249,10 @@ ec2 whacky, control over hardware released to amazon (can be dedicated machines)
 shared environment, someone else might get ddosed or sth - you have no control over that
 network is inherently non-deterministic, load tests needed to actually test availability
 
+\section{Host Company Benefits}
+- measerment suite for further improvements
+- system performance objectively improved along the process, bottlenecks identified
+- real time measurments monitoring introduced into the system
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
