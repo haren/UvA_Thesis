@@ -777,7 +777,7 @@ to get meaningful results we had to do slight optimizatoins of our application c
 
 code snippets of publishing code, message batching
 
-identifying resource bottlenecks - CPU.
+identifying resource bottlenecks - CPU, both for clients generating load (single core node process) and servers. Split up into processes utilizing all the cores.
 
 2 core threads - one for message handling, another one for pushing redis-published messages through the the end websockets (TCP is 1-1 communication, cannot perform a simulatenous broadcast onto all of them); we can run.
 
@@ -860,14 +860,29 @@ Basic metrics
   \item latency, throughput, concurrent connections, messages dropped?
 \end{itemize}
 
+\subsection{Nginx Optimizations}
+added round-robin routing for multiple backend instances
+
 \subsection{Mysql Optimizations}
 Mysql would periodically regularly stall for a very long time.
+
+innodb\_flush\_log\_at\_trx\_commit (1=>2)
+http://stackoverflow.com/questions/3722510/why-does-an-insert-query-occasionally-take-so-long-to-complete
+innodb\_flush\_method to 0 O\_DSYNC
+
 
 \subsection{Cloud baseline preparations}
 
 smaller scale
 
 Adjust the ports opened for cloud instances - redis publishing (communication going the other way round)
+
+setting up custom cloudwatch metric collection - \ref{Custom Metric Collection}
+
+running as cronjob
+had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
+
+had to update our node scripts for collecting data pushed through and received on the sockets - the node library we use [REF] had a different internal representation so had to dig in to report data properly.
 
 \subsubsection{Observations}
 
@@ -1222,6 +1237,9 @@ netstat -s
 plugged into statsd and graphite for real time monitoring
 
 perl scripts!!!!
+http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mon-scripts.html
+end up in cloudwatch
+
 
 \subsection{Real Time Metric Insights} \label{Real Time Metric Insights}
 statsd, graphite
