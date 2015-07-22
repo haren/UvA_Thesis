@@ -878,6 +878,8 @@ innodb\_flush\_log\_at\_trx\_commit (1=>2)
 http://stackoverflow.com/questions/3722510/why-does-an-insert-query-occasionally-take-so-long-to-complete
 innodb\_flush\_method to 0 O\_DSYNC
 
+\subsection{Redis Optimizations}
+None so far? Not proving to be a bottleneck.
 
 \subsection{Cloud baseline preparations}
 
@@ -918,19 +920,48 @@ Tools described here \ref{Load Testing Framework}
 
 Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
 
+Clients will come from all zones
 
 \subsection{Users Distribution}
 The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
 
 \section{Compared Architectures}\label{Compared Architectures}
 
-selection - similar computing resources [lab notes table]
+selection - similar computing allocated resources [lab notes table]
+
+instance selection limited by our image type, not all suported (our image paravirtual, some require newer hardware virtual machine HVM) [https://www.opswat.com/blog/aws-2015-why-you-need-switch-pv-hvm]
+
+[TODO] describe selected instance types
+
+we picked CPU intensive cause by far that's the first hardware limit we hit
 
 \subsection{Baseline Architecture}
+ONE MASSIVE INSTANCE WITH WEBSOCKET SERVER + REDIS + MYSQL
+NO NETWORK OVERHEAD
+~12/13 SERVER PROCESSES
+
+c3.8xlarge instance, 32 CORES, 60GB, 2x320 GB SSD Storage
 
 \subsection{Proposed Architecture I}
+Region-distributed API servers
+1 API-server instance per one of 8 regions (m3.xlarge, 4cores, 15gb RAM, 2x40SSD)
+2 processes per instance
+
+1 big redis instance (m2.4xlarge, 8 cores, 86.4 GB mem, 2 x 840 GB storage)
+1 big mysql RDS instance (r3.4xlarge, 16 cores, 122 GB mem)
 
 \subsection{Proposed Architecture II}
+Region-distributed API servers + redis cluster + MySQL Read Replicas
+
+1 API-server instance per one of 8 regions (m3.2xlarge, 4cores, 30gb RAM, 2x40SSD)
+2 processes per instance
+
+Redis cluster - each node sitting on the same node as API server.
+
+Mysql Read Replica nodes in each region - db.r3.large (2 cores, 15 GB)
+Writes still go to the master in main region.
+
+
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 
