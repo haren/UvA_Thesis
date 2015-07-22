@@ -729,6 +729,10 @@ The system consists of the following units:
 
 The platform is written mostly in Python \texttt{2.7.6}. Data storages used by the platform consist of Redis \texttt{2.8.10} as a caching solution and Mysql \texttt{2.8.6} as persitent storage. A sample client application is written in Ampersand.js\footnote{\url{http://ampersandjs.com/}}. Cloud stack used to which the application is deployed is fully described later \ref{Cloud architecture setup}.
 
+\section{Web Server}
+
+We use nginx\footnote{\url{http://nginx.org/}} as a web server solution, which handles encrypted communicaton and forwards the traffic to the backend servers. If there are multiple backend servers deployed on a single machine, nginx handles the load balancing between them (using a simple round-robin routing policy).
+
 % \subsection{Database Technologies}
 
 % \subsubsection{Mysql Cluster}
@@ -771,7 +775,11 @@ TODO: REFERENCE CURRENT APPROACHES HERE.
 \section{Baseline Architecture Preparations}\label{Baseline Architecture}
 to get meaningful results we had to do slight optimizatoins of our application code - that proved timely
 
-code snippets of publishing code, messgae batching
+code snippets of publishing code, message batching
+
+identifying resource bottlenecks - CPU.
+
+2 core threads - one for message handling, another one for pushing redis-published messages through the the end websockets (TCP is 1-1 communication, cannot perform a simulatenous broadcast onto all of them); we can run.
 
 \subsection{Kernel tuning}\label{Kernel tuning}
 
@@ -852,6 +860,20 @@ Basic metrics
   \item latency, throughput, concurrent connections, messages dropped?
 \end{itemize}
 
+\subsection{Mysql Optimizations}
+Mysql would periodically regularly stall for a very long time.
+
+\subsection{Cloud baseline preparations}
+
+smaller scale
+
+Adjust the ports opened for cloud instances - redis publishing (communication going the other way round)
+
+\subsubsection{Observations}
+
+splitting up redis and mysql onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
+
+backup by table from lab notes 21.07
 
 \section{Load Testing Framework}\label{Load Testing Framework}
 all the analyzed tools, list also in lab notes from may 11 [FOR EACH WHY WASN'T SATISFACTORY]
