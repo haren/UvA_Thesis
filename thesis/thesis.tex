@@ -626,7 +626,7 @@ Gernot Heiser prepared a list \cite{GerHeiBench} of \textit{benchmarking crimes}
       \item \texttt{Progressive Criterion} - performance actually does improve significantly in area of interest.
       \item \texttt{Conservative Criterion} - performance does not significantly degrade elsewhere.
     \end{enumerate}
-    For a benchmark to be reliable, both criterions need to be demonstrated. I trust the models that have been selected to reason about system properties \ref{Selected models} are living up that task.
+    For a benchmark to be reliable, both criterions need to be demonstrated. I trust the models that have been selected to reason about system properties \ref{Selected meters} are living up that task.
 
     As an economist Mielton Friedman uded to put it, \textit{there's no such thing as free lunch}\footnote{\url{http://www.amazon.com/Theres-Such-Thing-Free-Lunch/dp/087548297X}}.
 
@@ -655,7 +655,7 @@ The tests are being performed on different versions of the proprietary system. T
 The aforementioned applies.
 
 \subsubsection{Providing relative numbers only}
-Heiser suggests this reads as "I am covering that the results are really bad or irrelevant" \cite{GerHeiBench}. In the case of this research, some results need to stary relative since this is what the selected scalability measurement models \ref{Selected models} require. Absolutes might not make sense in this context.
+Heiser suggests this reads as "I am covering that the results are really bad or irrelevant" \cite{GerHeiBench}. In the case of this research, some results need to stary relative since this is what the selected scalability measurement models \ref{Selected meters} require. Absolutes might not make sense in this context.
 
 \subsubsection{Providing no proper baseline}
 Often the state-of-the-art solution can be used as a baseline. I believe the solution we picked as a baseline (the simplest architecture decomposition) is a good one. The research leading up to the test did not yield any data to prove that statement wrong.
@@ -914,7 +914,7 @@ Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson di
 \subsection{Users Distribution}
 The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
 
-\section{Compared Architectures}
+\section{Compared Architectures}\label{Compared Architectures}
 
 selection - similar computing resources [lab notes table]
 
@@ -1006,7 +1006,7 @@ remote execution of load test and metric collection
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Scalability Measurements} \label{Scalability Measurements}
-In this chapter I describe most relevant models and metrics from scientific literature and the subsets I decided to use in this research \ref{Selected metrics}, \ref{Selected models}.
+In this chapter I describe most relevant models and metrics from scientific literature and the subsets I decided to use in this research \ref{Selected metrics}, \ref{Selected meters}.
 
 \section{Scalability Meters}
 Models I find most useful were proposed by Pattabiraman et al \cite{Models}. As mentioned in Related Work section \ref{Related Work}, they divide the performance indicators into three groups and propose formal quantifiable meters for each of them:
@@ -1148,7 +1148,7 @@ Since all the meters above use the values sampled over a period of time as input
 
 Using the last two models (ESR and ESS), one can compare scalability of two systems/architectures in absolute quantifiable terms.
 
-The meters I decided to use in this research are described below \ref{Selected models}.
+The meters I decided to use in this research are described below \ref{Selected meters}.
 
 \subsection{Other Models}
 There is much more work related to the measuring scalability of distributed systems. Srinivas and Janakiram in their work \cite{SriJan} mention similar metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor.
@@ -1171,28 +1171,6 @@ Based on that, one can compute scalability metric relating systems at two differ
 \begin{center}
   $$\upsilon(k_1,k_2) = (F(k_1)/F(k_2)) $$\\*
 \end{center}
-
-\section{Selected metrics}\label{Selected metrics}
-TODO
-latency (messaging + handhsaking) (our suite)
-sustainable concurrent websocket connectoins (our suite)
-infrastructure cost (per unit of time, supporting the same number of users) (manual calculation)
-dropped connections (our suite)
-cpu usage (cloudwatch)
-memory usage (our custom server metrics, pidstat)
-network in network out (cloudwatch)
-iops reads + writes (bots number and byte values, cloudwatch)
-
-to calculate manually:
-percentage of available ports used?
-how long to run on a x euros
-
-
-availability (SLAs???????)
-architecture reaction speed to changes in demand (scaling up and scaling down) (????)
-
-CRAM METRICS
-TODO: review
 
 \section{AWS Available metrics} \label{AWS Available metrics}
 
@@ -1245,7 +1223,29 @@ end up in cloudwatch
 statsd, graphite
 photo of our dashboard
 
-\section{Selected models}\label{Selected models}
+\section{Selected metrics}\label{Selected metrics}
+TODO
+latency (messaging + handhsaking) (our suite)
+sustainable concurrent websocket connectoins (our suite)
+infrastructure cost (per unit of time, supporting the same number of users) (manual calculation)
+dropped connections (our suite)
+cpu usage (cloudwatch)
+memory usage (our custom server metrics, pidstat)
+network in network out (cloudwatch)
+iops reads + writes (bots number and byte values, cloudwatch)
+
+to calculate manually:
+percentage of available ports used?
+how long to run on a x euros
+
+
+availability (SLAs???????)
+architecture reaction speed to changes in demand (scaling up and scaling down) (????)
+
+CRAM METRICS
+TODO: review
+
+\section{Selected meters}\label{Selected meters}
 TODO
 [MMPROJ3] With CRUMs, SPMs etc.
 four different types of needs:
@@ -1263,9 +1263,10 @@ SCM (allocated resources) or SEC (used)
 
 Results of all setups get plugged into SCM / SEC and then ESS.
 
-
 \section{Expected Answers}\label{Expected Answers}
-TODO
+I am going to use the \textit{Effective System Scalability} and \textit{Effective Scalable Range} meters to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
+
+I expect to see differences in various metrics. Using all the other selected meters, I will be able to reason about singled out factors of scalability (such as cost or message handling latency).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
