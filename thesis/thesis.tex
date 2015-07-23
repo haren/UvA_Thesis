@@ -919,6 +919,18 @@ Clients will come from all zones
 \subsection{Users Distribution}
 The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
 
+\section{Used Benchmarking Scenario}\label{Used Benchmarking Scenario}
+
+X users loaded over 15 minutes, x / 15*60 every second.
+Clients stay on connected for 90 minutes and then disconnect.
+they join a game and load prediction pools within (0,15)seconds connecting
+each client places a prediction every (0,30) seconds
+the prediction updates pool distribution and this is then broadcast to all users (in 1-second batches)
+
+INSERT CODE SNIPPETS ON PUBLISHING (HOW SELECTION IS DONE BY EACH API SERVER)
+
+ADD NUMBER TO HOW MANY GAME AND HOW MANY PREDICTIONS
+
 \section{Compared Architectures}\label{Compared Architectures}
 
 selection - similar computing allocated resources [lab notes table]
@@ -1353,7 +1365,7 @@ network is inherently non-deterministic, load tests needed to actually test avai
 dynamodb
 improvement to the models so that weighs can be added to the scalability meteres according to preferences.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+`'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % BELOW WE HAVE ORIGINAL TEMPLATE STUFF THAT NEEDS TO BE REMOVED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
