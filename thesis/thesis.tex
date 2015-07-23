@@ -931,6 +931,16 @@ INSERT CODE SNIPPETS ON PUBLISHING (HOW SELECTION IS DONE BY EACH API SERVER)
 
 ADD NUMBER TO HOW MANY GAME AND HOW MANY PREDICTIONS
 
+\subsection{Benchmark Run Preparations}
+
+Experiment Setup:
+Cleanup Redis
+Flushall + reboot instance
+Cleanup Mysql
+Drop im; reboot, source user creation
+Reboot all servers to clean state
+
+
 \section{Compared Architectures}\label{Compared Architectures}
 
 selection - similar computing allocated resources [lab notes table]
@@ -946,7 +956,7 @@ ONE MASSIVE INSTANCE WITH WEBSOCKET SERVER + REDIS + MYSQL
 NO NETWORK OVERHEAD
 ~12/13 SERVER PROCESSES
 
-c3.8xlarge instance, 32 CORES, 60GB, 2x320 GB SSD Storage
+c3.8xlarge instance, 32 CORES, 60GB, 140 GB SSD Storage with 4000 IOPS
 
 \subsection{Proposed Architecture I}
 Region-distributed API servers
