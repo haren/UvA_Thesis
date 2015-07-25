@@ -775,6 +775,14 @@ The goal of the project is to design a scalability framework for a real-time per
 
 The goal of the project is to see if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 
+\section{Problem To Be Solved}
+[TODO] make sure this is consistent with introduction
+
+from the company perspective:
+  - has to prepare the platform for scalability
+  - no clear answers on what the best architecture decomposition is
+  - no tools to measure and reason about different approaches 
+
 \section{Question to be answered}
 [TODO] same as in the introduction. You can be a bit more specific here now.
 
