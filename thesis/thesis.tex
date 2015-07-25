@@ -135,7 +135,9 @@ Answers to these questions are evaluated using the models and a set of metrics d
 In order to answer the Research Questions \ref{Research Questions}, a solution consisting of the following steps was developed:
 \begin{enumerate}
   \item \texttt{Preparing the load test suite}. It is used to simulate geographical distribution of users and load they generate as well as to collect latency-related metrics of WebSocket handshakes and message delivery. Described in details in a Load Testing Framework section \ref{Load Testing}.
-  \item \texttt{Preparing the load test suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{AWS Available metrics}.
+  [TODO] diagram of the distributed load test suite
+  \item \texttt{Preparing the metric collection suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{AWS Available metrics}.
+  [TODO] diagram of the metric collection suite (custom metrics + cloudwatch automatic + )
   \item \texttt{Feeding the collected metric into scalability meters}.
   \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include our custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) was built.
 \end{enumerate}
@@ -271,15 +273,14 @@ In this section I outline the structure of the thesis - all chapters with short 
   \item \texttt{Background} - contains a short summary of the literature study. Describes researched work in the relevant fields \ref{Background}.
   \item \texttt{Benchmarking} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{Benchmarking}.
   \item \texttt{The System Under Test} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{The System Under Test}.
-  \item \texttt{Experiment Outline and Design} - contains a description of the conducted experiment, its goals and deliverables. Full description of the compared architectures and cloud stack on which the research is performed is also included in this chapter \ref{Experiment Outline and Design}.
-  \item \texttt{Scalability Measurements} - contains a description of literature-based scalability metrics and models. Lists the models and metrics selected for measurements in this research, as well as all metrics collectible from the AWS cloud environment \ref{Scalability Measurements}
+  \item \texttt{Experiment Outline and Design} - contains a description of the conducted experiment, its goals and deliverables \ref{Experiment Outline and Design}.
+  \item \texttt{Experiment Implementation} - contains a full description of the compared architectures and cloud stack on which the research is performed, including the technological details \ref{Experiment Implementation}. 
+  \item \texttt{Scalability Measurements} - contains a description of literature-based scalability metrics and models. Lists the models and metrics selected for measurements in this research, as well as all metrics collectible from the AWS cloud environment \ref{Scalability Measurements}.
   \item \texttt{Experiment results} - contains the data collected in the experiments \ref{Experiment results}.
   \item \texttt{Evaluation} - contains evaluation of the experiment and analysis of the results \ref{Evaluation}.
   \item \texttt{Conclusions} - contains a list of conclusions derived from the analysis of the experiment results \ref{Conclusions}.
   \item \texttt{Further Work} - contains a description of relevant, testabl variables I did not have enough time to cover in this research. \ref{Further Work}
 \end{enumerate}
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -771,9 +772,10 @@ There are multiple unique aspects of the system that make this research interest
 \end{itemize}
 
 \section{Message Handling and Message Publishing}
-HUGE PART OF THE TEST
-INSERT CODE SNIPPETS ON PUBLISHING (HOW SELECTION IS DONE BY EACH API SERVER)
 
+The API server serves two main purposes: handling and responding to user requests, and broadcasting messages with state updates that these requests (and the system internally) generates.
+
+These two functionalities is what my load testing focuses on. Request handling simply happens on a WebSocket protocol level, whereas publishing is done using Redis' pub-sub functionality. Users subscribe to different games - the pub-sub channels. Every channel has a listening thread, that picks up on the message and distributes it to clients connected over WebSockets, as shown in the code snippet [INSERT CODE SNIPPETS ON PUBLISHING (HOW SELECTION IS DONE BY EACH API SERVER)].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
