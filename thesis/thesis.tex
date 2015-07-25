@@ -759,6 +759,12 @@ We use nginx\footnote{\url{http://nginx.org/}} as a web server solution, which h
 % The reality is probably not without some optimizations to the application and the database. However, by following the guidelines and best practices in the Guide to Optimizing Performance of the MySQL Cluster Database1 , significant performance gains can be realized, especially as you start to scale write operations while maintaining very high levels of availability and low latency.
 % [http://openquery.com.au/files/mysql-cluster-intro-use.pdf]
 
+\section{Message Handling and Message Publishing}
+
+The API server serves two main purposes: handling and responding to user requests, and broadcasting messages with state updates that these requests (and the system internally) generates.
+
+These two functionalities is what my load testing focuses on. Request handling simply happens on a WebSocket protocol level, whereas publishing is done using Redis' pub-sub functionality. Users subscribe to different games - the pub-sub channels. Every channel has a listening thread, that picks up on the message and distributes it to clients connected over WebSockets, as shown in the code snippet [INSERT CODE SNIPPETS ON PUBLISHING (HOW SELECTION IS DONE BY EACH API SERVER)].
+
 \section{Unique Aspects of The System}
 
 There are multiple unique aspects of the system that make this research interesting:
@@ -770,12 +776,6 @@ There are multiple unique aspects of the system that make this research interest
   \item Demand is extremely lumpy. This creates a need for being able to quickly the system up and down.
   \item New data is generated constantly by the users so caching the content for geographical distribution is difficult.
 \end{itemize}
-
-\section{Message Handling and Message Publishing}
-
-The API server serves two main purposes: handling and responding to user requests, and broadcasting messages with state updates that these requests (and the system internally) generates.
-
-These two functionalities is what my load testing focuses on. Request handling simply happens on a WebSocket protocol level, whereas publishing is done using Redis' pub-sub functionality. Users subscribe to different games - the pub-sub channels. Every channel has a listening thread, that picks up on the message and distributes it to clients connected over WebSockets, as shown in the code snippet [INSERT CODE SNIPPETS ON PUBLISHING (HOW SELECTION IS DONE BY EACH API SERVER)].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -789,11 +789,17 @@ The goal of the project is to design a scalability framework for a real-time per
 The goal of the project is to see if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 
 \section{Problem To Be Solved}
+The host company is facing the problem of scaling up their system. It has been designed in a way that should support scalability - all processes are decoupled and communicate over TCP sockets, using the ZMQ library [TODO reference zmq here]. Most internal messaging happens using pub-sub architecture. Thanks to that, new nodes can be added to the system in order to increase its capacity.
 
-from the company perspective:
-  - has to prepare the platform for scalability
-  - no clear answers on what the best architecture decomposition is
-  - no tools to measure and reason about different approaches 
+Even though the system has been designed for scalabilility, it has note been battle-tested. The scalability process is performed in this research; multiple system limitations and have been identified \ref{Discovered System Limitations} and solutions proposed and implemented.
+
+Our (the host company) preliminary research has not yielded definitive answers as two which level of geographic architecture decomposition will result in best system performance. The key metrics influencing these performance are user-experienced WebSocket handshaking, message handling and broadcasting latencies, utilization of the allocated cloud resources and utilization cost.
+
+Furthermore, the organization does not possess any tools to measure application performance. This research provides the organization with a set of tools to measure any component of the system (in terms of resource usage and processing time), store the metrics and visualize them in real-time in a comprehensible way.
+
+On top that, my research delivers the design and implementation of the load testing suite, including cloud client operating system images, orchestration scripts for simluating the load testing from the clients and collecting the metrics onto a master machine.
+
+[TODO image - sampe graphite dashboard]
 
 \section{Question to be answered}
 [TODO] same as in the introduction. You can be a bit more specific here now.
@@ -886,6 +892,11 @@ code snippets of publishing code, message batching
 identifying resource bottlenecks - CPU, both for clients generating load (single core node process) and servers. Split up into processes utilizing all the cores.
 
 2 core threads - one for message handling, another one for pushing redis-published messages through the the end websockets (TCP is 1-1 communication, cannot perform a simulatenous broadcast onto all of them); we can run.
+
+\subsection{Discovered System Limitations}\label{Discovered System Limitations}
+- publishing, batched
+- most stuff cpu intensive (message broadcastign, lots of network stack handling) => configurations had to be prepared to run multiple processes so that all machine CPU cores could be utilized
+- way too much json.loading on messages, super heavy
 
 \subsection{Kernel tuning}\label{Kernel tuning}
 
