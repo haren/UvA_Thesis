@@ -116,7 +116,7 @@ I propose and compare three architectures \ref{Compared Architectures} to find w
 
 More specifically, the host company is in need of scaling their system. The initial research showed little indication of which architecture deomposition will provide lowest client-experienced latencies, best allocated resources utilization and lowest operating cost. On top of that, they do not posses any tools or frameworks that would allow them to measure their system internally and externally. Neither are they in possession of a framework to generate the load test on which the scalability of the system could be measured.
 
-\subsection{Research Questions}
+\subsection{Research Questions}\label{Research Questions}
 \begin{enumerate}
   \item What's the architecture decomposition stack that:
     \begin{enumerate}
@@ -128,17 +128,19 @@ More specifically, the host company is in need of scaling their system. The init
   \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
 \end{enumerate}
 
-Answers to these questions are evaluated using the models and a set of metrics described in detail in a dedicated chapter \ref{Scalability Measurements}.
+Answers to these questions are evaluated using the models and a set of metrics described in detail in a dedicated chapter \ref{Scalability Measurements}, section \ref{Selected Meters and Metrics}.
 
 \subsection{Solution Outline}
 
-In order to answer the Research Questions, a solution consisting of the following steps was developed:
+In order to answer the Research Questions \ref{Research Questions}, a solution consisting of the following steps was developed:
 \begin{enumerate}
-  \item \texttt{Preparing the load test suite}. It is used to simulate geographical distribution of users and load they generate as well as to collect latency-related metrics of WebSocket handshakes and message delivery. Described in details in a Load Testing Framework section \ref{Load Testing Framework}.
+  \item \texttt{Preparing the load test suite}. It is used to simulate geographical distribution of users and load they generate as well as to collect latency-related metrics of WebSocket handshakes and message delivery. Described in details in a Load Testing Framework section \ref{Load Testing}.
   \item \texttt{Preparing the load test suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{AWS Available metrics}.
-  \item \texttt{Feeding the collected metric into scalability measurement models}.
+  \item \texttt{Feeding the collected metric into scalability meters}.
   \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include our custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) was built.
 \end{enumerate}
+
+The solution is used to generate realistic user load and benchmark the performance of the system in 3 different versions of varying geopgrahic distributions \ref{Compared Architectures}.
 
 \subsection{Research Method}
 Software Engineering is a relatively difficult field to investigate. Most of the problems are of design (rather than pure scientific) nature. West Churchman coined a specific term for these kind of problems \cite{Wckd}. He calls them \texttt{wicked}, since they are resistant to resolutions.
@@ -176,6 +178,10 @@ Overall, it’s a complex project requiring knowledge of multiple aspects of bot
 
 \subsection{Hypothesis}
 The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecure \ref{Baseline Architecture}.
+
+The geographically distributed architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} [TODO insert diagrams] should provide lower user-experienced request handling and broacast latencies than the baseline architecture \ref{Baseline Architecture}. Some of the latencies that are unavoidable due to geographical global distances, in case of these architectures, can be pushed down to lower levels of the systems. This means that the data retrieval / synchronization can happen asynchronously, in the background, rather than synchronously on every user's request.
+
+On the other hand, the distributed versions of the architecture add complexity in multiple system layers. Implications of these will probably increase the cost of system utilization (due to increased internal data transfer).
 
 \section{Contributions}
 The research will result in the following contributions:
@@ -800,7 +806,7 @@ from the company perspective:
 - Preparing a distributed load testing suite
     - simluates client from different regions with a specified user and message load
 
-\subsection{Load Testing}
+\subsection{Load Testing}\label{Load Testing}
 
 Clients will come from all zones
 
