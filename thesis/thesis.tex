@@ -112,14 +112,19 @@ The problem that I study in this research concerns application stack decompositi
 
 This regards the size and geographical placement of WebSocket server instances, database and cache server instances (with data distribution), routing between them and iternal layer communication.
 
+I propose and compare three architectures \ref{Compared Architectures} to find which satisfies scalability criteria best.
+
+More specifically, the host company is in need of scaling their system. The initial research showed little indication of which architecture deomposition will provide lowest client-experienced latencies, best allocated resources utilization and lowest operating cost. On top of that, they do not posses any tools or frameworks that would allow them to measure their system internally and externally. Neither are they in possession of a framework to generate the load test on which the scalability of the system could be measured.
+
 \subsection{Research Questions}
 \begin{enumerate}
   \item What's the architecture decomposition stack that:
     \begin{enumerate}
       \item guarantees data delivery to geographically distributed users with minimal, consistent and manageable latency?
-      \item scales up and down most effectively in response to demand changes? (This provides an additional challenge for applications using the WebSocket protocol, since in order to stop an instance one needs to make sure it does not serve any sessions; stateful connections need to be terminated \cite{GroBuy}.)
+      \item scales up and down most effectively in response to demand changes?\footnote{This proved to be untestable as the researched progressed, because of the nature of DNS protocol, described in detail \ref{Excluded Metrics}.}
       \item guarantees lowest cost and best degree of utilization of the employed resources within a data center?
     \end{enumerate}
+    The answer to these question is seeked among the 3 tested architecture \ref{Compared Architectures}.
   \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
 \end{enumerate}
 
@@ -776,7 +781,6 @@ The goal of the project is to design a scalability framework for a real-time per
 The goal of the project is to see if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 
 \section{Problem To Be Solved}
-[TODO] make sure this is consistent with introduction
 
 from the company perspective:
   - has to prepare the platform for scalability
@@ -1448,7 +1452,7 @@ $SEC_max$ + $SEC_min$ + $SLM_max$ + $SLM_min$
 
 The benchmark is run against each of the deployed architecture setups and the resulting metrics are used to populated the described meters.
 
-\subsection{Excluded Metrics}
+\subsection{Excluded Metrics}\label{Excluded Metrics}
 
 I was forced to exclude availability - not enough resources (money and time) to run the tests long enough to run into any availability issues, since Amazon SLAs offer 99.9999\% orders of availability for selected technologies.
 
