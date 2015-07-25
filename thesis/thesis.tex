@@ -124,11 +124,10 @@ More specifically, the host company is in need of scaling their system. The init
       \item scales up and down most effectively in response to demand changes?\footnote{This proved to be untestable as the researched progressed, because of the nature of DNS protocol, described in detail \ref{Excluded Metrics}.}
       \item guarantees lowest cost and best degree of utilization of the employed resources within a data center?
     \end{enumerate}
-    The answer to these question is seeked among the 3 tested architecture \ref{Compared Architectures}.
   \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
 \end{enumerate}
 
-Answers to these questions are evaluated using the models and a set of metrics described in detail in a dedicated chapter \ref{Scalability Measurements}, section \ref{Selected Meters and Metrics}.
+The answer to these questions is seeked among the 3 tested architecture, described in detail later \ref{Compared Architectures}. Answers to these questions are evaluated using the models and a set of metrics described in detail in a dedicated chapter \ref{Scalability Measurements}, section \ref{Selected Meters and Metrics}.
 
 \subsection{Solution Outline}
 
@@ -802,7 +801,18 @@ On top that, my research delivers the design and implementation of the load test
 [TODO image - sampe graphite dashboard]
 
 \section{Question to be answered}
-[TODO] same as in the introduction. You can be a bit more specific here now.
+\begin{enumerate}
+  \item What's the architecture decomposition stack that:
+    \begin{enumerate}
+      \item guarantees data delivery to geographically distributed users with minimal, consistent and manageable latency?
+      \item guarantees lowest cost and best degree of utilization of the employed resources within a data center?
+    \end{enumerate}
+  \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
+\end{enumerate}
+
+The answer to these questions is seeked among the 3 tested architecture, described in detail below \ref{Compared Architectures}. In short - I propose 3 architectures of increasing level of geographical distribution (= decreasing level of centralization) and then use the load test and measurements suite to assess which performs best.
+
+Answers to these questions are evaluated using the models and a set of metrics described in detail in a dedicated chapter \ref{Scalability Measurements}, section \ref{Selected Meters and Metrics}.
 
 \section{Research Method}
 [TODO] Controlled experiment - implementation described in detail in the Experiment Implementation Chapter \ref{Experiment Implementation}.
