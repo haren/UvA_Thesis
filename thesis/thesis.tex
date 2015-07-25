@@ -848,6 +848,8 @@ remote execution of load test and metric collection
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Experiment Implementation} \label{Experiment Implementation}
 
+\epigraph{"At scale, everything breaks."}{--- Urs Holzle, Google Fellow}
+
 \section{Baseline Architecture Preparations}\label{Baseline Architecture Preparations}
 to get meaningful results we had to do slight optimizatoins of our application code - that proved timely
 
@@ -955,11 +957,28 @@ http://stackoverflow.com/questions/3722510/why-does-an-insert-query-occasionally
 innodb\_flush\_method to 0 O\_DSYNC
 
 \subsection{Redis Optimizations}
-None so far? Not proving to be a bottleneck.
+[1772] 24 Jul 10:09:09.009 \# Can't save in background: fork: Cannot allocate memory
+[1772] 24 Jul 10:09:15.020 * 1 changes in 900 seconds. Saving...
+
+ResponseError: MISCONF Redis is configured to save RDB snapshots, but is currently not able to persist on disk. Commands that may modify the data set are disabled. Please check Redis logs for details about the error.
+
+Explain overommiting here shortly (redis.io/topics/faq)
+
+sysctl: vm.overcommit\_memory = 1
 
 \subsection{Cloud baseline preparations}
 
-smaller scale
+make sure to describe client simulation in details and issues that you battled with there - like cpu maxing, having to divide into multiple processes etc.
+
+client machines reaching different resource limits at different loads, becuase of the increased publishing?
+
+started with t1.micro - had to move to m1.small, because we were reaching memory limits on thest that run longer than ~3 minutes, kernel was silently killing the process and metrics would fail to get reported from the clients
+
+Jul 24 11:36:28 ip-172-31-24-5 kernel: [39921901.888692] Out of memory: Kill process 2992 (node) score 673 or sacrifice hild"
+
+super hard to estimate the necessary client resource, which we had to over-provision anyway - clients reaching hardware limits affects reported measurements and renders the test run useless.
+
+run previously on smaller scale (to save costs)
 
 Adjust the ports opened for cloud instances - redis publishing (communication going the other way round)
 
@@ -968,6 +987,16 @@ setting up custom cloudwatch metric collection - \ref{Custom Metric Collection}.
 running as cronjob
 had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
 had to update our node scripts for collecting data pushed through and received on the sockets - the node library we use [REF] had a different internal representation so had to dig in to report data properly.
+
+\subsubsection{Distributing Resources Across Cloud Regions}
+
+Aws stack is divided into Regions (e.g. Ireland, N. Virgina, Sao Paolo) and these into availability zones. All the service stack you set up for a region. No easy way to copy between regions - businesses built around that.
+
+[TODO]:
+
+copy code snippets for deploying client groups and orchestrating them 
+
+and servers
 
 \subsubsection{Observations}
 
