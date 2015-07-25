@@ -260,7 +260,7 @@ In this section I outline the structure of the thesis - all chapters with short 
   \item \texttt{Background} - contains a short summary of the literature study. Describes researched work in the relevant fields \ref{Background}.
   \item \texttt{Benchmarking} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{Benchmarking}.
   \item \texttt{The System Under Test} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{The System Under Test}.
-  \item \texttt{Experiment Outline} - contains a description of the conducted experiment, its goals and deliverables. Full description of the compared architectures and cloud stack on which the research is performed is also included in this chapter \ref{Experiment Outline}.
+  \item \texttt{Experiment Outline and Design} - contains a description of the conducted experiment, its goals and deliverables. Full description of the compared architectures and cloud stack on which the research is performed is also included in this chapter \ref{Experiment Outline and Design}.
   \item \texttt{Scalability Measurements} - contains a description of literature-based scalability metrics and models. Lists the models and metrics selected for measurements in this research, as well as all metrics collectible from the AWS cloud environment \ref{Scalability Measurements}
   \item \texttt{Experiment results} - contains the data collected in the experiments \ref{Experiment results}.
   \item \texttt{Evaluation} - contains evaluation of the experiment and analysis of the results \ref{Evaluation}.
@@ -759,20 +759,96 @@ There are multiple unique aspects of the system that make this research interest
   \item New data is generated constantly by the users so caching the content for geographical distribution is difficult.
 \end{itemize}
 
+\section{Message Handling and Message Publishing}
+HUGE PART OF THE TEST
+INSERT CODE SNIPPETS ON PUBLISHING (HOW SELECTION IS DONE BY EACH API SERVER)
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Experiment Outline} \label{Experiment Outline}
+\chapter{Experiment Outline and Design} \label{Experiment Outline and Design}
 
 \section{Goal of the experiment}
 
-The goal of the project is to design a scalability framework for a real-time persistent websocket distributed application (the system). The core researched topic will be whether a systems awareness of clients geographical distribution can improve the system performance according to selected metrics, in comparison with traditional approaches.
+The goal of the project is to design a scalability framework for a real-time persistent websocket distributed application (the system). The core researched topic is whether a systems awareness of clients geographical distribution can improve the system performance according to selected metrics, in comparison with traditional approach \ref{Baseline Architecture}.
 
-The goal of the project is to see if the proposed architecture decomposition can perform better (quantitatively, according to the selected metric model) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
-TODO: REFERENCE CURRENT APPROACHES HERE.
+The goal of the project is to see if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 
-\section{Baseline Architecture Preparations}\label{Baseline Architecture}
+\section{Question to be answered}
+[TODO] same as in the introduction. You can be a bit more specific here now.
+
+\section{Research Method}
+[TODO] Controlled experiment - implementation described in detail in the Experiment Implementation Chapter \ref{Experiment Implementation}.
+
+\section{Experiment Outline}
+
+\subsection{Pre-experiment preparations}
+- Preparing a distributed metric collection suite (Both for servers and clients)
+- Preparing a distributed load testing suite
+    - simluates client from different regions with a specified user and message load
+
+\subsection{Load Testing}
+
+Clients will come from all zones
+
+[TODO] explain the whole process.
+
+1. Remote execution start.
+2. Remote execution stop.
+3. Copying the result files locally.
+4. Collecting metrics from these files.
+
+\subsection{Users Distribution}
+The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
+
+\subsection{Used Benchmarking Scenario}\label{Used Benchmarking Scenario}
+
+The load is obviously the same for each testable scenario, we use 8 regions, x clients from each, connecting over 15 minutes in equal one second steps and staying connected for 90 minutes.
+
+X users loaded over 15 minutes, x / 15*60 every second.
+Clients stay on connected for 90 minutes and then disconnect.
+they join a game and load prediction pools within (0,15)seconds connecting
+each client places a prediction every (0,30) seconds
+the prediction updates pool distribution and this is then broadcast to all users (in 1-second batches)
+
+ADD NUMBER TO HOW MANY GAME AND HOW MANY PREDICTIONS
+
+\section{Compared Architectures}\label{Compared Architectures}
+
+Here's just the diagram overview, implementation details can be found in the following chapter \ref{Compared Architectures Implementation Details}.
+
+\subsection{Baseline Architecture}\label{Baseline Architecture}
+ONE MASSIVE INSTANCE WITH WEBSOCKET SERVER + REDIS + MYSQL
+
+ONLY DIAGRAM HERE THE DETAILS IN THE FOLLOWING CHAPTER \ref{Baseline Architecture Implementation Details}.
+
+\subsection{Proposed Architecture I}\label{Proposed Architecture I}
+Region-distributed API servers
+
+\ref{Baseline Architecture Implementation Details}
+
+\subsection{Proposed Architecture II}\label{Proposed Architecture II}
+Region-distributed API servers + redis cluster + MySQL Read Replicas
+
+\ref{Baseline Architecture Implementation Details}
+
+\section{Results Evaluation}
+Results are evaluated using literature - based scalability models \cite{Models}
+models and meters were selected \ref{Selected Meters and Metrics} among them to be able to reason about factors most important to the host organization - client latencies, cloud resource utillizaation and operating cost. The tested architectures are compared using these quantifiable meters. LIST THESE METERS - CRUM, SPM, SLM AND THE DERIVATIVES.
+
+\section{Experiment deliverables}\label{Experiment deliverables}
+open sourced code for:
+using scalability models
+managing the cloud (built on boto)
+remote execution of load test and metric collection
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Experiment Implementation} \label{Experiment Implementation}
+
+\section{Baseline Architecture Preparations}\label{Baseline Architecture Preparations}
 to get meaningful results we had to do slight optimizatoins of our application code - that proved timely
 
 code snippets of publishing code, message batching
@@ -905,31 +981,6 @@ jmeter, thor (low extensibility which we needed), autobahn (max available connec
 gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
 
-Another distribution is suggested by Grozev and Buyya \cite{GroBuy} - Poisson distribution with a constant mean.
-
-Clients will come from all zones
-
-[TODO] explain the whole process.
-
-1. Remote execution start.
-2. Remote execution stop.
-3. Copying the result files locally.
-4. Collecting metrics from these files.
-
-\subsection{Users Distribution}
-The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
-
-\section{Used Benchmarking Scenario}\label{Used Benchmarking Scenario}
-
-X users loaded over 15 minutes, x / 15*60 every second.
-Clients stay on connected for 90 minutes and then disconnect.
-they join a game and load prediction pools within (0,15)seconds connecting
-each client places a prediction every (0,30) seconds
-the prediction updates pool distribution and this is then broadcast to all users (in 1-second batches)
-
-INSERT CODE SNIPPETS ON PUBLISHING (HOW SELECTION IS DONE BY EACH API SERVER)
-
-ADD NUMBER TO HOW MANY GAME AND HOW MANY PREDICTIONS
 
 \subsection{Benchmark Run Preparations}
 
@@ -941,7 +992,7 @@ Drop im; reboot, source user creation
 Reboot all servers to clean state
 
 
-\section{Compared Architectures}\label{Compared Architectures}
+\section{Compared Architectures Implementation Details}\label{Compared Architectures Implementation Details}
 
 selection - similar computing allocated resources [lab notes table]
 
@@ -951,14 +1002,14 @@ instance selection limited by our image type, not all suported (our image paravi
 
 we picked CPU intensive cause by far that's the first hardware limit we hit
 
-\subsection{Baseline Architecture}
+\subsection{Baseline Architecture Implementation Details}\label{Baseline Architecture Implementation Details}
 ONE MASSIVE INSTANCE WITH WEBSOCKET SERVER + REDIS + MYSQL
 NO NETWORK OVERHEAD
 ~12/13 SERVER PROCESSES
 
 c3.8xlarge instance, 32 CORES, 60GB, 140 GB SSD Storage with 4000 IOPS
 
-\subsection{Proposed Architecture I}
+\subsection{Proposed Architecture I Implementation Details}\label{Proposed Architecture I Implementation Details}
 Region-distributed API servers
 1 API-server instance per one of 8 regions (m3.xlarge, 4cores, 15gb RAM, 2x40SSD)
 2 processes per instance
@@ -966,7 +1017,7 @@ Region-distributed API servers
 1 big redis instance (m2.4xlarge, 8 cores, 86.4 GB mem, 2 x 840 GB storage)
 1 big mysql RDS instance (r3.4xlarge, 16 cores, 122 GB mem)
 
-\subsection{Proposed Architecture II}
+\subsection{Proposed Architecture II Implementation Details}\label{Proposed Architecture II Implementation Details}
 Region-distributed API servers + redis cluster + MySQL Read Replicas
 
 1 API-server instance per one of 8 regions (m3.2xlarge, 4cores, 30gb RAM, 2x40SSD)
@@ -984,6 +1035,9 @@ selected aws
 multiple availability zones very important in a shared cloud environment - often because another customer is getting hit by a DDoS.\cite{GroBuy}
 
 In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \cite{GroBuy}. We cannot use this, also described in \ref{Cloud architecture setup}.
+
+[TODO] insert diagram
+Route53 -> Elb -> Nginx -> Api Server instance
 
 \subsection{Route53}
   dns mapped to inscance ips / load balancer dns names
@@ -1048,12 +1102,7 @@ The above explain why, for a scaled out solution we had to roll with our custom 
 Delays: up to 2 minutes to get metrics, up to ????? minutes for instance to be accessible to clients + ???? for DNS changes to propagate (TTL set to 60 seconds but TODO VERITYF)
 Unfortunately there are a large number of (misbehaving) DNS servers out there that don’t properly obey TTLs on records and will still serve up stale records for an indefinite amount of time. [http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/]
 
-\section{Experiment deliverables}\label{Experiment deliverables}
-open sourced code for:
-using scalability models
-managing the cloud (built on boto)
-remote execution of load test and metric collection
-
+DNS PROTOCOL INHERENT LIMITATIONS PREVENTED US FROM TESTING HOW FAST AND DOWN ARCHITECTURE SCALES
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1304,8 +1353,8 @@ System Performance Meter
 Handshaking latencies (Our suite)
 Request Handling latencies (Our suite)
 Broadcast latencies (Our suite)
-Mysql Read Latency (Cloudwatch)
-Mysql Write Latency (Cloudwatch)
+% Mysql Read Latency (Cloudwatch)
+% Mysql Write Latency (Cloudwatch)
 Dropped Connections (Our suite)
 Total Network In (Our suite / cloudwatch)
 Total Network Out (Our suite / cloudwatch) - include internal, billable transfer somehow
@@ -1315,9 +1364,10 @@ Concurrent users  (Our suite)
 Data sent + data received  (Our suite)
 Handled requests count (Our suite)
 Broadcast messages count (Our suite)
-Redis Hits
-Mysql Read IOPS
-Mysql Write IOPS
+Redis Hits (info | keyspace\_hits)
+Mysql queries select * from information\_schema.global\_status s1 where variable\_name = \"QUERIES\";
+% Mysql Read IOPS
+% Mysql Write IOPS
 
 System Effective Capacity Meter
 SLM + SPM + CRUM + 1 / (Computed Cost of running the architecture per unit of time)
@@ -1362,7 +1412,7 @@ network is inherently non-deterministic, load tests needed to actually test avai
 \section{Host Company Benefits}
 - measerment suite for further improvements
 - real time telemetry introduced into the system
-- system performance objectively improved along the process, bottlenecks identified 
+- system performance objectively improved along the process, bottlenecks identified
 - cloud management suite
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
