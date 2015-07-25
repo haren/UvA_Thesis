@@ -1000,7 +1000,7 @@ running as cronjob
 had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
 had to update our node scripts for collecting data pushed through and received on the sockets - the node library we use [REF] had a different internal representation so had to dig in to report data properly.
 
-\subsection{Image Preparations}
+\subsubsection{Image Preparations}
 Both servers and clients are spun up using AMIs (describe what they are [amazon source]).
 
 Both needed to be meticulousy prepared to ensure smooth dpeloyment of the test suite and tested architecutres.
@@ -1023,6 +1023,10 @@ Aws stack is divided into Regions (e.g. Ireland, N. Virgina, Sao Paolo) and thes
 copy code snippets for deploying client groups and orchestrating them 
 
 and servers
+
+\subsection{Exluding Frankfurt Region}
+
+Had to be excluded, because the AMIs we use are not compatible with the region's infrastructure. We are using ParaVirtual images, whereas Frankfurt supports HVM [describe with sources].
 
 \subsubsection{Observations}
 
@@ -1435,6 +1439,12 @@ Effective Scalable Range and Effective System Scalability
 $SEC_max$ + $SEC_min$ + $SLM_max$ + $SLM_min$
 
 The benchmark is run against each of the deployed architecture setups and the resulting metrics are used to populated the described meters.
+
+\subsection{Excluded Metrics}
+
+I was forced to exclude availability - not enough resources (money and time) to run the tests long enough to run into any availability issues, since Amazon SLAs offer 99.9999\% orders of availability for selected technologies.
+
+Also forced to include Dynamic ScaleUp and Down. The way load test suite is setup is taht it hits a single Route53 url, which then distributes traffic between regions according to the specified policy. Dynamically adding / removing resources causes changes to that policy - that means global DNS records need to be updated. One can set TTL (time to live) which DNS records should respect and refresh their caches every TTL seconds. They don't and it's a known issue - I ran into this, had to wait even up to 30 minutes for 60s changes to propagate properly.
 
 \section{Expected Answers}\label{Expected Answers}
 I am going to use the \textit{Effective System Scalability} and \textit{Effective Scalable Range} meters to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
