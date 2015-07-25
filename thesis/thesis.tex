@@ -1446,6 +1446,15 @@ I was forced to exclude availability - not enough resources (money and time) to 
 
 Also forced to include Dynamic ScaleUp and Down. The way load test suite is setup is taht it hits a single Route53 url, which then distributes traffic between regions according to the specified policy. Dynamically adding / removing resources causes changes to that policy - that means global DNS records need to be updated. One can set TTL (time to live) which DNS records should respect and refresh their caches every TTL seconds. They don't and it's a known issue - I ran into this, had to wait even up to 30 minutes for 60s changes to propagate properly.
 
+\section{Controlling The Dynamic Cloud Environment}
+tl;dr - impossible.
+
+But you can pick instances that are more stable and have better guarantees (rather than some weird spikes and collecting credits if you run under limit - that's what happens on t1.micro isntances).
+
+We run repetetive tests to verify there is no huge influential differences in allocated resources.
+
+One can also request dedicated rather than shared resources - outside of the scope of this project though, but offers finer control.
+
 \section{Expected Answers}\label{Expected Answers}
 I am going to use the \textit{Effective System Scalability} and \textit{Effective Scalable Range} meters to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
 
