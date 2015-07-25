@@ -964,6 +964,8 @@ innodb\_flush\_log\_at\_trx\_commit (1=>2)
 http://stackoverflow.com/questions/3722510/why-does-an-insert-query-occasionally-take-so-long-to-complete
 innodb\_flush\_method to 0 O\_DSYNC
 
+Since on big machines we are running up to instance of the api serever process, we were maxing out on default mysql max number of connections; flipped it to 500; solved
+
 \subsection{Redis Optimizations}
 [1772] 24 Jul 10:09:09.009 \# Can't save in background: fork: Cannot allocate memory
 [1772] 24 Jul 10:09:15.020 * 1 changes in 900 seconds. Saving...
@@ -973,6 +975,8 @@ ResponseError: MISCONF Redis is configured to save RDB snapshots, but is current
 Explain overommiting here shortly (redis.io/topics/faq)
 
 sysctl: vm.overcommit\_memory = 1
+
+LAB NOTES FROM 24.07
 
 \subsection{Cloud baseline preparations}
 
@@ -995,6 +999,20 @@ setting up custom cloudwatch metric collection - \ref{Custom Metric Collection}.
 running as cronjob
 had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
 had to update our node scripts for collecting data pushed through and received on the sockets - the node library we use [REF] had a different internal representation so had to dig in to report data properly.
+
+\subsection{Image Preparations}
+Both servers and clients are spun up using AMIs (describe what they are [amazon source]).
+
+Both needed to be meticulousy prepared to ensure smooth dpeloyment of the test suite and tested architecutres.
+
+The client has been prepared with the right environment so that the test suite master can ssh into it (using node sequest) and run the test command [put it here].
+
+The server has all the necessary services that need to be automatically started up:
+- /etc/init.d starts redis (if applicable)
+- /etc/init.d starts mysql (if applicable)
+- /etc/init.d starts supervisord
+    - supervisord conf has the processes that need to be started (with an autostart option) [PASTE sample api server config here]
+- api server configurations has the correct host names for data stores - redis and mysql
 
 \subsubsection{Distributing Resources Across Cloud Regions}
 
