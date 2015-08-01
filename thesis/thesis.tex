@@ -967,10 +967,19 @@ The selected meters allow to compare deployed architectures in general scalabili
 [TODO list these meters here]
 
 \section{Experiment deliverables}\label{Experiment deliverables}
-open sourced code for:
-using scalability models
-managing the cloud (built on boto)
-remote execution of load test and metric collection
+
+The project delivers the following:
+\begin{enumerate}
+  \item open sourced code for:
+  \begin{itemize}
+    \item using the scalability meters,
+    \item managing the AWS-based region-distributed server suite (built on top of boto \footnote{\url{https://boto.readthedocs.org/en/latest/}}),
+    \item remote execution of WebSocket load testing and latency-related metric collection,
+  \end{itemize}
+  \item a framework for comparison multiple aspects of different variants of The System Under Test \ref{The System Under Test}.
+  \item a thorough analysis of the deployed architectures,
+  \item improved system scalability (multiple limitations and suboptimal design decisions have been identified in the process \ref{Discovered System Limitations}).
+\end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
