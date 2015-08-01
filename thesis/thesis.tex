@@ -274,7 +274,7 @@ In this section I outline the structure of the thesis - all chapters with short 
   \item \texttt{Benchmarking} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{Benchmarking}.
   \item \texttt{The System Under Test} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{The System Under Test}.
   \item \texttt{Experiment Outline and Design} - contains a description of the conducted experiment, its goals and deliverables \ref{Experiment Outline and Design}.
-  \item \texttt{Experiment Implementation} - contains a full description of the compared architectures and cloud stack on which the research is performed, including the technological details \ref{Experiment Implementation}. 
+  \item \texttt{Experiment Implementation} - contains a full description of the compared architectures and cloud stack on which the research is performed, including the technological details \ref{Experiment Implementation}.
   \item \texttt{Scalability Measurements} - contains a description of literature-based scalability metrics and models. Lists the models and metrics selected for measurements in this research, as well as all metrics collectible from the AWS cloud environment \ref{Scalability Measurements}.
   \item \texttt{Experiment results} - contains the data collected in the experiments \ref{Experiment results}.
   \item \texttt{Evaluation} - contains evaluation of the experiment and analysis of the results \ref{Evaluation}.
@@ -989,20 +989,26 @@ The project delivers the following:
 \epigraph{"At scale, everything breaks."}{--- Urs Holzle, Google Fellow}
 
 \section{Baseline Architecture Preparations}\label{Baseline Architecture Preparations}
-to get meaningful results we had to do slight optimizatoins of our application code - that proved timely
+In order to obtain meaningful benchmark results, I had to perform multiple optimizations of our application code. This part of the project proved extremely timely (a lot of debugging time was not budgeted for when preparing the project timeline).
 
-code snippets of publishing code, message batching
+I also managed to identify main resource bottlenecks. Both in cases of the client simulating process and the server, it is the CPU.
 
-identifying resource bottlenecks - CPU, both for clients generating load (single core node process) and servers. Split up into processes utilizing all the cores.
+Since Node.js is single-threaded, I prepared scripts that allow to run multiple processes in parallel to utilize all cores available to the client \ref{Load Test Suite Preparations}.
 
-2 core threads - one for message handling, another one for pushing redis-published messages through the the end websockets (TCP is 1-1 communication, cannot perform a simulatenous broadcast onto all of them); we can run.
+As far as the WebSocket server is concerned, I have identified 2 core thread types (among many more that the server consists of) - one for request handling, another one for pushing redis-published messages through the user's WebSocket. Since TCP is a 1-1 communication protocol, a UDP-like broadcast to all WebSockets is not possible. For every channel that users subscribe to (games are channels on the domain level), the system needs a thread that listens to a redis channel and iterates over a list of WebSockets of users subscribed to that channel. These threads, and the message handling threads are by far the two most resource (CPU-bound) intensive.
 
+[TODO - sync vs async db?]
 
 \subsection{Discovered System Limitations}\label{Discovered System Limitations}
 - publishing, batched
+code snippets of publishing code, message batching
 - most stuff cpu intensive (message broadcastign, lots of network stack handling) => configurations had to be prepared to run multiple processes so that all machine CPU cores could be utilized
 - way too much json.loading on messages, super heavy
 - even batched publishing would send a message including a ~1000 mini objects including every new prediction made details. everyone got every of these even though that was not necessary (only purpose is friends), so dropped it and user request that explicitly. THAT CHANGED THE DATA LOAD 300-FOLD, ONE OF THE BIGGEST BREAKTHROUGHS. SAME INFRASTRUCTURE WENT FROM SUPPORTING 3K TO 24K AFTER THAT. [TODO] paste in a snippet of a new prediction.
+
+\subsection{Load Test Suite Preparations}\label{Load Test Suite Preparations}
+Split up into processes utilizing all the cores, necessary to go with different users
+INSERT NODE PROCESS HERE
 
 \subsection{Kernel tuning}\label{Kernel tuning}
 
@@ -1163,8 +1169,8 @@ The server has all the necessary services that need to be automatically started 
     - supervisord conf has the processes that need to be started (with an autostart option) [PASTE sample api server config here]
 - api server configurations has the correct host names for data stores - redis and mysql
 
-based on the same optimized image all unnecessary services closed: 
-clients all (mysqld, redis, supervisord, nginx) switched off; redis all but redis 
+based on the same optimized image all unnecessary services closed:
+clients all (mysqld, redis, supervisord, nginx) switched off; redis all but redis
 distributed servers no redis / myqsl
 
 \subsubsection{Distributing Resources Across Cloud Regions}
@@ -1173,7 +1179,7 @@ Aws stack is divided into Regions (e.g. Ireland, N. Virgina, Sao Paolo) and thes
 
 [TODO]:
 
-copy code snippets for deploying client groups and orchestrating them 
+copy code snippets for deploying client groups and orchestrating them
 
 and servers
 
@@ -1192,16 +1198,6 @@ all the analyzed tools, list also in lab notes from may 11 [FOR EACH WHY WASN'T 
 jmeter, thor (low extensibility which we needed), autobahn (max available connections but no further control),
 gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
-
-
-\subsection{Benchmark Run Preparations}
-
-Experiment Setup:
-Cleanup Redis
-Flushall + reboot instance
-Cleanup Mysql
-Drop im; reboot, source user creation
-Reboot all servers to clean state
 
 
 \section{Compared Architectures Implementation Details}\label{Compared Architectures Implementation Details}
@@ -1666,6 +1662,7 @@ network is inherently non-deterministic, load tests needed to actually test avai
 \chapter{Conclusions}\label{Conclusions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 QUOTE: 9 women won't make a baby in a month
+endless process of digging deeper, deeper, deeper and deeper - can be never ending. That's why it's importnat to set up goals up front.
 
 the journey continues (25 => 24000 => 10.000.000), nice logarithmic scale
 
