@@ -827,11 +827,11 @@ Variables constant across benchmark runs against different architectures include
   \item Selected instance types (with controlled variance, different decompositions require different components)
 \end{itemize}
 
-Variables over which I have no full control yet measure their influence to the best possible capacity:
+Variables over which I have no full control:
 \begin{itemize}
-  \item allocated network bandwith for cloud instances[TODO - verify],
-  \item spikes in resource allocation on shared cloud instances (e.g. Allocated CPU cycles).
-  \item general global network conditions (benchmarks are run at the same time of a workweek).
+  \item allocated network bandwith for cloud instances,
+  \item spikes in resource allocation on shared cloud instances (e.g. Allocated CPU cycles) (this happens mostly for micro instaces \footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts\_micro\_instances.html}}, I use bigger instances),
+  \item general global network conditions (benchmarks are run at the same time of a day, at times [to my best knowledge] with no major global events which could distrupt network conditions).
 \end{itemize}
 
 \section{Experiment Outline}
@@ -839,9 +839,27 @@ Variables over which I have no full control yet measure their influence to the b
 In this section I list all the steps necessary for the experiment to be prepared and executed.
 
 \subsection{Pre-experiment preparations}
-- Preparing a distributed metric collection suite (Both for servers and clients)
-- Preparing a distributed load testing suite
-    - simluates client from different regions with a specified user and message load
+
+This consists of two main parts: preparing the load test suite and the deployed system.
+
+\subsubsection{Load Test Suite}
+
+The following steps are necessary to deploy the load test suite:
+\begin{enumerate}
+  \item copy the load test client instance image to all AWS regions,
+  \item for each region, start the desired number of instances using the image.
+\end{enumerate}
+
+\subsubsection{The System}
+
+This varies slightly depending on the deployed architecture; below I list the general outline:
+\begin{enumerate}
+  \item prepare the clean server (and database if necessary) instance image and distribute it across relevant regions (clean means no unnecessary data stored and no redundant services running),
+  \item start the instances,
+  \item clean redis and mysql and populate with data necessary for the benchmark run,
+\end{enumerate}
+
+Once all the client and server instances are brought up and reachable (verifiable through AWS API), the load test can begin.
 
 \subsection{Load Testing}\label{Load Testing}
 
