@@ -863,14 +863,17 @@ Once all the client and server instances are brought up and reachable (verifiabl
 
 \subsection{Load Testing}\label{Load Testing}
 
-Clients will come from all zones
+Simulated clients come from instances located in all available Auto-Scaling AWS zones \footnote{\url{http://docs.aws.amazon.com/general/latest/gr/rande.html}}, except for eu-central-1 (Frankfurt) \ref{Exluding Frankfurt Region}.
 
-[TODO] explain the whole process.
-
-1. Remote execution start.
-2. Remote execution stop.
-3. Copying the result files locally.
-4. Collecting metrics from these files.
+The load testing process is enumerated below:
+\begin{enumerate}
+  \item The single master node orchestrating the suite collects IP addresses of the client instances,
+  \item it connects to all the client instances (using a library utilizing ssh) and issues a \textit{start test} command,
+  \item it sleeps for a specified amount of time,
+  \item it connects to clients again and kills the client processes,
+  \item it sleeps for a small amount of time to let client processes close all connections, process collected metrics and save them to a temporary file,
+  \item it connects to clients again and copies the file to master node where metrics are aggregated.
+\end{enumerate}
 
 \subsection{Users Distribution}
 The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
@@ -1120,7 +1123,7 @@ copy code snippets for deploying client groups and orchestrating them
 
 and servers
 
-\subsection{Exluding Frankfurt Region}
+\subsection{Exluding Frankfurt Region}\label{Exluding Frankfurt Region}
 
 Had to be excluded, because the AMIs we use are not compatible with the region's infrastructure. We are using ParaVirtual images, whereas Frankfurt supports HVM [describe with sources].
 
