@@ -934,26 +934,37 @@ User's load is representative of that scenario - users connect over a few minute
 
 \section{Compared Architectures}\label{Compared Architectures}
 
-Here's just the diagram overview, implementation details can be found in the following chapter \ref{Compared Architectures Implementation Details}.
+This section contains simple descriptions and diagram overviews of the compared architectures. Implementation details can be found in the following chapter \ref{Compared Architectures Implementation Details}.
 
 \subsection{Baseline Architecture}\label{Baseline Architecture}
-ONE MASSIVE INSTANCE WITH WEBSOCKET SERVER + REDIS + MYSQL
+The baseline architecture consists of the main three components (the websocket server, redis and mysql) on one massive EC2 instance located in the eu-west-1 AWS datacenter (Ireland). Clients from all regions connect directly to the websocket server on this EC2 instance.
 
-ONLY DIAGRAM HERE THE DETAILS IN THE FOLLOWING CHAPTER \ref{Baseline Architecture Implementation Details}.
+[TODO add diagram]
+
+The technical specification of the instances, number of processes and other technical details can be found in the next chapter \ref{Baseline Architecture Implementation Details}.
 
 \subsection{Proposed Architecture I}\label{Proposed Architecture I}
-Region-distributed API servers
+The first proposed architecture improvement consists of the moving the websocket servers closer to users. This means each of the 8 regions has its own websocket server instance - 8 times smaller than one massive instance in case of the baseline architecture.
 
-\ref{Baseline Architecture Implementation Details}
+Database instances are still not distributed and are both located in Ireland. Clients are routed through Amazon's route53 based on their latency or geo-location.
+
+[TODO add diagram]
+
+The technical specification of the instances, number of processes and other technical details can be found in the next chapter \ref{Proposed Architecture I Implementation Details}.
 
 \subsection{Proposed Architecture II}\label{Proposed Architecture II}
-Region-distributed API servers + redis cluster + MySQL Read Replicas
+The second proposed architecture adds the distribution of the data layer. Read replicas are placed, together with WebSocket servers, in each of the regions. Database (both mysql and redis) writes still are routed to the master node located Ireland.
 
-\ref{Baseline Architecture Implementation Details}
+[TODO add diagram]
+
+The technical specification of the instances, number of processes and other technical details can be found in the next chapter \ref{Proposed Architecture II Implementation Details}.
 
 \section{Results Evaluation}
-Results are evaluated using literature - based scalability models \cite{Models}
-models and meters were selected \ref{Selected Meters and Metrics} among them to be able to reason about factors most important to the host organization - client latencies, cloud resource utillizaation and operating cost. The tested architectures are compared using these quantifiable meters. LIST THESE METERS - CRUM, SPM, SLM AND THE DERIVATIVES.
+Results are evaluated using literature-based scalability meters \cite{Models}. I selected (ans slighlty modified - added cost factor) the ones \ref{Selected Meters and Metrics} which best facilitate reasoning about factors most important to the host organization - client latencies, cloud resources utilization and operating cost. The tested architectures are compared using these quantifiable meters.
+
+The selected meters allow to compare deployed architectures in general scalability terms, but also provide insight into specific aspects of the system, so that analysis can be broken down and architectures can be compared in terms of e.g. latency or cost exclusively.
+
+[TODO list these meters here]
 
 \section{Experiment deliverables}\label{Experiment deliverables}
 open sourced code for:
