@@ -1,6 +1,7 @@
 \documentclass{uvamscse}
 
 \usepackage{color}
+\usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{url}
 \usepackage{amsmath}
 
@@ -863,7 +864,7 @@ Once all the client and server instances are brought up and reachable (verifiabl
 
 \subsection{Load Testing}\label{Load Testing}
 
-Simulated clients come from instances located in all available Auto-Scaling AWS zones \footnote{\url{http://docs.aws.amazon.com/general/latest/gr/rande.html}}, except for eu-central-1 (Frankfurt) \ref{Exluding Frankfurt Region}.
+Simulated clients come from instances located in all available Auto-Scaling AWS regions \footnote{\url{http://docs.aws.amazon.com/general/latest/gr/rande.html}}, except for eu-central-1 (Frankfurt) \ref{Exluding Frankfurt Region}.
 
 The load testing process is enumerated below:
 \begin{enumerate}
@@ -876,27 +877,60 @@ The load testing process is enumerated below:
 \end{enumerate}
 
 \subsection{Users Distribution}
-The authors suggest choosing randomly when generating load as to which operation to perform, on what data size etc. They suggest using different random distributions: uniform, zipfian, latest, multinomial\cite{Ycsb}. (as mentioned in bemncharking 2.2 section)
+
+Since this is going to differ for a type of game served on the platform, I decided to use the most basic distribution - the same number of users connecting from each of the 8 available regions: North Virginia, Oregon, North California, Ireland, Singapore, Sydney, Tokyo and Sao Paulo.
 
 \subsection{Used Benchmarking Scenario}\label{Used Benchmarking Scenario}
 
-The load is obviously the same for each testable scenario, we use 8 regions, x clients from each, connecting over 15 minutes in equal one second steps and staying connected for 90 minutes.
+The benchmarking scenario is the same for each tested architecture. As mentioned before, clients connect from 8 globally-distributed regions, 15 instances in each region, each with the same number of clients. Each instance connects one client a second, so in total $8*15=120$ are connected every second until the full load is reached. [TODO] specify the full load here.
 
-X users loaded over 15 minutes, x / 15*60 every second.
-Clients stay on connected for 90 minutes and then disconnect.
-they join a game and load prediction pools within (0,15)seconds connecting
-each client places a prediction every (0,30) seconds
-the prediction updates pool distribution and this is then broadcast to all users (in 1-second batches)
+Once all the users have connected, the benchmark runs for exactly 90 minutes and then all the clients disconnect.
 
-ADD NUMBER TO HOW MANY GAME AND HOW MANY PREDICTIONS
+Upon connecting, each users lists available games (which there is one during the benchmark run), \textit{thinks} between 0 and 15 seconds, joins a game (to subscribe to all game updates) and lists available prediction pools for the game (which there is also only one for the benchmark run). Once this is completed, each users places a prediction every (0,30) seconds (once the prediction confirmation is received, the counter is reset). This continues until the benchmark run is finished.
+
+The server responds to each user request and sends out an unsolicited pool distribution update every 3 seconds.
+
+\begin{sourcecode}
+\begin{lstlisting}[language=javascript]
+var _ = require('underscore');
+
+// max delays in milliseconds
+var MAX_GAME_SELECTION_DELAY     = 15000;
+var MAX_PREDICTION_PLACING_DELAY = 30000;
+
+// called upon reception of the list of active games by the client
+var handleActiveGames = function(msg) {
+  // ... handle reception of list of active games
+
+  // simulate user thinking and selection of a game
+  setTimeout(function() {
+    game = selectGame();
+    listAvailablePoolsForGame(game.game_id);
+    subscribeToGame(game.game_id);
+  }, _.random(1000, MAX_GAME_SELECTION_DELAY));
+};
+
+// called upon reception of the list of active pools for game by the client
+// and upon confirmation of prediction placing
+var handlePoolsList = function(msg) {
+  // ... handle reception of list of active pools
+
+  // simulate user thinking and placing prediction
+  setTimeout(function() {
+    pool = selectPool();
+    placePredictionInPool(pool);
+  }, _.random(1000, MAX_PREDICTION_PLACING_DELAY))
+};
+
+\end{lstlisting}
+\caption{Code simulating users joining games and placing predictions.}
+\end{sourcecode}
 
 \subsubsection{Why is this benchmark representative?}
 
-It's the expected load during football game (the system has not been run at this scale yet - that's partly why we are doing this project).
+It's the expected load during a football (soccer) game. The load is \textit{expected}, since the system has not been run at this scale yet - that's partly why the host company is in need of a project like this one.
 
-User's load is representative of that - user's connect over a 15 minute period before the game starts, then stay connected over 90 minute game load and then disconnect once the game is finished.
-
-[TODO] - how long exactly is the whole thing?
+User's load is representative of that scenario - users connect over a few minutes before the game starts, then stay connected over 90 minute game load and then disconnect once the game is finished.
 
 \section{Compared Architectures}\label{Compared Architectures}
 
