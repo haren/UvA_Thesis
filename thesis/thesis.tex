@@ -1054,7 +1054,7 @@ else:
 \label{lstlisting:batching}
 \end{sourcecode}
 
-- even batched publishing would send a message including a ~1000 mini objects including every new prediction made details. everyone got every of these even though that was not necessary (only purpose is friends), so dropped it and user request that explicitly. THAT CHANGED THE DATA LOAD 300-FOLD, ONE OF THE BIGGEST BREAKTHROUGHS. SAME INFRASTRUCTURE WENT FROM SUPPORTING 3K TO 24K AFTER THAT. [TODO] paste in a snippet of a new prediction.
+The second big issue was that because pubilshing of distribution updates was batched, every broadcast message included details of every new prediction (few hundred) made within the time window between batched broadcasts. This message would be broadcast to \texttt{every user every 3 seconds}. This was generating a tremendous, unnecessary data load. Since the purpose of this was the same as in including new predictions when listing pools, the same solution was applied. Users request their friend data separately now. Identifying this was a complete game changer - it reduced the application data load \texttt{300-fold} and allowed to increase number of sustainable users in the system by \texttt{2 orders of magnitude}.
 
 \subsection{Kernel tuning}\label{Kernel tuning}
 Operating systems are not tuned by default to sustain a huge number of concurrent users, nor are they tuned to support quick connects / disconnects and TCP sockets reusal. Because of that, I needed to dig into unix kernel and tcp stack handling and prepare the operating system setup on which I based the images used in the project.
