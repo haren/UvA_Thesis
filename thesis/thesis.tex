@@ -1109,7 +1109,6 @@ vm.overcommit_memory=1
   \item[net.ipv4.tcp\_tw\_reuse] If set to 1, kernel allows to reuse TCP sockets in TIME\_WAIT state. Similar to tcp\_tw\_reuse, changing which is highly discouraged since enabling it introduces problems with clients behind NATs and stateful firewalls (the kernel can simply close their sockets).
   \item[net.ipv4.ip\_local\_port\_range] Port range available to processes - the broader more ports available. Without adding virtual IPs, the absolute maximum of TCP ports the server can have open is 65535\footnote{The number of client connections that a server can support has nothing to do with ports, since a server is (typically) only listening for WS/WSS connections on one single port. But, if the machine also has an HAProxy or a Load Balancer that forward connections (which is my case - nginx), this limit holds.}. This is a TCP-protocol related limitation, since the port number is represented with an unsigned 16-bit integer ($2^{16}=65535$). To go above that limit, multiple virtual IP addresses needed to be created on a network interface.
   \item[vm.overcommit\_memory] regulates the heuristics of memory allocation during process forks. Setting to 1 is necessary for high-performing redis.
-
 \end{description}
 
 \subsubsection{Linux TCP stack}
@@ -1118,7 +1117,7 @@ In short, the TCP stack needs to be tuned to sustain multiple nuber of concurren
 
 Maintaing the TCP stack in itself is not very expensive in terms of resources. Maintaining idle connections is almost memory-free. Nevertheless, it is possible to leak memory / file descriptors from an application and this, at scale, can become expensive. Descriptor usage can be monitored at unix systems using \textit{lsof} command.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[scale=0.2]{tcpstates}
 \caption{Possible states of a TCP socket.}
@@ -1131,15 +1130,38 @@ Even though this explanation is relatively brief, researching and applying this 
 
 \subsubsection{Real-Time Insights}
 
-ss -s 
-netstat -s
-etsy, logster, graphite etc.
+In order to have real-time insight into the system and the state of the host Operating System, I prepared a suite to measure and visualize the relevant metrics.
 
-syncling clocks on machines using /etc/ntpd (polled from amazon servers)
+The setup I used is the following:
+\begin{description}
+  \item[Graphite\footnote{\url{http://graphite.wikidot.com/}}] a scalable, real time graphing tool. I used it to display both our system internal metrics and operating system parameters.
+  \item[Statsd\footnote{\url{https://github.com/etsy/statsd}}] a tool aggregating metrics and preparing appropriate output formats for tools like graphite. I used it to display both our system internal metrics and operating system parameters.
+  \item[Custom Scripts] to collect operating system data. This is slightly different in case of the deployed cloud architecture and is described below \ref{Cloud baseline preparations}.
+\end{description}
 
-[TODO insert image from our dashborad]
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{graphitetcp}
+\caption{Monitored TCP-related values.}
+\label{figure:tcpstates}
+\end{figure}
 
-our system stuff + kernel tuning (so tcp shit you were plotting)
+Measured operating system parameters were selected so that they indicate bottlenecks and problematic, TCP-related areas \footnote{\url{http://www.slideshare.net/chartbeat/tuning-tcp-and-nginx-on-ec2}}\footnote{\url{http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/}}. The commands used to obtain them are the following:
+\begin{description}
+  \item [ss -s] TCP socket summary, collectibles: counts of established, closed, orphaned, time\_wait and syn\_received sockets,
+  \item [netstat -s] network summary, collectibles: counts of SYN cookies sent and received (also invalid), connections aborted due to memory pressure, SYNs to listen sockets dropped, socke queue overflows, failed connection attemps, passive connection openings, segments retransmitted, requests sent out and TCP timeouts.
+\end{description}
+
+The monitoring helped multiple times in identifying the bottlenecks. Increases in socket queue overflow counts and SYNs to listen sockets dropped (overflows and drops are rarely a good thing) helped us identify why the sockets were failing to open and which TCP parameters we needed to tune.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.4]{graphitesocket}
+\caption{Monitored TCP sockets.}
+\label{figure:tcpstates}
+\end{figure}
+
+A very similar setup is also deployed in the cloud - a dedicated instance is running, to which all server instances send metrics in real-time.
 
 \subsection{Nginx Optimizations}
 added round-robin routing for multiple backend instances
@@ -1173,7 +1195,7 @@ sysctl: vm.overcommit\_memory = 1
 
 LAB NOTES FROM 24.07
 
-\subsection{Cloud baseline preparations}
+\subsection{Cloud baseline preparations}\label{Cloud baseline preparations}
 
 make sure to describe client simulation in details and issues that you battled with there - like cpu maxing, having to divide into multiple processes etc.
 
@@ -1608,11 +1630,6 @@ perl scripts!!!!
 http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mon-scripts.html
 end up in cloudwatch
 
-
-\subsection{Real Time Metric Insights} \label{Real Time Metric Insights}
-statsd, graphite
-photo of our dashboard
-
 \section{Selected Meters and Metrics}\label{Selected Meters and Metrics}
 Computing Resource Utilization Meter
 Server CPU utilization, compiled over all server instances + RDS DB where applicable (Cloudwatch)
@@ -1666,11 +1683,14 @@ We run repetetive tests to verify there is no huge influential differences in al
 
 One can also request dedicated rather than shared resources - outside of the scope of this project though, but offers finer control.
 
+\section{Time synchronization across the system}
+syncling clocks on machines using /etc/ntpd (polled from amazon servers)
+
+
 \section{Expected Answers}\label{Expected Answers}
 I am going to use the \textit{Effective System Scalability} and \textit{Effective Scalable Range} meters to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
 
 I expect to see differences in various metrics. Using all the other selected meters, I will be able to reason about singled out factors of scalability (such as cost or message handling latency).
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
