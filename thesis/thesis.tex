@@ -1212,13 +1212,22 @@ listen 443 backlog=16384 deferred;
 \end{sourcecode}
 
 \subsection{Mysql Optimizations}
-Mysql would periodically regularly stall for a very long time.
+Most of MySQL optimizations are still ahead, since I haven't really stretched it to its limits yet. We have encountered and solved a massive bottleneck at one point. MySQL would periodically, regularly stall for a very long time.
 
-innodb\_flush\_log\_at\_trx\_commit (1=>2)
-http://stackoverflow.com/questions/3722510/why-does-an-insert-query-occasionally-take-so-long-to-complete
-innodb\_flush\_method to 0 O\_DSYNC
+I managed to pinpoint the issue down to the frequency with which the log was flushed to disk. With the default value of the \textit{innodb\_flush\_log\_at\_trx\_commit} parameter (1), this happens on every transaction commit. Since changing the parameter value to 2, the flushing only happens once per second and the performance has vastly improved.
 
-Since on big machines we are running up to instance of the api serever process, we were maxing out on default mysql max number of connections; flipped it to 500; solved
+The second parameter I modified is \textit{max\_connections} so that all the server processes with their multiple threads could connect without problems against (we hit the default limit rather early).
+
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono]
+max_connections = 500
+innodb_flush_log_at_trx_commit = 2
+\end{lstlisting}
+\caption{Mysql configuration modifications.}
+\label{lstlisting:mysql}
+\end{sourcecode}
+
+There is definitely potential for further improvements in this scope.
 
 \subsection{Redis Optimizations}
 [1772] 24 Jul 10:09:09.009 \# Can't save in background: fork: Cannot allocate memory
