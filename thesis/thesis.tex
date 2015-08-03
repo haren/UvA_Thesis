@@ -1256,45 +1256,38 @@ Please check Redis logs for details about the error.
 
 Redis documentation \footnote{\url{http://redis.io/topics/faq}} provides a simple answer and it is changing the already described \texttt{overcommit\_memory} kernel flag to 1. It instructs the kernel to be "more relaxed" when allocating additional memory for a process.
 
-\section{Cloud baseline preparations}\label{Cloud baseline preparations}
+\section{Cloud Baseline Preparations}\label{Cloud baseline preparations}
+Moving the prepared infrastructure to the cloud proved a new set of challenges, rather underestimated in the beginning of the project. The challenges were different for client and server machines.
 
-make sure to describe client simulation in details and issues that you battled with there - like cpu maxing, having to divide into multiple processes etc.
+\subsection{Client Instances}
+Simulating the clients is done using a node process which spins a number of sockets it is instructed to by the load test suite orchestrator. A sample bash process is executed on each client instance \ref{lstlisting:bashloadtest}, which starts the appropriate number of node processes (equal to the number of CPU cores on the client machine).
 
-client machines reaching different resource limits at different loads, becuase of the increased publishing?
+As I identified performing the preparations locally, the load test suite node process is mostly CPU-bound. The confusing issue in the cloud was that it was hard to foresee when the limits are reached, since they different depending on the general system load (with the increased load the number and size of broadcast messages the clients had to process increased as well).
 
-started with t1.micro - had to move to m1.small, because we were reaching memory limits on thest that run longer than ~3 minutes, kernel was silently killing the process and metrics would fail to get reported from the clients
+I started the tests using t1.micro EC2 instances. Eventually I had to move to m1.small (these are the machines eventually used in the benchmark), because the processes were reaching memory limits when tests were run for longer than ~3 minutes. After hours of debugging (when the node process crashes on a remote instance, the load test master which orchestrates the suite receives no data whatsoever), I realized that the kernel was silently killing the node processes \ref{lstlisting:clientkernel}.
 
-Jul 24 11:36:28 ip-172-31-24-5 kernel: [39921901.888692] Out of memory: Kill process 2992 (node) score 673 or sacrifice hild"
+Because it was difficult the estimate resource limits, I decided to hugely overprovision client instances so that their resource limits are never reached and measurement of The System Under Test \ref{The System Under Test} are not affected in any undesirable way.
 
-super hard to estimate the necessary client resource, which we had to over-provision anyway - clients reaching hardware limits affects reported measurements and renders the test run useless.
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono]
+Jul 24 11:36:28 ip-172-31-24-5 kernel: [39921901.888692] Out of memory:
+"Kill process 2992 (node) score 673 or sacrifice child"
+\end{lstlisting}
+\caption{Load test client machine kernel log.}
+\label{lstlisting:clientkernel}
+\end{sourcecode}
 
-run previously on smaller scale (to save costs)
+Since most preparations were initially run on smaller scale (to save costs), the issues would generally manifest themselves only when the suite was deployed on a big scale.
 
-Adjust the ports opened for cloud instances - redis publishing (communication going the other way round)
+\subsection{Image Preparations}
+Both servers and clients are spun up using AMIs (Amazon Machine Images)\footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html}}, which contain all configuration for an instance deployable in the cloud. They are highly customizable and reusable. Client, server and database instanced required slightly different images. All had to be meticulousy prepared and configured (using the techniques described in the sections aboved) to ensure smooth deployment, high performance and reliability.
 
-setting up custom cloudwatch metric collection - \ref{Custom Metric Collection}. what we thought would work didn't.
-
-running as cronjob
-had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
-had to update our node scripts for collecting data pushed through and received on the sockets - the node library we use [REF] had a different internal representation so had to dig in to report data properly.
-
-\subsubsection{Image Preparations}
-Both servers and clients are spun up using AMIs (describe what they are [amazon source]).
-
-Both needed to be meticulousy prepared to ensure smooth dpeloyment of the test suite and tested architecutres.
-
-The client has been prepared with the right environment so that the test suite master can ssh into it (using node sequest) and run the test command [put it here].
-
-The server has all the necessary services that need to be automatically started up:
-- /etc/init.d starts redis (if applicable)
-- /etc/init.d starts mysql (if applicable)
-- /etc/init.d starts supervisord
-    - supervisord conf has the processes that need to be started (with an autostart option) [PASTE sample api server config here]
-- api server configurations has the correct host names for data stores - redis and mysql
-
-based on the same optimized image all unnecessary services closed:
-clients all (mysqld, redis, supervisord, nginx) switched off; redis all but redis
-distributed servers no redis / myqsl
+Image configuration includes:
+\begin{itemize}
+  \item /etc/init.d and chkconfig entries to automatically start relevant services on instance start, such as sshd, redis server, mysqld and supervisord (to start python WebSocket servers),
+  \item internal system configuration containing all correct hostnames for all system components (which differe between tested architectures),
+  \item security groups defining open ports and protocols for inbound and outbound communication of an instance.
+\end{itemize}
 
 \subsubsection{Distributing Resources Across Cloud Regions}
 
@@ -1310,7 +1303,7 @@ and servers
 
 Had to be excluded, because the AMIs we use are not compatible with the region's infrastructure. We are using ParaVirtual images, whereas Frankfurt supports HVM [describe with sources].
 
-\subsubsection{Observations}
+\subsection{Additional Observations}
 
 splitting up redis and mysql onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
 
@@ -1324,8 +1317,41 @@ tsung - looked promising, highly scalable erlang, but hard to understand what wa
 
 \subsection{Load Test Suite Preparations}\label{Load Test Suite Preparations}
 Split up into processes utilizing all the cores, necessary to go with different users
-INSERT NODE PROCESS HERE
 
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono, language=bash]
+#!/bin/bash
+
+# sample usage:
+# ./connect_multiple.sh 3 100 50 300
+# 3 processes, 100 users each, 50 a second, start with user_id = 300
+
+args=("$@");
+PROCESSES=${args[0]};
+USERS_PER_PROCESS=${args[1]};
+CONCURRENT_PER_PROCESS=${args[2]};
+START_USER_ID=${args[3]};
+
+USER_ID=$START_USER_ID
+for i in $(seq 1 $PROCESSES); do
+  USER_ID=$((USER_ID+USERS_PER_PROCESS))
+  node websocket-bench/ \
+      -a $USERS_PER_PROCESS \
+      -c $CONCURRENT_PER_PROCESS \
+      -u $USER_ID \
+      -k -t classic wss://route53.instamrkt.com:443 > /tmp/$i &
+done
+
+echo "All started."
+
+\end{lstlisting}
+\caption{Bash process commanding the load test execution on a single machine.}
+\label{lstlisting:bashloadtest}
+\end{sourcecode}
+
+All clietns have ssh daemon running. The client has been prepared with the right environment so that the test suite master can ssh into it (using node sequest) and run the test command [put it here].
+
+[TODO] put process start + kill and metrics collection
 
 \subsection{Making Load Test Process Bulletproof}
 I needed that. If the process crashes no results are reported and we are in the dark.
@@ -1676,7 +1702,7 @@ Tools described here \ref{Load Testing Framework}
 \section{Custom Metric Collection} \label{Custom Metric Collection}
 
 locally:
-pidstat
+pidstat DIDN'T WORK
 latencies by our custom client suite
 for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
 
@@ -1690,6 +1716,10 @@ THE ABOVE DOESN'T WORK ON AMAZON LINUX.
 perl scripts!!!!
 http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mon-scripts.html
 end up in cloudwatch
+
+running as cronjob
+had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
+had to update our node scripts for collecting data pushed through and received on the sockets - the node library we use [REF] had a different internal representation so had to dig in to report data properly.
 
 \section{Selected Meters and Metrics}\label{Selected Meters and Metrics}
 Computing Resource Utilization Meter
@@ -1810,6 +1840,9 @@ the journey continues (25 => 24000 => 10.000.000), nice logarithmic scale
 
 pure hardware is rarely the limit (that is, your app is a limitation most of the time - it's hard to utilize resources 100\% effectively)
 
+moving to the cloud provides more challenges that expeceted
+
+don't get too hung up on irrelevant details - don't waste days tuning the kernel to sustain 200k users instead of 60k if your system cannot take it anyway.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
