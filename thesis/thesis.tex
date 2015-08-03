@@ -1291,13 +1291,74 @@ Image configuration includes:
 
 \subsubsection{Distributing Resources Across Cloud Regions}
 
-Aws stack is divided into Regions (e.g. Ireland, N. Virgina, Sao Paolo) and these into availability zones. All the service stack you set up for a region. No easy way to copy between regions - businesses built around that.
+Amazon AWS infrastructure is divided into Regions (e.g. Ireland, N. Virgina, Sao Paolo). These regions are further divided into availability zones \ref{figure:awsregions}.
 
-[TODO]:
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.8]{awsregions}
+\caption{AWS Regions and Availability zones.}
+\label{figure:awsregions}
+\end{figure}
 
-copy code snippets for deploying client groups and orchestrating them
+Most of the service stack is prepared and registered with Amazon within a single region. There is no easy way to copy the prepare setup between regions, other than (in some cases) manually or using AWS API. I prepared a full set of python scripts utilizing Amazon-provided library, boto \footnote{\url{http://aws.amazon.com/sdk-for-python/}}, to distribute our AMIs, launch configurations, autoscaling groups and other services setup across the regions. The listing \ref{lstlisting:copygroups} contains a simplified script for copying autoscale groups between regions.
 
-and servers
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono, language=Python]
+# A simplified version of copying autoscale groups
+# between regions (simplified for the sake of brevity)
+def copy_autoscale_group_between_regions(
+    group_name, desired_group_count, dest_region,
+    source_region, launch_config, routing_policy_data
+  ):
+  """Return a list of public IPs of the created instances of the new group.
+  """
+
+  # copy load balancers associated with group
+  load_balancers     = im_boto.get_load_balancers_for_group(source_region, group_name)
+  dest_load_balancers = []
+  for elb in load_balancers:
+    dest_elb = im_boto.get_load_balancer_by_name(dest_region, elb.name)
+    if not dest_elb:
+      dest_elb = im_boto.copy_load_balancers_between_regions(
+        source_region, dest_region, elb
+      )
+
+      im_boto.register_new_load_balancer_with_route53(
+        dest_elb, routing_policy_data,
+        domain='route53.instamrkt.com'
+      )
+    dest_load_balancers.append(dest_elb)
+
+  # create test scale group if not exists
+  dst_group = im_boto.get_auto_scale_group_by_name(
+     dest_region, group_name
+  )
+  if not dst_group:
+    dst_launch_config = im_boto.get_launch_configuration(
+      im_boto.autoscale_connections[dest_region], launch_config_name
+    )
+    if not dst_launch_config:
+      dst_launch_config = im_boto.copy_launch_config_between_regions(
+        source_region, dest_region, launch_config
+      )
+
+    dst_group = im_boto.create_auto_scaling_group_from_params(
+      dest_region, group_name,
+      dst_launch_config, dest_load_balancers
+    )
+
+
+  deployed_ips = im_boto.update_group_desired_capacity(
+    im_boto.autoscale_connections[dest_region],
+    group, desired_group_count
+  )
+
+  # here happens verification if all instances are reachable
+  return deployed_ips
+\end{lstlisting}
+\caption{Copying Autoscale Groups between regions.}
+\label{lstlisting:copygroups}
+\end{sourcecode}
 
 \subsection{Exluding Frankfurt Region}\label{Exluding Frankfurt Region}
 
@@ -1833,7 +1894,6 @@ QUOTE: 9 women won't make a baby in a month
 
 summary
 
-\section{Takeaways}
 endless process of digging deeper, deeper, deeper and deeper - can be never ending. That's why it's importnat to set up goals up front.
 
 the journey continues (25 => 24000 => 10.000.000), nice logarithmic scale
@@ -1844,6 +1904,7 @@ moving to the cloud provides more challenges that expeceted
 
 don't get too hung up on irrelevant details - don't waste days tuning the kernel to sustain 200k users instead of 60k if your system cannot take it anyway.
 
+DON'T JUMP IN AND BUILD - ANALYSE THE WHOLE PROCESS THOROUGHLY TO THE BEST POSSIBLE EXTENT BEFORE DIVING INTO CODE (GUILTY AS CHARGED)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
