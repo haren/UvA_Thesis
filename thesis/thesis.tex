@@ -1484,6 +1484,38 @@ stopRemoteLoadTestClient();
 \subsubsection{Start Load Test Processes Bash Script}
 Starts multiple node load test processes so as to utilize all available CPU cores. It is called from the Start Test script above. Shown in full on listing \ref{lstlisting:bashloadtest}. Written by me.
 
+\begin{sourcecode}[H]
+\begin{lstlisting}[style=mono, language=bash]
+#!/bin/bash
+
+# sample usage:
+# ./connect_multiple.sh 3 100 50 300
+# 3 processes, 100 users each, 50 a second, start with user_id = 300
+
+args=("$@");
+PROCESSES=${args[0]};
+USERS_PER_PROCESS=${args[1]};
+CONCURRENT_PER_PROCESS=${args[2]};
+START_USER_ID=${args[3]};
+
+USER_ID=$START_USER_ID
+for i in $(seq 1 $PROCESSES); do
+  USER_ID=$((USER_ID+USERS_PER_PROCESS))
+  node websocket-bench/ \
+      -a $USERS_PER_PROCESS \
+      -c $CONCURRENT_PER_PROCESS \
+      -u $USER_ID \
+      -k -t classic wss://route53.instamrkt.com:443 > /tmp/$i &
+done
+
+echo "All started."
+
+\end{lstlisting}
+\caption{Bash process commanding the load test execution on a single machine.}
+\label{lstlisting:bashloadtest}
+\end{sourcecode}
+
+
 \subsubsection{Load Test Process}
 This is by far the most complex of all pieces. It is a rather complex node process with multiple simulated workers. It supports arbitrary numbers of users and an arbitrary number of them connecting every second. It also supports keep-alive connections which I use during the benchmark run. It is based on 3rd party package, websocket-bench\footnote{\url{https://www.npmjs.com/package/websocket-bench}}. Surprisingly, the library does not support the WebSocket library I use, a de facto standard node WebSocket library\footnote{\url{https://github.com/websockets/ws}}. I heavily extended the websocket-bench library and hope to integrate my development when the code is polished.
 
@@ -1581,51 +1613,17 @@ process.on('SIGINT', function () { // Intercept Kill Signal
 
 \subsection{Tool Selection}
 
-criteria: feasible, understandable, extensible
+Before I settled for the load testing library, I analyzed multiple different tools. My two main criteria were: it needs to extensible (since I need to inroduce my on testing scenarios) and understandable, preferably the technology I know (so that I can work with it on a tight deadline).
 
-all the analyzed tools, list also in lab notes from may 11 [FOR EACH WHY WASN'T SATISFACTORY]
-jmeter, thor (low extensibility which we needed), autobahn (max available connections but no further control),
-gatling-websocket, http://www.opensourcetesting.org/performance.php
-tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
+The analyzed tools include:
+\begin{description}
+  \item [JMeter\footnote{\url{https://github.com/maciejzaleski/JMeter-WebSocketSampler}}], Java-based, difficult to set up and not customizable,
+  \item [thor\footnote{\url{https://github.com/observing/thor}}], node-based, low extensibility,
+  \item [autobahn\footnote{\url{http://autobahn.ws/testsuite/}}], python-based, designed with different usecases in mind,
+  \item [tsung\footnote{\url{http://tsung.erlang-projects.org/}}], erlang-based, very low community support, bad documentation, couldn't get my head around it quickly enough.
+\end{description}
 
-
-\subsection{Load Test Suite Preparations}\label{Load Test Suite Preparations}
-Split up into processes utilizing all the cores, necessary to go with different users
-
-\begin{sourcecode}[h]
-\begin{lstlisting}[style=mono, language=bash]
-#!/bin/bash
-
-# sample usage:
-# ./connect_multiple.sh 3 100 50 300
-# 3 processes, 100 users each, 50 a second, start with user_id = 300
-
-args=("$@");
-PROCESSES=${args[0]};
-USERS_PER_PROCESS=${args[1]};
-CONCURRENT_PER_PROCESS=${args[2]};
-START_USER_ID=${args[3]};
-
-USER_ID=$START_USER_ID
-for i in $(seq 1 $PROCESSES); do
-  USER_ID=$((USER_ID+USERS_PER_PROCESS))
-  node websocket-bench/ \
-      -a $USERS_PER_PROCESS \
-      -c $CONCURRENT_PER_PROCESS \
-      -u $USER_ID \
-      -k -t classic wss://route53.instamrkt.com:443 > /tmp/$i &
-done
-
-echo "All started."
-
-\end{lstlisting}
-\caption{Bash process commanding the load test execution on a single machine.}
-\label{lstlisting:bashloadtest}
-\end{sourcecode}
-
-All clietns have ssh daemon running. The client has been prepared with the right environment so that the test suite master can ssh into it (using node sequest) and run the test command [put it here].
-
-[TODO] put process start + kill and metrics collection
+None of the tools met the extensibility and understandability criteria as well as websocket-bench.
 
 \subsection{Making Load Test Process Bulletproof}
 I needed that. If the process crashes no results are reported and we are in the dark.
