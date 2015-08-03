@@ -1164,15 +1164,52 @@ The monitoring helped multiple times in identifying the bottlenecks. Increases i
 A very similar setup is also deployed in the cloud - a dedicated instance is running, to which all server instances send metrics in real-time.
 
 \subsection{Nginx Optimizations}
-added round-robin routing for multiple backend instances
+On each WebSocket server instance, we are running an nginx process to end the encrypted communication and load balance traffic before all server processes running on a given machine.
 
-worker\_processes auto; (x for x cores)
-worker\_connections 165535 (set to ulimit-n)
-tcp\_nopush off ((nagle’s algorithm)
-keepalive\_timeout 1000;
-proxy\_read\_timeout 1000;
+The following optimizations were made to improve nginx performance. The fragment of the configuration can be found in listing \ref{lstlisting:nginx}.
+
+\begin{description}
+  \item [worker\_processes auto] sets the number of nginx processes to the number of available CPU cores automatically,
+  \item [worker\_connections] sets the number of maximum connections opened by a worker process (cannot be higher than the number of allowed file descriptors per process),
+  \item [tcp\_nodelay] setting to off disables Nagle’s algorithm and thus allows sockets not to buffer data but send it right away (and effectively reduce latencies up to 0.2 seconds\footnote{\url{https://t37.net/nginx-optimization-understanding-sendfile-tcp\_nodelay-and-tcp_nopush.html}}),
+  \item [tcp\_nopush] setting to off deactives the TCP\_CORK option in the Linux TCP stack and allows to send smaller data chunks,
+  \item [keepalive\_timeout] defines how long to keep an idle keep-alive connection open (in seconds),
+  \item [proxy\_read\_timeout] defines how long to work for a backend to server the connection / request (high values necessary for potentially highly congested servers),
+  \item [backlog] sets the max length of the que of pending connections,
+  \item [deferred] instructs the kernel not to wait for the final ACK packet and not to initiate the connection until the first packet of real data has arrived,
+  \item [worker\_rlimit\_nofile] sets the limit of file descriptors that can be opened by nginx process (2 are necessary for each WebSocket connection - incoming and forwarded).
+  \item [round-robin] routing had to be added to the WebSocket server upstream so that incoming connections are divided between all server processes.
+\end{description}ś
+
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono]
+worker_processes auto;
+worker_connections 165535;
+tcp_nopush off;
+tcp_nodelay off;
+keepalive_timeout 1000;
+proxy_read_timeout 1000;
+worker_rlimit_nofile 30000;
+
+upstream api_server_dev {
+    server 127.0.0.1:9998;
+    server 127.0.0.1:9997;
+    server 127.0.0.1:9996;
+    server 127.0.0.1:9995;
+    server 127.0.0.1:9994;
+    server 127.0.0.1:9993;
+    server 127.0.0.1:9992;
+    [...]
+}
+
+[...]
+# inside server section
 listen 443 backlog=16384 deferred;
-worker\_rlimit\_nofile 30000;
+[...]
+\end{lstlisting}
+\caption{Nginx configuration modifications.}
+\label{lstlisting:nginx}
+\end{sourcecode}
 
 \subsection{Mysql Optimizations}
 Mysql would periodically regularly stall for a very long time.
