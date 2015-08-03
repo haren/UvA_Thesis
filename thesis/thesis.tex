@@ -1107,7 +1107,7 @@ vm.overcommit_memory=1
   \item[net.ipv4.tcp\_synack\_retries] How many times to retry creating the TCP connection. Lower values allow to fail faster.
   \item[net.ipv4.tcp\_syn\_retries] as above.
   \item[net.ipv4.tcp\_tw\_reuse] If set to 1, kernel allows to reuse TCP sockets in TIME\_WAIT state. Similar to tcp\_tw\_reuse, changing which is highly discouraged since enabling it introduces problems with clients behind NATs and stateful firewalls (the kernel can simply close their sockets).
-  \item[net.ipv4.ip\_local\_port\_range] Port range available to processes - the broader more ports available. Without adding virtual IPs, the absolute maximum of TCP ports the server can have open is 65535\footnote{The number of client connections that a server can support has nothing to do with ports, since a server is (typically) only listening for WS/WSS connections on one single port. But, if the machine also has an HAProxy or a Load Balancer that forward connections (which is my case - nginx), this limit holds.}. This is a TCP-protocol related limitation, since the port number is represented with an unsigned 16-bit integer ($2^{16}=65535$).
+  \item[net.ipv4.ip\_local\_port\_range] Port range available to processes - the broader more ports available. Without adding virtual IPs, the absolute maximum of TCP ports the server can have open is 65535\footnote{The number of client connections that a server can support has nothing to do with ports, since a server is (typically) only listening for WS/WSS connections on one single port. But, if the machine also has an HAProxy or a Load Balancer that forward connections (which is my case - nginx), this limit holds.}. This is a TCP-protocol related limitation, since the port number is represented with an unsigned 16-bit integer ($2^{16}=65535$). To go above that limit, multiple virtual IP addresses needed to be created on a network interface.
   \item[vm.overcommit\_memory] regulates the heuristics of memory allocation during process forks. Setting to 1 is necessary for high-performing redis.
 
 \end{description}
@@ -1116,78 +1116,23 @@ vm.overcommit_memory=1
 
 In short, the TCP stack needs to be tuned to sustain multiple nuber of concurrent open TCP connections and to be able to reuse closed sockets quickly. This is achieved using the sysctl flags described above.
 
+Maintaing the TCP stack in itself is not very expensive in terms of resources. Maintaining idle connections is almost memory-free. Nevertheless, it is possible to leak memory / file descriptors from an application and this, at scale, can become expensive. Descriptor usage can be monitored at unix systems using \textit{lsof} command.
 
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.2]{tcpstates}
+\caption{Possible states of a TCP socket.}
+\label{figure:tcpstates}
+\end{figure}
 
-the number of client connections that a server can support has nothing to do with ports in this scenario, since the server is [typically] only listening for WS/WSS connections on one single port. I think what the other commenters meant to refer to were file descriptors. You can set the maximum number of file descriptors quite high, but then you have to watch out for socket buffer sizes adding up for each open TCP/IP socket.  MAKE SURE THIS IS CONSISTENT THROUGHOUT THE PAPER.
-If the file descriptors are tcp sockets, etc, then you risk using up a large amount of memory for the socket buffers and other kernel objects; this memory is not going to be swappable.
+So as to be able to re-run the benchmark quickly (this was very important during the preparation process), sockets in TIME\_WAIT needed to be made reusable using the \textit{net.ipv4.tcp\_tw\_reuse} flag. Sockets end up in this state after active close (son on the initiating side - more often the client in case of The System Under Test \ref{The System Under Test}), as depicted on figure \ref{figure:tcpstates}.
 
-[http://stackoverflow.com/questions/4852702/do-html-websockets-maintain-an-open-connection-for-each-client-does-this-scale/25340220\#25340220]
-Each TCP connection in itself consumes very little in terms server resources. Often setting up the connection can be expensive but maintaining an idle connection it is almost free. The first limitation that is usually encountered is the maximum number of file descriptors (sockets consume file descriptors) that can be open simultaneously. This often defaults to 1024 but can easily be configured higher.
-
-all lab notes from 08.05
-all websocket updates
-http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
-Also, and very important, you may need to check if your application has a memory/file descriptor leak. Use lsof to see all it has open to see if they are valid or not. Don't try to change your system to work around applications bugs.
-
-Although the causes for such symptoms can vary, there's one scenario that can cause a complete lock of systems handling a very large number of web requests per second without any hint of what's going on: TCP/IP port exhaustion. [https://www.outsystems.com/forums/discussion/6956/how-to-tune-the-tcp-ip-stack-for-high-volume-of-web-requests/]
-
-describe close\_wait, time\_wait etc
-
-only 65k per (tcp 16 bit) ip address, one can add virtual ips to machines and up the number this way
-(recent lab notes)
-
-increasing the number of clients
-The solution is more quadruplets5. This can be done in several ways (in the order of difficulty to setup):
-use more client ports by setting net.ipv4.ip\_local\_port\_range to a wider range,
-use more server ports by asking the web server to listen to several additional ports (81, 82, 83, …),
-use more client IP by configuring additional IP on the load balancer and use them in a round-robin fashion,
-use more server IP by configuring additional IP on the web server6.
-
-But there are ways to tune the TCP/IP stack to reduce the impact of this problem, allowing the system to take advantage of all resources at its disposal. Basically, we can tune several TCP/IP stack parameters, but in this context, there are 2 that really make the different:
-The time that the ports is in "waiting" status since it was released from the application, and it's in fact released by the system for reuse. It's called the TIME WAIT
-The maximum number of ephemeral ports that the system can use, from the total pool of 65535 available ports. Let's just call it RANGE EPHEMERAL PORTS
-Reduce the TIME\_WAIT by setting the tcp\_fin\_timeout kernel value on /proc/sys/net/ipv4/tcp\_fin\_timeout, using the command echo 30 > /proc/sys/net/ipv4/tcp\_fin\_timeout to set it to 30 seconds.
-
-Increase the range of ephemeral ports by setting ip\_local\_port\_range kernel value on /proc/sys/net/ipv4/ip\_local\_port\_range, using the command echo "32768 65535" > /proc/sys/net/ipv4/ip\_local\_port\_range, this will set the port range from 32768 to 65535.
-
-A common misunderstanding is that a server cannot accept more than 65,536 (216) TCP sockets because TCP ports are 16-bit integer numbers.
-First, the number of ports is limited to 65,536, but this limitation applies only to a single IP address. Supposing that we are limited by the number of ports to have more than 65,536 clients, then adding more IP addresses to the server machine (either by adding new network cards, or simply by using IP aliasing for the existing network card) would solve the problem (even if, for opening 12 million client would need 184 network cards or IP aliases on the server machine).
-In fact, the misunderstanding comes from the fact that the server does not use its listening IP address and a different ephemeral port for each new socket to distinguish among the sockets, but it uses the same listening IP address and the same listening port for all sockets and it distinguishes among sockets by using the IP address and the ephemeral port of each client. Therefore, MigratoryData Server uses a single port to accept any number of clients and optionally it uses another few ports for JMX monitoring, HTTP monitoring, etc
-https://mrotaru.wordpress.com/category/websockets/
-
-max descriptors per process:
-Because one cannot increase the maximum number of socket descriptors per process to a value larger than the current kernel maximum (fs.nr\_open) and because the kernel maximum defaults to 1048576 (10242), prior to running the ulimit command, we increased the kernel maximum accordingly as follows:
-echo 20000500 > /proc/sys/fs/nr\_open
-CHECK LAB NOTES RECENT TESTS, A LOT
-https://mrotaru.wordpress.com/category/websockets/
-
-The kernel value parameters aren't saved with these commands, and are reset to the default values on system reboot, thus make sure to place the commands on a system startup script such as /etc/rc.local.
-https://www.outsystems.com/forums/discussion/6956/how-to-tune-the-tcp-ip-stack-for-high-volume-of-web-requests/
-
-look for \_what can limit concurrent sockets?\_ in lab notes
-
-“The number of connections wstest can open on a server is limited by the number of ephemeral ports on the machine on the outgoing interface / IP. Something like 64k at most. If you need to test the server with more connections, currently you will need to run multiple instances of wstest (on different machines).” from: http://autobahn.ws/testsuite/usage.html\#mode-massconnect
-
-Understanding tcp sockets:
-sockets are left in TIME\_WAIT on the server when the client suite is killed which makes sense
-when client exits gracefully no sockets left in TIME\_WAIT / CLOSE\_WAIT by the server
-on\_close() from tornado only kicks in on client close
-.onclose in js only kicks in when server initiates through self.close()
-when server terminates through self.close() sockets ends in TIME\_WAIT for a minute (also makes sense according to docs)
-describe how you can influence that (reusing web sockets + delay time )
-
-ulimit, nofile, fs.max\-file, net.ipv4.ip\_local\_port\_range = 32768 65535  to /etc/sysctl.conf for ip ranges on the clients
-
-What we used to cross-test our tools and make sure we're collecting reasonable values.
-
-Basic metrics
-\begin{itemize}
-  \item cpu, memory, disk usage (pidstat / CloudWatch)
-  \item network i/o (wireshark, list others analyzed)
-  \item latency, throughput, concurrent connections, messages dropped?
-\end{itemize}
+Even though this explanation is relatively brief, researching and applying this information took weeks.
 
 \subsubsection{Real-Time Insights}
+
+ss -s 
+netstat -s
 etsy, logster, graphite etc.
 
 syncling clocks on machines using /etc/ntpd (polled from amazon servers)
