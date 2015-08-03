@@ -876,7 +876,7 @@ The load testing process is enumerated below:
   \item it connects to clients again and copies the file to master node where metrics are aggregated.
 \end{enumerate}
 
-\subsection{Users Distribution}
+\subsection{Users Distribution}\label{Users Distribution}
 
 Since this is going to differ for a type of game served on the platform, I decided to use the most basic distribution - the same number of users connecting from each of the 8 available regions: North Virginia, Oregon, North California, Ireland, Singapore, Sydney, Tokyo and Sao Paulo.
 
@@ -995,7 +995,7 @@ I also managed to identify main resource bottlenecks. Both in cases of the clien
 
 Since Node.js is single-threaded, I prepared scripts that allow to run multiple processes in parallel to utilize all cores available to the client \ref{Load Test Suite Preparations}.
 
-As far as the WebSocket server is concerned, I have identified 2 core thread types (among many more that the server consists of) - one for request handling, another one for pushing redis-published messages through the user's WebSocket. Since TCP is a 1-1 communication protocol, a UDP-like broadcast to all WebSockets is not possible. For every channel that users subscribe to (games are channels on the domain level), the system needs a thread that listens to a redis channel and iterates over a list of WebSockets of users subscribed to that channel. These threads, and the message handling threads are by far the two most resource (CPU-bound) intensive. 
+As far as the WebSocket server is concerned, I have identified 2 core thread types (among many more that the server consists of) - one for request handling, another one for pushing redis-published messages through the user's WebSocket. Since TCP is a 1-1 communication protocol, a UDP-like broadcast to all WebSockets is not possible. For every channel that users subscribe to (games are channels on the domain level), the system needs a thread that listens to a redis channel and iterates over a list of WebSockets of users subscribed to that channel. These threads, and the message handling threads are by far the two most resource (CPU-bound) intensive.
 
 This allowed us to calculate the optimal number of WebSocket server processes that should be running on each machine - the number of machine CPU cores divided by 2. Since the WebSocket servers are fully stateless, any number can be run in parallel.
 
@@ -1237,7 +1237,7 @@ The error reported by the server processes (listing \ref{lstlisting:redis2}) and
 \begin{sourcecode}[h]
 \begin{lstlisting}[style=mono]
 ResponseError: MISCONF Redis is configured to save RDB snapshots,
-but is currently not able to persist on disk. 
+but is currently not able to persist on disk.
 Commands that may modify the data set are disabled.
 Please check Redis logs for details about the error.
 \end{lstlisting}
@@ -1302,7 +1302,7 @@ Amazon AWS infrastructure is divided into Regions (e.g. Ireland, N. Virgina, Sao
 
 Most of the service stack is prepared and registered with Amazon within a single region. There is no easy way to copy the prepare setup between regions, other than (in some cases) manually or using AWS API. I prepared a full set of python scripts utilizing Amazon-provided library, boto \footnote{\url{http://aws.amazon.com/sdk-for-python/}}, to distribute our AMIs, launch configurations, autoscaling groups and other services setup across the regions. The listing \ref{lstlisting:copygroups} contains a simplified script for copying autoscale groups between regions.
 
-\begin{sourcecode}[h]
+\begin{sourcecode}[H]
 \begin{lstlisting}[style=mono, language=Python]
 # A simplified version of copying autoscale groups
 # between regions (simplified for the sake of brevity)
@@ -1360,21 +1360,234 @@ def copy_autoscale_group_between_regions(
 \label{lstlisting:copygroups}
 \end{sourcecode}
 
-\subsection{Exluding Frankfurt Region}\label{Exluding Frankfurt Region}
+\subsubsection{Exluding Frankfurt Region}\label{Exluding Frankfurt Region}
 
-Had to be excluded, because the AMIs we use are not compatible with the region's infrastructure. We are using ParaVirtual images, whereas Frankfurt supports HVM [describe with sources].
+Amazon offers 9 regions for auto scaling - 8 are listed in the Users Distribution section \ref{Users Distribution}, the 9th is Frankfurt. Because of technological limitations I was forced to exclude this region from my research.
 
-\subsection{Additional Observations}
-
-splitting up redis and mysql onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
-
-backup by table from lab notes 21.07
+The AMIs I use are not compatible with the region's infrastructure. Amazon offers two types of image virtualization: PV (paravirtual) and HVM (hardware virtual machine) \footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/virtualization_types.html}}. I use PVs, whereas Frankfurt has very limited support for them.
 
 \section{Load Testing Framework}\label{Load Testing Framework}
+The load testing framework consists of the following components:
+
+\subsubsection{General Load Test Orchestration Script}
+This python script command the whole benchmark execution. Its steps are listed in the pseudocode listining \ref{lstlisting:orchestration}. Written by me.
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[style=mono]
+Copy load test client setup from source region to all destination regions.
+Start up the desired number of client instances in each region.
+Copy server setup from source region to all destination regions.
+Start up the desired number of server instances in each region.
+Collect public IP addresses of all deployed client, server, mysql and redis instances.
+For each client IP address, spawn a node remote access process sending
+the "start load test" command and parameters.
+Sleep for the desired benchmark run length.
+For each client IP address, spawn a node remote access process sending
+the "stop load test" and "collect metrics" command and parameters.
+For each server IP address, collect server side metrics.
+For each redis IP address, collect redis metrics.
+For each mysql IP address, collect mysql metrics.
+\end{lstlisting}
+\caption{Benchmark run orchestration script pseudocode.}
+\label{lstlisting:orchestration}
+\end{sourcecode}
+
+\subsubsection{Remote Access + Start Test Process} This node script connects to the remote machine using the node sequest library \footnote{\url{https://github.com/mikeal/sequest}}, which utilizes the local ssh-agent to authenticate with the remote host. Listed in full below \ref{lstlisting:remotestart}. Written by me.
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[language=javascript]
+#!/usr/bin/env node
+
+var sequest = require("sequest");
+
+// receives cmd line parameters from the
+// benchmark orchestration python script
+var host            = process.argv[2],
+    processes       = process.argv[3],
+    usersPerProcess = process.argv[4],
+    concurrentUsers = process.argv[5],
+    startUserId     = process.argv[6];
+
+var user      = "lukasz";
+var remoteDir = "/opt/web/dev-instamrkt/utils/scaling/load_testing/";
+
+function executeRemoteLoadTestClient(host) {
+  var cmd = "cd " + remoteDir + " && ./perform_load_test_from_multiple_processes.sh "
+    + processes + " " + usersPerProcess + " " + concurrentUsers + " " + startUserId;
+
+  sequest(user + "@" + host, cmd, function (e, stdout) {
+    if (e) throw e;
+    console.log("Execution started.");
+  });
+}
+
+executeRemoteLoadTestClient(host);
+
+\end{lstlisting}
+\caption{Remote load test start script.}
+\label{lstlisting:remotestart}
+\end{sourcecode}
+
+\subsubsection{Remote Access + Stop Test And Collect Metrics Process}
+Very similar to the previous script. Sends the kill signal, sleeps a bit (so that the load test process can finish processing messages and summary metrics), collects remote metrics and saves them locally. Listed in full below \ref{lstlisting:remotestop}. Written by me.
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[language=javascript]
+#!/usr/bin/env node
+
+// https://github.com/mikeal/sequest
+
+var sequest = require('sequest'),
+    fs      = require('fs');
+
+// receives cmd line parameters from the
+// benchmark orchestration python script
+var host          = process.argv[2],
+  processes       = process.argv[3],
+  localDir        = process.argv[4];
+
+var user          = "lukasz";
+var remoteDir     = "/tmp/";
+var waitAfterKill = 120;            // in seconds
+
+var seq    = sequest(user + "@" + host);
+
+function stopRemoteLoadTestClient() {
+  seq.write("killall node", "", function(e) {
+    if (e) {
+      console.log(e);
+    }
+    else {
+      // remote process killed - sleep a bit to
+      // let it finish processing and saving metrics
+
+      setTimeout(function() {
+        for (var i=1; i <= processes; i++) {
+          var fileName   = i;
+          var reader     = sequest.get(user + '@' + host, remoteDir + fileName);
+          var fileHandle = fs.createWriteStream(localDir  + '/' + fileName);
+
+          reader.pipe(fileHandle); // reader.pipe(process.stdout) - to write to stoud
+        }
+      }, waitAfterKill * 1000);
+    }
+  });
+}
+
+stopRemoteLoadTestClient();
+
+\end{lstlisting}
+\caption{Remote load test start script.}
+\label{lstlisting:remotestop}
+\end{sourcecode}
+
+\subsubsection{Start Load Test Processes Bash Script}
+Starts multiple node load test processes so as to utilize all available CPU cores. It is called from the Start Test script above. Shown in full on listing \ref{lstlisting:bashloadtest}. Written by me.
+
+\subsubsection{Load Test Process}
+This is by far the most complex of all pieces. It is a rather complex node process with multiple simulated workers. It supports arbitrary numbers of users and an arbitrary number of them connecting every second. It also supports keep-alive connections which I use during the benchmark run. It is based on 3rd party package, websocket-bench\footnote{\url{https://www.npmjs.com/package/websocket-bench}}. Surprisingly, the library does not support the WebSocket library I use, a de facto standard node WebSocket library\footnote{\url{https://github.com/websockets/ws}}. I heavily extended the websocket-bench library and hope to integrate my development when the code is polished.
+
+The script opens concurrent websocket connections, sends and receives messages according to the configured scenario (which I coded and integrated), and upon completion (receiving the kill signal in case of keep-alive connections) generates a metric report. I extended the metric report with custom reporting basing on the fast-stats module\footnote{\url{https://github.com/bluesmoon/node-faststats}}.
+
+Listings \ref{lstlisting:loadtestexec}, \ref{lstlisting:loadtestexec2}, \ref{lstlisting:loadtestexec3}, \ref{lstlisting:loadtestexec4},  show different, crucial parts of the load test codebase.
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[language=javascript]
+// Creates all necessary workers
+Benchmark.prototype.launch = function (connectNumber, concurency, workerNumber, nbMessage) {
+  var cp = require('child_process');
+  // ...
+  for (var i = 0; i < workerNumber; i++) {
+    this.workers[i] = cp.fork(__dirname + '/worker.js', [
+      this.server, this.options.generatorFile, this.options.type,
+      this.options.transport, this.options.verbose, this.options.userId
+    ]);
+    this.workers[i].on('message', this._onMessage.bind(this));
+  }
+  this._nextStep(concurency, connectNumber, concurency, nbMessage);
+};
+\end{lstlisting}
+\caption{Create necessary workers.}
+\label{lstlisting:loadtestexec}
+\end{sourcecode}
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[language=javascript]
+// Opens a specified number of connections every second
+Benchmark.prototype._nextStep = function (currentNumber, connectNumber, concurency, nbMessage) {
+  for (var i = 0; i < this.workers.length; i++) {
+    var nbConnection = Math.round(concurency / this.workers.length);
+    if (i === this.workers.length - 1) {
+      nbConnection = concurency - nbConnection * i;
+    }
+    this.workers[i].send({ msg : 'run', number : nbConnection, nbMessage : nbMessage});
+  }
+  if (currentNumber < connectNumber) {
+    setTimeout(function () {
+      if (currentNumber >= connectNumber - concurency) {
+        concurency = connectNumber - currentNumber;
+        currentNumber = connectNumber;
+      } else {
+        currentNumber += concurency;
+      }
+      _this._nextStep(currentNumber, connectNumber, concurency, nbMessage);
+    }, 1000);
+  }
+};
+\end{lstlisting}
+\caption{Open a specified number of connections each second until total number reached.}
+\label{lstlisting:loadtestexec2}
+\end{sourcecode}
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[language=javascript]
+// creates a single connection
+ClassicWorker.prototype.createClient = function (callback) {
+  var connection      = new WebSocket(options.url);
+  connection.init     = Date.now();
+
+  connection.onopen = function (session) {
+    _this.metrics.handshaken({'duration': Date.now() - connection.init});
+    _logOn();
+    callback(false, session);
+  };
+
+  connection.onclose = function (reason, details) {
+    var read = connection._socket.bytesRead || connection._socket.socket.bytesRead;
+    var send = connection._socket.bytesWritten || connection._socket.socket.bytesWritten;
+    _this.metrics.close({send: send, read: read});
+    callback(false, connection);
+  }; // .... All handlers and messaging scenario registered below
+}
+\end{lstlisting}
+\caption{Create a single WebSocket client.}
+\label{lstlisting:loadtestexec3}
+\end{sourcecode}
+
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[language=javascript]
+process.on('SIGINT', function () { // Intercept Kill Signal
+  _.each(workers, function(worker) { worker.close();});
+  metrics.established().stop().summary();
+  setTimeout(function () { process.exit();}, 6000);
+});
+
+\end{lstlisting}
+\caption{Intercept kill signal and save collected metrics.}
+\label{lstlisting:loadtestexec4}
+\end{sourcecode}
+
+
+\subsection{Tool Selection}
+
+criteria: feasible, understandable, extensible
+
 all the analyzed tools, list also in lab notes from may 11 [FOR EACH WHY WASN'T SATISFACTORY]
 jmeter, thor (low extensibility which we needed), autobahn (max available connections but no further control),
 gatling-websocket, http://www.opensourcetesting.org/performance.php
 tsung - looked promising, highly scalable erlang, but hard to understand what was going on, community was not active enough, wsbench
+
 
 \subsection{Load Test Suite Preparations}\label{Load Test Suite Preparations}
 Split up into processes utilizing all the cores, necessary to go with different users
@@ -1859,6 +2072,12 @@ latencies are blocking for the server in case of architecture II and III, wherea
 [TODO prove with time loops simple db.add\_prediction()]
 
 \section{Proposed Architecture II}
+
+\section{Additional Observations}
+
+splitting up redis and mysql onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
+
+backup by table from lab notes 21.07
 
 \section{Latencies by region}
 They differ much - provide a comparison by region.
