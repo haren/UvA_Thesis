@@ -1128,7 +1128,7 @@ So as to be able to re-run the benchmark quickly (this was very important during
 
 Even though this explanation is relatively brief, researching and applying this information took weeks.
 
-\subsubsection{Real-Time Insights}
+\subsection{Real-Time Insights}
 
 In order to have real-time insight into the system and the state of the host Operating System, I prepared a suite to measure and visualize the relevant metrics.
 
@@ -1163,7 +1163,7 @@ The monitoring helped multiple times in identifying the bottlenecks. Increases i
 
 A very similar setup is also deployed in the cloud - a dedicated instance is running, to which all server instances send metrics in real-time.
 
-\subsection{Nginx Optimizations}
+\section{Nginx Optimizations}
 On each WebSocket server instance, we are running an nginx process to end the encrypted communication and load balance traffic before all server processes running on a given machine.
 
 The following optimizations were made to improve nginx performance. The fragment of the configuration can be found in listing \ref{lstlisting:nginx}.
@@ -1211,7 +1211,7 @@ listen 443 backlog=16384 deferred;
 \label{lstlisting:nginx}
 \end{sourcecode}
 
-\subsection{Mysql Optimizations}
+\section{Mysql Optimizations}
 Most of MySQL optimizations are still ahead, since I haven't really stretched it to its limits yet. We have encountered and solved a massive bottleneck at one point. MySQL would periodically, regularly stall for a very long time.
 
 I managed to pinpoint the issue down to the frequency with which the log was flushed to disk. With the default value of the \textit{innodb\_flush\_log\_at\_trx\_commit} parameter (1), this happens on every transaction commit. Since changing the parameter value to 2, the flushing only happens once per second and the performance has vastly improved.
@@ -1229,19 +1229,34 @@ innodb_flush_log_at_trx_commit = 2
 
 There is definitely potential for further improvements in this scope.
 
-\subsection{Redis Optimizations}
+\section{Redis Optimizations}
+As with MySQL, I have hit one major redis roadblock regarding redis. At seemingly random points through trial benchmark runs, redis process would become unreachable by the WebSocket server instances.
+
+The error reported by the server processes (listing \ref{lstlisting:redis2}) and pointed to the redis server log, where the issue was narrowed down to forking \ref{lstlisting:redis}.
+
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono]
+ResponseError: MISCONF Redis is configured to save RDB snapshots,
+but is currently not able to persist on disk. 
+Commands that may modify the data set are disabled.
+Please check Redis logs for details about the error.
+\end{lstlisting}
+\caption{Server process log.}
+\label{lstlisting:redis2}
+\end{sourcecode}
+
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono]
 [1772] 24 Jul 10:09:09.009 \# Can't save in background: fork: Cannot allocate memory
 [1772] 24 Jul 10:09:15.020 * 1 changes in 900 seconds. Saving...
+\end{lstlisting}
+\caption{Redis server log.}
+\label{lstlisting:redis}
+\end{sourcecode}
 
-ResponseError: MISCONF Redis is configured to save RDB snapshots, but is currently not able to persist on disk. Commands that may modify the data set are disabled. Please check Redis logs for details about the error.
+Redis documentation \footnote{\url{http://redis.io/topics/faq}} provides a simple answer and it is changing the already described \texttt{overcommit\_memory} kernel flag to 1. It instructs the kernel to be "more relaxed" when allocating additional memory for a process.
 
-Explain overommiting here shortly (redis.io/topics/faq)
-
-sysctl: vm.overcommit\_memory = 1
-
-LAB NOTES FROM 24.07
-
-\subsection{Cloud baseline preparations}\label{Cloud baseline preparations}
+\section{Cloud baseline preparations}\label{Cloud baseline preparations}
 
 make sure to describe client simulation in details and issues that you battled with there - like cpu maxing, having to divide into multiple processes etc.
 
