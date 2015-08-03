@@ -1059,14 +1059,65 @@ The second big issue was that because pubilshing of distribution updates was bat
 \subsection{Kernel tuning}\label{Kernel tuning}
 Operating systems are not tuned by default to sustain a huge number of concurrent users, nor are they tuned to support quick connects / disconnects and TCP sockets reusal. Because of that, I needed to dig into unix kernel and tcp stack handling and prepare the operating system setup on which I based the images used in the project.
 
-\subsubsection{Measurements}
-etsy, logster, graphite etc.
+Listing \ref{lstlisting:sysctl} shows all the \textit{sysctl} changes that were introduced to \texttt{/etc/sysctl.conf}. Sysctl \footnote{\url{http://linux.die.net/man/8/sysctl}} is used to modify kernel paramaters at runtime. The changes are described in details below.
 
-syncling clocks on machines usint /etc/ntpd (polled from amazon servers)
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono]
+# WebSocket scalable config
+fs.file\-max = 1655360
+
+net.core.netdev_max_backlog=65536
+net.ipv4.tcp_max_syn_backlog=65536
+net.core.somaxconn=16384
+
+net.ipv4.tcp_slow_start_after_idle=0
+
+net.ipv4.tcp_mem=383865 511820 2303190
+net.ipv4.tcp_rmem=8192 873700 8388608
+net.ipv4.tcp_wmem=4096 655360 8388608
+
+net.ipv4.tcp_fin_timeout=5
+
+net.ipv4.tcp_max_orphans=262144
+
+net.ipv4.tcp_synack_retries=2
+net.ipv4.tcp_syn_retries=2
+
+net.ipv4.tcp_tw_reuse=1
+
+net.ipv4.ip_local_port_range=1025 65535
+
+vm.overcommit_memory=1
+\end{lstlisting}
+\caption{Sysctl.conf updates.}
+\label{lstlisting:sysctl}
+\end{sourcecode}
+
+\begin{description}
+  \item[fs.file-max] Maximum number of open file descriptors that can be opened by a single process. With the default value, both nginx and the WebSocket server is incapable of serving more than 1024 users.
+  \item[net.core.netdev\_max\_backlog] Maximum number of packets that can be queued on interface input. If kernel is receiving packets faster than can be processed, this queue increases (high value is of this parameter is not necessary so as not to drop messages).
+  \item[net.ipv4.tcp\_max\_syn\_backlog] Maximum number of remembered connection requests, which are still did not receive an acknowledgment from connecting client.
+  \item[net.core.somaxconn] Max length of the listen queue backlog (processes like nginx need this value to be high for high performance). Withuot setting this value, TCP listen queue overflows happen. \textit{"possible SYN flooding on port"} in \texttt{/var/log/messages} is an indication that this value is too low.
+  \item[net.ipv4.tcp\_slow\_start\_after\_idle] This value should be set to 0 to ensure connections don't go back to default TCP window size after being idle for too long.
+  \item[net.ipv4.tcp\_mem] \textit{min pressure max}, Total memory pages allocated for TCP sockets. If this memory reaches pressure value, kernel starts putting pressure on TCP memory. More than \textit{max} will not be allocated. Messages \textit{"maximum number of memory pages allocated to the TCP was reached"} indicates these values are too low.
+  \item[net.ipv4.tcp\_rmem] \textit{min default max}, Size of receive buffer for each TCP connection. Kernel auto tunes these values between the min-max range.
+  \item[net.ipv4.tcp\_wmem] \textit{min default max}, Size of send buffer for each TCP connection. Kernel auto tunes these values between the min-max range.
+  \item[net.ipv4.tcp\_fin\_timeout] Time a connection should spend in FIN\_WAIT\_2 state. By default it is set to 60s, lower values tell kernel to free memory faster and move sockets to TIME\_WAIT, which allows for their faster reusal.
+  \item[net.ipv4.tcp\_max\_orphans] Maximum number of sockets which have been closed and no longer have a file handle attached to them. Needs to be high for high performing servers.
+  \item[net.ipv4.tcp\_synack\_retries] How many times to retry creating the TCP connection. Lower values allow to fail faster.
+  \item[net.ipv4.tcp\_syn\_retries] as above.
+  \item[net.ipv4.tcp\_tw\_reuse] If set to 1, kernel allows to reuse TCP sockets in TIME\_WAIT state. Similar to tcp\_tw\_reuse, changing which is highly discouraged since enabling it introduces problems with clients behind NATs and stateful firewalls (the kernel can simply close their sockets).
+  \item[net.ipv4.ip\_local\_port\_range] Port range available to processes - the broader more ports available. Without adding virtual IPs, the absolute maximum of TCP ports the server can have open is 65535\footnote{The number of client connections that a server can support has nothing to do with ports, since a server is (typically) only listening for WS/WSS connections on one single port. But, if the machine also has an HAProxy or a Load Balancer that forward connections (which is my case - nginx), this limit holds.}. This is a TCP-protocol related limitation, since the port number is represented with an unsigned 16-bit integer ($2^{16}=65535$).
+  \item[vm.overcommit\_memory] regulates the heuristics of memory allocation during process forks. Setting to 1 is necessary for high-performing redis.
+
+\end{description}
 
 \subsubsection{Linux TCP stack}
 
-http://serverfault.com/questions/48717/practical-maximum-open-file-descriptors-ulimit-n-for-a-high-volume-system
+In short, the TCP stack needs to be tuned to sustain multiple nuber of concurrent open TCP connections and to be able to reuse closed sockets quickly. This is achieved using the sysctl flags described above.
+
+
+
 the number of client connections that a server can support has nothing to do with ports in this scenario, since the server is [typically] only listening for WS/WSS connections on one single port. I think what the other commenters meant to refer to were file descriptors. You can set the maximum number of file descriptors quite high, but then you have to watch out for socket buffer sizes adding up for each open TCP/IP socket.  MAKE SURE THIS IS CONSISTENT THROUGHOUT THE PAPER.
 If the file descriptors are tcp sockets, etc, then you risk using up a large amount of memory for the socket buffers and other kernel objects; this memory is not going to be swappable.
 
@@ -1135,6 +1186,15 @@ Basic metrics
   \item network i/o (wireshark, list others analyzed)
   \item latency, throughput, concurrent connections, messages dropped?
 \end{itemize}
+
+\subsubsection{Real-Time Insights}
+etsy, logster, graphite etc.
+
+syncling clocks on machines using /etc/ntpd (polled from amazon servers)
+
+[TODO insert image from our dashborad]
+
+our system stuff + kernel tuning (so tcp shit you were plotting)
 
 \subsection{Nginx Optimizations}
 added round-robin routing for multiple backend instances
