@@ -1731,64 +1731,46 @@ For the benchmarking (in cases where routing between servers was needed), I used
 The service also offers health checks, which can be used custom-defined or picked up from other services such as load balancing. Users will only be routed to end points configured "healthy"\footnote{\url{http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-complex-configs.html}}.
 
 \subsection{Autoscaling}
-  instances behind each groups. automatically scalable, connected to external redis and mysql instances.
-  only within one region, multiple availability zones
-  http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/GettingStartedTutorial.html
-  http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/how-as-works.html\#arch-AutoScalingMultiAZ
-  Auto Scaling attempts to distribute instances evenly between the Availability Zones that are enabled for your Auto Scaling group. Auto Scaling does this by attempting to launch new instances in the Availability Zone with the fewest instances.
-  alarm - object that watches over a single metric (e.g. avg cpu use of ec2 instances in auto scaling group over specified time period) (OK, ALARM, INSSUFICIENT\_DATA), can trigger scaling up / down policy on an autoscaling group
-  policy variants (change ExactCapacity, ChangeInCapacity, PercentChangeInCapacity)
-  recommendation one policy for scaling out, another policy for scaling in
-  http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/as-scale-based-on-demand.html
-  http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html
-  http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/US\_AlarmAtThresholdEC2.html
-  \subsubsection{Alarms}
-  avg / min / max / sum / sample count (for whole group)
-  of cpu / disk io / network io
-  is >= / > / < / <= than x %
-  for at least X consecutive periods of 5 min / 15 min / 1 hour / 6 hours
-  \subsubsection{Scaling Policies}
-  execute policy when alarm
-  add / remove / set to   X   instances / % of group
-  and then wait Y (cooldown period)
 
-  \subsubsection{Launch configurations}
+Autoscaling is Amazon's service that helps to scale the application capacity up and down according to configurable conditions\footnote{\url{http://aws.amazon.com/autoscaling/}}. Each group has a launch configuration assosiated with it, which specifies what an instance that is supposed to be added when scaling up should look like (instance type, AMI, security group etc.).
 
-\subsection{Load balancing}\label{Load balancing}
-  elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit), that's why they are not provided a static ip
-  routing: request count-based for http(s), for others (tcp which is a workaround for websockets) they use tcp [http://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/how-elb-works.html\#request-routing]
-  The client uses DNS round robin to determine which IP address to use to send the request to the load balancer. No control over routing without load balancing groups.
-  For example, if you have ten instances in Availability Zone us-west-2a and two instances in us-west-2b, the traffic is equally distributed between the two Availability Zones. As a result, the two instances in us-west-2b serve the same amount of traffic as the ten instances in us-west-2a. Instead, you should distribute your instances so that you have six instances in each Availability Zone.
-  To distribute traffic evenly across all back-end instances, regardless of the Availability Zone, enable cross-zone load balancing on your load balancer. However, we still recommend that you maintain approximately equivalent numbers of instances in each Availability Zone for higher fault tolerance.
-  [http://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/how-elb-works.html\#request-routing]
-  only ~64k connections possible per ELB instance TODO: VERIFY THAT
-  stickiness only works for HTTP/HTTPS protocols
-  Once you have a testing tool in place, you will need to define the growth in the load. We recommend that you increase the load at a rate of no more than 50 percent every five minutes. B.oth step patterns and linear patterns for load generation should work well with Elastic Load Balancing. If you are going to use a random load generator, then it is important that you set the ceiling for the spikes so that they do not go above the load that Elastic Load Balancing will handle until it scales (see Pre-Warming the ELB).
-  [https://aws.amazon.com/articles/1636185810492479\#pre-warming]
+Autoscaling group capacity can be changed automatically according to a scaling policy. Scaling policy specifies how to automatically change group capacity (\textit{add/remove/set to} a number of instances) in reaction to an alarm. An alarm is an object that watches over a single metric (e.g. avg cpu use of ec2 instances in the auto scaling group over specified time period). In general, the receommendation is to use one policy for scaling out, another policy for scaling in.
 
-  I won't use this - dns prevented us from using dynamic scale up/down \ref{Excluded Metrics}. On top of that, one cannot simply run a benchmark against ELBs - they need to be prewarmed (by default very small ELB node instances are assigned so one needs to gradually increase the load). On top of that, if they don't receive traffic for 12 hours they scale down completely and the whole process needs to be repeated (source: our converstaion with their premium support, which btw costs 250\$/hour). So I decided to skip it. Which is possible, since without dynamic scaling up and down, one can simply plug in ec2 instance ips into route53 [that's what I ended up doing].
+I use autoscaling groups both for clients and servers. It helps with orchestrating the architecture, benchmarking and most importantly with dynamic scaling up and down. The last, even though implemented by me, is outside of scope for this project because of the issues explained in section \ref{Excluded Metrics} and \ref{System Scaling Delay}.
+
+\subsection{Elastic Load Balancing}\label{Load balancing}
+Elastic Load Balancing is a service automatically distributing incoming traffic between multiple server instances. An Elastic Load Balancer can be associated with an autoscaling group so that new instances can be added or the old ones removed, and that process remains invisible to other parts of the system which reaches server instances through ELB's public DNS name. For TCP requests, the only routing policy Load Balancers offer is round robin\footnote{\url{ttp://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/how-elb-works.html\#request-routing}}.
+
+Elastic Load Balancers do not expose a public IP address, since internally they are implemented as multiple physical machines. The number of nodes (machines) provisioned for a load balancer varies depending on traffic and \texttt{cannot be directly configured}. Amazon uses internal heuristics to determine how many instances to provide. The only way to pre-warm to load balancers when expecting traffic surges (such as a load test) is to contact appropriate support teams within Amazon. This proved to be highly problematic - I couldn't run the full load benchmark right away, but had to slowly, incrementally increase the traffic to give load balancers a chance to scale up. I spent hours investigating this process, together with Amazon's support. Furthermore, if a load balancer does not receive sufficient traffic over a period for 12 hours, it scales down completely. That means that the whole processes would need to be essentially repeated for each benchmark run. Because of all this, I decided to give up usage of Elastic Load Balancing. I could make this decision, because issues with the DNS protool (\ref{System Scaling Delay} and \ref{Excluded Metrics}) made it impossible to measure speed of dynamic scaling of the application.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{elbautoscale}
+\caption{How Elastic Load Balancing works with Auto Scaling.}
+\label{figure:elbautoscale}
+\end{figure}
 
 \subsection{Data Layer}
-Mysql is used the main persistent storage and redis as a caching solution.
+As the tested system \ref{The System Under Test} uses MySQL and reds as database solutions, I investigated and used (to the highest possible extent), the services that Amazon offers in that scope.
+
+Amazon Solution Architects, whom I was consulting throughout this project, suggested using technologies like DynamoDB and Kinesis instead of the redis + MySQL setup the application currently uses. Both will be looked into but are out of scope for this project.
 
 \subsubsection{Amazon Relational Database Service}
-Does not support mysql cluster as of July 2015. Support coming but not released yet.
-Offers mysql read replicas. With a single master. That obviously scales only reads
-You can create a MySQL Read Replica in a different region than the source DB instance to improve your disaster recovery capabilities, scale read operations into a region closer to end users, or make it easier to migrate from a data center in one region to a data center in another region.
+
+RDS is Amazon's solution for relational databases, such as MySQL. When it comes to cross-region support, it has its huge limitations. MySQL cluster cannot be deployed in a multi-region setup. Effectively, the only cross-region supported topology is a single writeable master with globally distributed read replicas. I used this setup in the 3rd teted architecture \ref{Proposed Architecture II}.
 
 \subsubsection{Elasticache}
-doesn't support crossregion (you cannot connect to an elasticache cluster from outisde of the region)
 
-In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \cite{GroBuy}. We cannot use this, also described in \ref{Cloud architecture setup}.
+Elasticache\footnote{\url{https://aws.amazon.com/elasticache/}} is Amazon’s in-memory cache scalable solution. It supports memcached and redis. Grozev and Buyya suggest using it \cite{GroBuy}. Sadly, Elasticache is only useable within one region, which renders it useless for the purpose of this research.
 
+In the research, custom redis master-slaves topology is used. Setting up a topology like this is extremely easy: as soon as a redis server receives a command \texttt{slaveof HOSTNAME PORT} it becomes a non-writeable, automatically syncronised read replica of the master located at \texttt{HOSTNAME:PORT}.
 
-The above explain why, for a scaled out solution we had to roll with our custom setup. We were suggested using technologies like DynamoDB and Kinesis, but out of scope.
-
-\section{System Scaling Delay}
-Delays: up to 2 minutes to get metrics, up to ????? minutes for instance to be accessible to clients + ???? for DNS changes to propagate (TTL set to 60 seconds but TODO VERITYF)
-Unfortunately there are a large number of (misbehaving) DNS servers out there that don’t properly obey TTLs on records and will still serve up stale records for an indefinite amount of time. [http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/]
-
-DNS PROTOCOL INHERENT LIMITATIONS PREVENTED US FROM TESTING HOW FAST AND DOWN ARCHITECTURE SCALES
+\section{System Scaling Delay}\label{System Scaling Delay}
+Measuring the speed of scaling up and down proved to be very difficult and was eventually excluded from this research. The following factors constitute the perceived system scaling delay:
+\begin{description}
+  \item [Cloudwatch] - even in a detailed mode (which offers metrics collectible every 1 minute instead of every 5 minutes), the delay of received metrics during our tests averaged out at ~2 minutes. That means that every scale in / out action that could be undertaken is delayed at least by that time.
+  \item [DNS protocol issues] - a huge number of DNS servers do not obey TTLs (time-to-live) on DNS records. Therefore, there is no guarantee that even a record with a TTL set to 60 seconds becomes updated every minute for all, globally distributed, clients. I tested this empirically and my research lead me to conclusion that this is a known issue in the community\footnote{\url{http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/}}. There is simply no way to estimate when clients of the system are going to "see" the updates in a system topology.
+\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
