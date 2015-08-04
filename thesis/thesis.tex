@@ -1652,6 +1652,7 @@ I was somewhat limited in EC2 instance type selection, since not all instance ty
 For WebSocket server instances (and redis where applicable), I picked CPU-optimized instance types because by far this is the first hardware limit the System Under Test \ref{The System Under Test} was reaching at any scale during preparations.
 
 \subsection{Baseline Architecture Implementation Details}\label{Baseline Architecture Implementation Details}
+
 This Architecture consists of a single server machine. The instance type selected for this was a c3.8xlarge\footnote{\url{https://aws.amazon.com/ec2/instance-types/}} - 32 CPU cores, 60GB of RAM, 140GB of SSD storage with 4000 provisioned IOPS\footnote{Even though the tested application does not need all the storage space, I needed to provision that much since Amazon requires a ratio no bigger than 30 between the number of provisioned IOPS (which is what I wanted to be high) and the disk size.}.
 
 The machine hosts:
@@ -1665,32 +1666,33 @@ The machine hosts:
 This architecture introduces no network overhead in terms of communication between system components, yet clients from across the globe have to connect to the remote server.
 
 \subsection{Proposed Architecture I Implementation Details}\label{Proposed Architecture I Implementation Details}
-This Architecture consists of a 8 server machines (one per each region where clients connect from), single big redis and single big mysql instances.
+
+This Architecture consists of a 8 server machines (one per each region where clients connect from), single big redis and single big mysql instances. Database instances are located in Ireland.
 
 Each server is running on an m3.xlarge instance \footnote{\url{https://aws.amazon.com/ec2/instance-types/}} - 4 CPU cores, 15GB of RAM, 140GB of SSD storage with 4000 provisioned IOPS (in order to be able to reuse the server AMI this was the minimal amount of storage).
 
 Each server machine hosts:
-The machine hosts:
 \begin{itemize}
   \item the nginx server with automatically adjusted number of workers,
   \item the WebSocket API processes - 2, one for every 2 available CPU cores.
 \end{itemize}
 
-As a database solution, this architecture uses 1 big redis instance - m2.xlarge, 1 cores (since I am running one-redis process anyway), 17.1 GB mem and 140GB of SSD storage with 4000 provisioned IOPS and a 1 big mysql RDS instance (r3.4xlarge, 16 cores, 122 GB mem) and 100 GB disk 1000 IOPS\footnote{RDS IOPS/disk size max ratio is 10:1, so I decided to tradeoff cost of a 400GB disk (that is what is necessary for 4000 IOPS on RDS) for lower IOPS value (which is not expected to be a limitation anyway).}.
+As a database solution, this architecture uses 1 big redis instance - m2.xlarge, 1 core (since I am running one-redis process anyway), 17.1 GB mem and 140GB of SSD storage with 4000 provisioned IOPS and a 1 big mysql RDS instance (r3.4xlarge, 16 cores, 122 GB mem) and 100 GB disk 1000 IOPS\footnote{RDS IOPS/disk size max ratio is 10:1, so I decided to tradeoff cost of a 400GB disk (that is what is necessary for 4000 IOPS on RDS) for lower IOPS value (which is not expected to be a limitation anyway).}.
 
 \subsection{Proposed Architecture II Implementation Details}\label{Proposed Architecture II Implementation Details}
-Region-distributed API servers + redis cluster + MySQL Read Replicas
 
-1 API-server instance per one of 8 regions (m3.2xlarge, 4cores, 30gb RAM, 2x40SSD)
-2 processes per instance
+This Architecture consists of 8 server machines (one per each region where clients connect from), 1 one big master redis write instance, 1 big mysql write RDS instance and 8 mysql RDS read replicas (one per region). Redis also has read replication nodes, they are physically located at the same machines as the WebSocket servers. Database master instances are located in Ireland.
 
-Redis cluster - each node sitting on the same node as API server.
+Each server machine hosts:
+\begin{itemize}
+  \item the nginx server with automatically adjusted number of workers,
+  \item the WebSocket API processes - 2,
+  \item the redis server, a read-only slave of a writeable master (single thread).
+\end{itemize}
 
-Mysql Read Replica nodes in each region - db.r3.large (2 cores, 15 GB)
-Writes still go to the master in main region.
+Each server and redis read replica instance is running on an m3.2xlarge instance\footnote{\url{https://aws.amazon.com/ec2/instance-types/}} - 8 CPU cores, 30GB of RAM, 140GB of SSD storage with 4000 provisioned IOPS (again, in order to be able to reuse the server AMI this was the minimal amount of storage). This is a slight overprovision, yet I have not increased the number of running WebSocket server processes so as to have a fair comparison to other architectures. The overprovisioning results from the fact that necessary CPU cores were needed so that redis server and WebSocket servers don't clash at one core.
 
-*each server instance has a 140gb instance with 4000 provisioned iops; that's a minimum size since amazon requires 30:1 iops to size ratio. based an image on that so had to put it for every instance in every configuration to be able to reuse image. not that important, since we don't use much disk space
-** ratios different for rds
+Redis write master is using an m2.xlarge - 1 core with 17.1 GB of RAM. MySQL master RDS node uses db.r3.2xlarge instance - 8 cores with 61GB of RAM. Each mysql read replica node is using a db.m3.medium (1 CPU core, 3.75 GB RAM) instance.
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 selected aws
