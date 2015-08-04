@@ -1293,6 +1293,10 @@ Image configuration includes:
 
 Amazon AWS infrastructure is divided into Regions (e.g. Ireland, N. Virgina, Sao Paolo). These regions are further divided into availability zones \ref{figure:awsregions}.
 
+
+Multiple availability zones very important in a shared cloud environment, because a single availability zone can become a single point of failure (for instance when another customer is getting hit by a DDoS \cite{GroBuy}).
+
+
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.8]{awsregions}
@@ -1695,24 +1699,37 @@ Each server and redis read replica instance is running on an m3.2xlarge instance
 Redis write master is using an m2.xlarge - 1 core with 17.1 GB of RAM. MySQL master RDS node uses db.r3.2xlarge instance - 8 cores with 61GB of RAM. Each mysql read replica node is using a db.m3.medium (1 CPU core, 3.75 GB RAM) instance.
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
-selected aws
+The cloud architecture stack consists of the following:
+\begin{itemize}
+  \item Route53 \ref{Route53}, routing users between server instances,
+  \item Nginx, routing users server processes within a single instance,
+  \item stateless WebSocket servers,
+  \item redis databases,
+  \item MySQL databases.
+\end{itemize}
 
-multiple availability zones very important in a shared cloud environment - often because another customer is getting hit by a DDoS.\cite{GroBuy}
+Originally, Route53 was routing users through Elastic Load Balancers. This was not used in the benchmarking process, as explained below \ref{Load balancing}.
 
-In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \cite{GroBuy}. We cannot use this, also described in \ref{Cloud architecture setup}.
+[TODO] INSERT DIAGRAM: Route53 -> Elb -> Nginx -> Api Server instance -> Redis MYSQL
 
-[TODO] insert diagram
-Route53 -> Elb -> Nginx -> Api Server instance
+\subsection{Route53}\label{Route53}
 
-\subsection{Route53}
-  dns mapped to inscance ips / load balancer dns names
-  lbr, geo, weighed rr
-  their internal heuristics take network conditions from past weeks [VERIFY], rather amibiguous
-  For each end user’s location, Route 53 will return the most specific Geo DNS record that includes that location. In other words, for a given end user’s location, Route 53 will first return a state record; if no state record is found, Route 53 will return a country record; if no country record is found, Route 53 will return a continent record; and finally, if no continent record is found, Route 53 will return the global record.
+Route53 is Amazon's cloud-based DNS web service\footnote{\url{https://aws.amazon.com/route53/}}. I use it to map a single URL to which all clients connect to, \texttt{route53.instamrkt.com}, to currently deployed server instances. The mapping can point to multiple public EC2 instance IP addresses (which is what I am using) or public DNS names (e.g. of Load Balancers with varying number of server instances behind them).
 
-  health checks - can be used custom-defined, but for us we can use load balancing health checks (will only route if healthy incstances behind it) [http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-complex-configs.html]
+Route53 offers different routing policies:
 
-  http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Tutorials.html
+\begin{description}
+  \item[Simple] redirects all queries to a single service point (e.g. web server) behind it,
+  \item[Weighted] routes the queries queries behind multiple resource end points in proportion to weights specified for the resources,
+  \item[Latency Based] uses the latency between the resource endpoints and the requesting client to select the endpoint. Amazon is only specific enough to say that in this process they use a "latency measurements performed over time" \footnote{\url{http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy.html}},
+  \item[Failover] routes all queries to one end point and only if that one fails to other backup end points,
+  \item[Geolocation] routes users based on geographic location. Route53 offers configuring Geolocation routing on following levels: state(only for USA), country, continent and global. For each end user’s location, Route 53 will return the most specific Geo DNS record that includes that location. In other words, for a given end user’s location, Route 53 will first return a state record; if no state record is found, Route 53 will return a country record; if no country record is found, Route 53 will return a continent record; and finally, if no continent record is found, Route 53 will return the global record.
+\end{description}
+
+For the benchmarking (in cases where routing between servers was needed), I used Latency Based Routing. I compared it against Geolocation routing and found no meaningful differences - clients go through Route53 only during initial handshake and geographical proximity to the server was highly inversely correlated with the latency to the server.
+
+The service also offers health checks, which can be used custom-defined or picked up from other services such as load balancing. Users will only be routed to end points configured "healthy"\footnote{\url{http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-complex-configs.html}}.
+
 \subsection{Autoscaling}
   instances behind each groups. automatically scalable, connected to external redis and mysql instances.
   only within one region, multiple availability zones
@@ -1737,7 +1754,7 @@ Route53 -> Elb -> Nginx -> Api Server instance
 
   \subsubsection{Launch configurations}
 
-\subsection{Load balancing}
+\subsection{Load balancing}\label{Load balancing}
   elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit), that's why they are not provided a static ip
   routing: request count-based for http(s), for others (tcp which is a workaround for websockets) they use tcp [http://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/how-elb-works.html\#request-routing]
   The client uses DNS round robin to determine which IP address to use to send the request to the load balancer. No control over routing without load balancing groups.
@@ -1752,8 +1769,7 @@ Route53 -> Elb -> Nginx -> Api Server instance
   I won't use this - dns prevented us from using dynamic scale up/down \ref{Excluded Metrics}. On top of that, one cannot simply run a benchmark against ELBs - they need to be prewarmed (by default very small ELB node instances are assigned so one needs to gradually increase the load). On top of that, if they don't receive traffic for 12 hours they scale down completely and the whole process needs to be repeated (source: our converstaion with their premium support, which btw costs 250\$/hour). So I decided to skip it. Which is possible, since without dynamic scaling up and down, one can simply plug in ec2 instance ips into route53 [that's what I ended up doing].
 
 \subsection{Data Layer}
-
-Technologies we used described in \ref{Technology Stack}. We used Mysql and redis as a caching solution.
+Mysql is used the main persistent storage and redis as a caching solution.
 
 \subsubsection{Amazon Relational Database Service}
 Does not support mysql cluster as of July 2015. Support coming but not released yet.
@@ -1762,6 +1778,9 @@ You can create a MySQL Read Replica in a different region than the source DB ins
 
 \subsubsection{Elasticache}
 doesn't support crossregion (you cannot connect to an elasticache cluster from outisde of the region)
+
+In Amazon’s environment, Grozev and Buyya suggest using Elasticache service \cite{GroBuy}. We cannot use this, also described in \ref{Cloud architecture setup}.
+
 
 The above explain why, for a scaled out solution we had to roll with our custom setup. We were suggested using technologies like DynamoDB and Kinesis, but out of scope.
 
