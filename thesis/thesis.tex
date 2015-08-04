@@ -1645,31 +1645,38 @@ process.on('uncaughtException', function(err) {
 \label{lstlisting:errorcatch}
 \end{sourcecode}
 
-
 \section{Compared Architectures Implementation Details}\label{Compared Architectures Implementation Details}
 
-selection - similar computing allocated resources [lab notes table]
+I was somewhat limited in EC2 instance type selection, since not all instance types support the type of AMI I was using. Nevertheless, I selected the instace types so that all tested architecture decompositions have similar total amounts of resources allocated (to the best possible extent).
 
-instance selection limited by our image type, not all suported (our image paravirtual, some require newer hardware virtual machine HVM) [https://www.opswat.com/blog/aws-2015-why-you-need-switch-pv-hvm]
-
-[TODO] describe selected instance types
-
-we picked CPU intensive cause by far that's the first hardware limit we hit
+For WebSocket server instances (and redis where applicable), I picked CPU-optimized instance types because by far this is the first hardware limit the System Under Test \ref{The System Under Test} was reaching at any scale during preparations.
 
 \subsection{Baseline Architecture Implementation Details}\label{Baseline Architecture Implementation Details}
-ONE MASSIVE INSTANCE WITH WEBSOCKET SERVER + REDIS + MYSQL
-NO NETWORK OVERHEAD
-~12/13 SERVER PROCESSES
+This Architecture consists of a single server machine. The instance type selected for this was a c3.8xlarge\footnote{\url{https://aws.amazon.com/ec2/instance-types/}} - 32 CPU cores, 60GB of RAM, 140GB of SSD storage with 4000 provisioned IOPS\footnote{Even though the tested application does not need all the storage space, I needed to provision that much since Amazon requires a ratio no bigger than 30 between the number of provisioned IOPS (which is what I wanted to be high) and the disk size.}.
 
-c3.8xlarge instance, 32 CORES, 60GB, 140 GB SSD Storage with 4000 IOPS*
+The machine hosts:
+\begin{itemize}
+  \item the nginx server with automatically adjusted number of workers,
+  \item the WebSocket API processes - 16, one for every 2 available CPU cores,
+  \item the MySQL server,
+  \item the redis server (single thread).
+\end{itemize}
+
+This architecture introduces no network overhead in terms of communication between system components, yet clients from across the globe have to connect to the remote server.
 
 \subsection{Proposed Architecture I Implementation Details}\label{Proposed Architecture I Implementation Details}
-Region-distributed API servers
-1 API-server instance per one of 8 regions (m3.xlarge, 4cores, 15gb RAM, 2x40SSD)
-2 processes per instance
+This Architecture consists of a 8 server machines (one per each region where clients connect from), single big redis and single big mysql instances.
 
-1 big redis instance (m2.4xlarge, 8 cores, 86.4 GB mem, 2 x 840 GB storage)
-1 big mysql RDS instance (r3.4xlarge, 16 cores, 122 GB mem), 100 GB disk 1000 IOPS**
+Each server is running on an m3.xlarge instance \footnote{\url{https://aws.amazon.com/ec2/instance-types/}} - 4 CPU cores, 15GB of RAM, 140GB of SSD storage with 4000 provisioned IOPS (in order to be able to reuse the server AMI this was the minimal amount of storage).
+
+Each server machine hosts:
+The machine hosts:
+\begin{itemize}
+  \item the nginx server with automatically adjusted number of workers,
+  \item the WebSocket API processes - 2, one for every 2 available CPU cores.
+\end{itemize}
+
+As a database solution, this architecture uses 1 big redis instance - m2.xlarge, 1 cores (since I am running one-redis process anyway), 17.1 GB mem and 140GB of SSD storage with 4000 provisioned IOPS and a 1 big mysql RDS instance (r3.4xlarge, 16 cores, 122 GB mem) and 100 GB disk 1000 IOPS\footnote{RDS IOPS/disk size max ratio is 10:1, so I decided to tradeoff cost of a 400GB disk (that is what is necessary for 4000 IOPS on RDS) for lower IOPS value (which is not expected to be a limitation anyway).}.
 
 \subsection{Proposed Architecture II Implementation Details}\label{Proposed Architecture II Implementation Details}
 Region-distributed API servers + redis cluster + MySQL Read Replicas
@@ -1686,7 +1693,6 @@ Writes still go to the master in main region.
 ** ratios different for rds
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
-
 selected aws
 
 multiple availability zones very important in a shared cloud environment - often because another customer is getting hit by a DDoS.\cite{GroBuy}
