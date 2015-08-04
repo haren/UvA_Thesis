@@ -753,11 +753,11 @@ We use nginx\footnote{\url{http://nginx.org/}} as a web server solution, which h
 % In terms of CAP, MySQL Cluster will sacrifice availability to maintain consistency in the event of an unsurvivable network partition.
 % at least 3 machines (otherwise split brain problem)
 % data nodes (ndbd) - need memory, single-threaded
-% sql nodes (mysqld) - need cpu, multithreaded
+% sql nodes (MySQLd) - need cpu, multithreaded
 % Important:
 % Will MySQL Cluster “out of the box” run an application faster than my existing MySQL database?
 % The reality is probably not without some optimizations to the application and the database. However, by following the guidelines and best practices in the Guide to Optimizing Performance of the MySQL Cluster Database1 , significant performance gains can be realized, especially as you start to scale write operations while maintaining very high levels of availability and low latency.
-% [http://openquery.com.au/files/mysql-cluster-intro-use.pdf]
+% [http://openquery.com.au/files/MySQL-cluster-intro-use.pdf]
 
 \section{Message Handling and Message Publishing}
 
@@ -857,7 +857,7 @@ This varies slightly depending on the deployed architecture; below I list the ge
 \begin{enumerate}
   \item prepare the clean server (and database if necessary) instance image and distribute it across relevant regions (clean means no unnecessary data stored and no redundant services running),
   \item start the instances,
-  \item clean redis and mysql and populate with data necessary for the benchmark run,
+  \item clean redis and MySQL and populate with data necessary for the benchmark run,
 \end{enumerate}
 
 Once all the client and server instances are brought up and reachable (verifiable through AWS API), the load test can begin.
@@ -882,7 +882,7 @@ Since this is going to differ for a type of game served on the platform, I decid
 
 \subsection{Used Benchmarking Scenario}\label{Used Benchmarking Scenario}
 
-The benchmarking scenario is the same for each tested architecture. As mentioned before, clients connect from 8 globally-distributed regions, 15 instances in each region, each with the same number of clients. Each instance connects one client a second, so in total $8*15=120$ are connected every second until the full load is reached. [TODO] specify the full load here.
+The benchmarking scenario is the same for each tested architecture. As mentioned before, clients connect from 8 globally-distributed regions, 15 instances in each region, each with the same number of clients. Each instance connects one client a second, so in total $8*15=120$ are connected every second until the full load is reached. The full load has been set at \texttt{24000} users, so each instance connects 200 users.
 
 Once all the users have connected, the benchmark runs for exactly 90 minutes and then all the clients disconnect.
 
@@ -937,25 +937,41 @@ User's load is representative of that scenario - users connect over a few minute
 This section contains simple descriptions and diagram overviews of the compared architectures. Implementation details can be found in the following chapter \ref{Compared Architectures Implementation Details}.
 
 \subsection{Baseline Architecture}\label{Baseline Architecture}
-The baseline architecture consists of the main three components (the websocket server, redis and mysql) on one massive EC2 instance located in the eu-west-1 AWS datacenter (Ireland). Clients from all regions connect directly to the websocket server on this EC2 instance.
+The baseline architecture consists of the main three components (the websocket server, redis and MySQL) on one massive EC2 instance located in the eu-west-1 AWS datacenter (Ireland). Clients from all regions connect directly to the websocket server on this EC2 instance \ref{figure:baseline}.
 
-[TODO add diagram]
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{baseline}
+\caption{Baseline architecture diagram.}
+\label{figure:baseline}
+\end{figure}
+
 
 The technical specification of the instances, number of processes and other technical details can be found in the next chapter \ref{Baseline Architecture Implementation Details}.
 
 \subsection{Proposed Architecture I}\label{Proposed Architecture I}
-The first proposed architecture improvement consists of the moving the websocket servers closer to users. This means each of the 8 regions has its own websocket server instance - 8 times smaller than one massive instance in case of the baseline architecture.
+The first proposed architecture improvement consists of the moving the websocket servers closer to users. This means each of the 8 regions has its own websocket server instance - 8 times smaller than one massive instance in case of the baseline architecture \ref{figure:archprop1}.
 
 Database instances are still not distributed and are both located in Ireland. Clients are routed through Amazon's route53 based on their latency or geo-location.
 
-[TODO add diagram]
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{archprop1}
+\caption{Proposed architecture I diagram.}
+\label{figure:archprop1}
+\end{figure}
 
 The technical specification of the instances, number of processes and other technical details can be found in the next chapter \ref{Proposed Architecture I Implementation Details}.
 
 \subsection{Proposed Architecture II}\label{Proposed Architecture II}
-The second proposed architecture adds the distribution of the data layer. Read replicas are placed, together with WebSocket servers, in each of the regions. Database (both mysql and redis) writes still are routed to the master node located Ireland.
+The second proposed architecture adds the distribution of the data layer. Read replicas are placed, together with WebSocket servers, in each of the regions. Database (both MySQL and redis) writes still are routed to the master node located Ireland \ref{figure:archprop2}.
 
-[TODO add diagram]
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{archprop2}
+\caption{Proposed architecture I diagram.}
+\label{figure:archprop2}
+\end{figure}
 
 The technical specification of the instances, number of processes and other technical details can be found in the next chapter \ref{Proposed Architecture II Implementation Details}.
 
@@ -1224,7 +1240,7 @@ max_connections = 500
 innodb_flush_log_at_trx_commit = 2
 \end{lstlisting}
 \caption{Mysql configuration modifications.}
-\label{lstlisting:mysql}
+\label{lstlisting:MySQL}
 \end{sourcecode}
 
 There is definitely potential for further improvements in this scope.
@@ -1284,7 +1300,7 @@ Both servers and clients are spun up using AMIs (Amazon Machine Images)\footnote
 
 Image configuration includes:
 \begin{itemize}
-  \item /etc/init.d and chkconfig entries to automatically start relevant services on instance start, such as sshd, redis server, mysqld and supervisord (to start python WebSocket servers),
+  \item /etc/init.d and chkconfig entries to automatically start relevant services on instance start, such as sshd, redis server, MySQLd and supervisord (to start python WebSocket servers),
   \item internal system configuration containing all correct hostnames for all system components (which differe between tested architectures),
   \item security groups defining open ports and protocols for inbound and outbound communication of an instance.
 \end{itemize}
@@ -1382,7 +1398,7 @@ Copy load test client setup from source region to all destination regions.
 Start up the desired number of client instances in each region.
 Copy server setup from source region to all destination regions.
 Start up the desired number of server instances in each region.
-Collect public IP addresses of all deployed client, server, mysql and redis instances.
+Collect public IP addresses of all deployed client, server, MySQL and redis instances.
 For each client IP address, spawn a node remote access process sending
 the "start load test" command and parameters.
 Sleep for the desired benchmark run length.
@@ -1390,7 +1406,7 @@ For each client IP address, spawn a node remote access process sending
 the "stop load test" and "collect metrics" command and parameters.
 For each server IP address, collect server side metrics.
 For each redis IP address, collect redis metrics.
-For each mysql IP address, collect mysql metrics.
+For each MySQL IP address, collect MySQL metrics.
 \end{lstlisting}
 \caption{Benchmark run orchestration script pseudocode.}
 \label{lstlisting:orchestration}
@@ -1671,7 +1687,7 @@ This architecture introduces no network overhead in terms of communication betwe
 
 \subsection{Proposed Architecture I Implementation Details}\label{Proposed Architecture I Implementation Details}
 
-This Architecture consists of a 8 server machines (one per each region where clients connect from), single big redis and single big mysql instances. Database instances are located in Ireland.
+This Architecture consists of a 8 server machines (one per each region where clients connect from), single big redis and single big MySQL instances. Database instances are located in Ireland.
 
 Each server is running on an m3.xlarge instance \footnote{\url{https://aws.amazon.com/ec2/instance-types/}} - 4 CPU cores, 15GB of RAM, 140GB of SSD storage with 4000 provisioned IOPS (in order to be able to reuse the server AMI this was the minimal amount of storage).
 
@@ -1681,11 +1697,11 @@ Each server machine hosts:
   \item the WebSocket API processes - 2, one for every 2 available CPU cores.
 \end{itemize}
 
-As a database solution, this architecture uses 1 big redis instance - m2.xlarge, 1 core (since I am running one-redis process anyway), 17.1 GB mem and 140GB of SSD storage with 4000 provisioned IOPS and a 1 big mysql RDS instance (r3.4xlarge, 16 cores, 122 GB mem) and 100 GB disk 1000 IOPS\footnote{RDS IOPS/disk size max ratio is 10:1, so I decided to tradeoff cost of a 400GB disk (that is what is necessary for 4000 IOPS on RDS) for lower IOPS value (which is not expected to be a limitation anyway).}.
+As a database solution, this architecture uses 1 big redis instance - m2.xlarge, 1 core (since I am running one-redis process anyway), 17.1 GB mem and 140GB of SSD storage with 4000 provisioned IOPS and a 1 big MySQL RDS instance (r3.4xlarge, 16 cores, 122 GB mem) and 100 GB disk 1000 IOPS\footnote{RDS IOPS/disk size max ratio is 10:1, so I decided to tradeoff cost of a 400GB disk (that is what is necessary for 4000 IOPS on RDS) for lower IOPS value (which is not expected to be a limitation anyway).}.
 
 \subsection{Proposed Architecture II Implementation Details}\label{Proposed Architecture II Implementation Details}
 
-This Architecture consists of 8 server machines (one per each region where clients connect from), 1 one big master redis write instance, 1 big mysql write RDS instance and 8 mysql RDS read replicas (one per region). Redis also has read replication nodes, they are physically located at the same machines as the WebSocket servers. Database master instances are located in Ireland.
+This Architecture consists of 8 server machines (one per each region where clients connect from), 1 one big master redis write instance, 1 big MySQL write RDS instance and 8 MySQL RDS read replicas (one per region). Redis also has read replication nodes, they are physically located at the same machines as the WebSocket servers. Database master instances are located in Ireland.
 
 Each server machine hosts:
 \begin{itemize}
@@ -1696,7 +1712,11 @@ Each server machine hosts:
 
 Each server and redis read replica instance is running on an m3.2xlarge instance\footnote{\url{https://aws.amazon.com/ec2/instance-types/}} - 8 CPU cores, 30GB of RAM, 140GB of SSD storage with 4000 provisioned IOPS (again, in order to be able to reuse the server AMI this was the minimal amount of storage). This is a slight overprovision, yet I have not increased the number of running WebSocket server processes so as to have a fair comparison to other architectures. The overprovisioning results from the fact that necessary CPU cores were needed so that redis server and WebSocket servers don't clash at one core.
 
-Redis write master is using an m2.xlarge - 1 core with 17.1 GB of RAM. MySQL master RDS node uses db.r3.2xlarge instance - 8 cores with 61GB of RAM. Each mysql read replica node is using a db.m3.medium (1 CPU core, 3.75 GB RAM) instance.
+Redis write master is using an m2.xlarge - 1 core with 17.1 GB of RAM. MySQL master RDS node uses db.r3.2xlarge instance - 8 cores with 61GB of RAM. Each MySQL read replica node is using a db.m3.medium (1 CPU core, 3.75 GB RAM) instance.
+
+Amazon introduces another limitation - no more than 5 read replicas per master. That made our setup slighlty asymmetrical - Irish WebSocket servers connect direcly to master instances, and Sydney's MySQL read replica replicates from Singapore's replica, and California's from Oregon (chaining up to 3 replicas is allowed).
+
+[TODO all depicted on a diagram]
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 The cloud architecture stack consists of the following:
@@ -2088,9 +2108,11 @@ latencies are blocking for the server in case of architecture II and III, wherea
 
 \section{Proposed Architecture II}
 
+read replicas scale only reades, our app farely write intensive
+
 \section{Additional Observations}
 
-splitting up redis and mysql onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
+splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
 
 backup by table from lab notes 21.07
 
@@ -2107,7 +2129,6 @@ http://technology.stitchfix.com/blog/2015/05/26/significant-sample/
 http://insightdatascience.com/blog/ab\_testing\_statistics.html
 http://www.qubit.com/sites/default/files/pdf/mostwinningabtestresultsareillusory\_0.pdf
 http://www.evanmiller.org/how-not-to-run-an-ab-test.html
-
 
 \section{Threats to validity}
 ec2 whacky, control over hardware released to amazon (can be dedicated machines)
