@@ -1596,7 +1596,6 @@ ClassicWorker.prototype.createClient = function (callback) {
 \label{lstlisting:loadtestexec3}
 \end{sourcecode}
 
-
 \begin{sourcecode}[H]
 \begin{lstlisting}[language=javascript]
 process.on('SIGINT', function () { // Intercept Kill Signal
@@ -1626,16 +1625,25 @@ The analyzed tools include:
 None of the tools met the extensibility and understandability criteria as well as websocket-bench.
 
 \subsection{Making Load Test Process Bulletproof}
-I needed that. If the process crashes no results are reported and we are in the dark.
+This was absolutely necessary. If the process has failed, no results would be reported and the master node would be in the dark as to what happened on the client machine where the load test process failed.
 
-Clients would randomly not report results, dug in and discovered 3 things:
-  - writing on a closing socket would cause the process to crash
-  - not a very nice way (no time though) so i am doing this, cannot use try {}catches in async node env:
-  [TODO] make it into a snippet:
-  process.on('uncaughtException', function(err) {
+In the investigation process, I have identified and protected against 3 main usses:
+
+\begin{enumerate}
+  \item Client writing to a closing socket would cause the process to crash. This would happen when client was simluating many sockets and the kill signal would be received - sockets would be closed but, according to the configured scenario, message was to be sent at this very moment. Adding a check of the socket state before writing solved to issue.
+  \item When deploying at scale (120 client machines), the test master would sometimes experience an ssh-timeout when connecting to the client machine. This was happening because the master connects to all clients at the same time and processing of each takes some time. Increasing the timeout value to 999999 in the sequest library configuration solved the issue.
+  \item Sending the kill signal would in a few percent of cases cause the load test process to crash. This happened extremely rarely in a non-deterministic fashion. The protection against it has been put in place (not the most advisable one from a software engineering standpoint, yet reliable and this was the goal) and is shown in listing \ref{lstlisting:errorcatch}. Since node is an inherently asynchronous environment, using \textit{try..catch} blocks to narrow down the scope of where the error was happening was not possible.
+\end{enumerate}
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[language=javascript]
+process.on('uncaughtException', function(err) {
     console.log('Exception:', err)
 });
-  - i was using sequest which would timeout when orchestrating 120 client machines
+\end{lstlisting}
+\caption{Catch any exception inside to laod test node process.}
+\label{lstlisting:errorcatch}
+\end{sourcecode}
 
 
 \section{Compared Architectures Implementation Details}\label{Compared Architectures Implementation Details}
