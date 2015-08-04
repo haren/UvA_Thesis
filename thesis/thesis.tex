@@ -1009,7 +1009,7 @@ In order to obtain meaningful benchmark results, I had to perform multiple optim
 
 I also managed to identify main resource bottlenecks. Both in cases of the client simulating process and the server, it is the CPU.
 
-Since Node.js is single-threaded, I prepared scripts that allow to run multiple processes in parallel to utilize all cores available to the client \ref{Load Test Suite Preparations}.
+Since Node.js is single-threaded, I prepared scripts that allow to run multiple processes in parallel to utilize all cores available to the client.
 
 As far as the WebSocket server is concerned, I have identified 2 core thread types (among many more that the server consists of) - one for request handling, another one for pushing redis-published messages through the user's WebSocket. Since TCP is a 1-1 communication protocol, a UDP-like broadcast to all WebSockets is not possible. For every channel that users subscribe to (games are channels on the domain level), the system needs a thread that listens to a redis channel and iterates over a list of WebSockets of users subscribed to that channel. These threads, and the message handling threads are by far the two most resource (CPU-bound) intensive.
 
@@ -1714,9 +1714,7 @@ Each server and redis read replica instance is running on an m3.2xlarge instance
 
 Redis write master is using an m2.xlarge - 1 core with 17.1 GB of RAM. MySQL master RDS node uses db.r3.2xlarge instance - 8 cores with 61GB of RAM. Each MySQL read replica node is using a db.m3.medium (1 CPU core, 3.75 GB RAM) instance.
 
-Amazon introduces another limitation - no more than 5 read replicas per master. That made our setup slighlty asymmetrical - Irish WebSocket servers connect direcly to master instances, and Sydney's MySQL read replica replicates from Singapore's replica, and California's from Oregon (chaining up to 3 replicas is allowed).
-
-[TODO all depicted on a diagram]
+Amazon introduces another limitation - no more than 5 read replicas per master. That made our setup slighlty asymmetrical - Irish WebSocket servers connect direcly to master instances, and Sydney's MySQL read replica replicates from Singapore's replica, and California's from Oregon (chaining up to 3 replicas is allowed), as depicted on the figure \ref{figure:archprop2}.
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 The cloud architecture stack consists of the following:
@@ -1730,7 +1728,12 @@ The cloud architecture stack consists of the following:
 
 Originally, Route53 was routing users through Elastic Load Balancers. This was not used in the benchmarking process, as explained below \ref{Load balancing}.
 
-[TODO] INSERT DIAGRAM: Route53 -> Elb -> Nginx -> Api Server instance -> Redis MYSQL
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.4]{cloudsetup}
+\caption{How users are server by the system in the cloud.}
+\label{figure:cloudsetup}
+\end{figure}
 
 \subsection{Route53}\label{Route53}
 
