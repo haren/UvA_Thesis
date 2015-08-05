@@ -1235,7 +1235,7 @@ Each client machine generating load in the benchmarking process collects client 
 
 The client script measures the following: handhskaing latency, request handling latency and message publishing latency. The request handling and publishing latency are computed differently: request handling latency is measured as the difference between the clients response reception timestamp and request sending timestamp. Broadcast latency is measured as a difference between client reception timestamp and server publish timestamp included in the broadcast message header (it serves mostly the purpose of showing the difference in reception times of the same message across clients). Time synchronization between different machines is explained below \ref{Time synchronization across the system}.
 
-A sample client report is listed [TODO ref.]
+A sample client report is listed in the Experiment Results chapter in a dedicated section \ref{Client Report}.
 
 Tools used in client reporting are described in a dedicated  section \ref{Load Testing Framework}.
 
@@ -2132,9 +2132,145 @@ avg number of requests per user - 350 (one every ~21 seconds)
 
 avg number of broadcast messages received by each user
 
+\section{Client Report}\label{Client Report}
+Each client generating load during the benchmark run provides a report like the one on listing REF.
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[language=json]
+Launch bench with 10 total connection, 1 concurent connection
+0 message(s) send by client
+1 worker(s)
+WS server : classic
+
+
+Online               188118 milliseconds
+Time taken           188118 milliseconds
+Connected            10
+Disconnected         0
+Failed               0
+Total transferred    36.13kB
+Total received       218.58kB
+Collected from:      10
+
+Durations (ms):
+
+                     min     mean     stddev  median     max sampleCount
+Handshaking          12      58           52      31     158      10
+Latency              11      19            4      19      38     154
+Broadcast Latency    7       9             1       9      17     409
+
+Percentile (ms):
+
+                      50%     66%     75%     80%     90%     95%     98%     98%    100%
+Handshaking          31      79      97      116     158     158     158     158     158
+Latency              19      20      20      20      21      26      33      35      38
+Broadcast Latency    9       10      10      10      11      12      13      14      17
+\end{lstlisting}
+\caption{A sample single client load test report (latencies in milliseconds).}
+\label{lstlisting:prediction}
+\end{sourcecode}
+
+\section{Sample Server Report}
+Each metric for each server is reported in a separate CSV file \ref{lstlisting:memutilsrv}.
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[style=mono]
+Timestamp,Average,Maximum,Sum,SampleCount,Unit
+2015-08-05 10:06:00,3.44471529408956,3.44471529408956,3.44471529408956,3.44471529408956,1.0,Percent
+2015-08-05 10:08:00,3.44489694659014,3.44489694659014,3.44489694659014,3.44489694659014,1.0,Percent
+2015-08-05 10:07:00,3.44405355998029,3.44405355998029,3.44405355998029,3.44405355998029,1.0,Percent
+2015-08-05 10:09:00,3.44695999998962,3.44695999998962,3.44695999998962,3.44695999998962,1.0,Percent
+2015-08-05 10:10:00,3.44849107106596,3.44849107106596,3.44849107106596,3.44849107106596,1.0,Percent
+\end{lstlisting}
+\caption{A sample server memory utilization report.}
+\label{lstlisting:memutilsrv}
+\end{sourcecode}
+
+\section{Computation Formulas}
+
+FOR EACH MIN AVG + MAX
+
+
+Computing Resource Utilization Meter
+      Server CPU utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
+
+      min: for every minute, sum percentages * cores (and divide by the number of instances), pick min
+      min: for every minute, sum percentages * cores (and divide by the number of instances), pick avg
+      min: for every minute, sum percentages * cores (and divide by the number of instances), pick max
+
+
+      Memory utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
+
+      min: for every minute, sum memory available, sum memory used, used / available , pick min
+      min: for every minute, sum memory available, sum memory used, used / available , pick avg
+      min: for every minute, sum memory available, sum memory used, used / available , pick max
+
+
+      Disk utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
+
+      min: for every minute, sum space available, sum space used, used / available , pick min
+      min: for every minute, sum space available, sum space used, used / available , pick avg
+      min: for every minute, sum space available, sum space used, used / available , pick max
+
+System Performance Meter, with inputs:
+  Handshaking latency, compiled over all client WebSockets on all client instances, collected through our suite,
+  Request handling latency, compiled over all client WebSockets on all client instances, collected through our suite,
+  Broadcast latency, compiled over all client WebSockets on all client instances, collected through our suite,
+  Total network data in, compiled over all connections collected through our suite / cloudwatch ([TODO DECIDE WHICH]),
+  Total network data out, compiled over all connections collected through our suite / cloudwatch ([TODO DECIDE WHICH]),
+
+
+System Load Meter
+      Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
+
+      sum over connected
+
+      Handled requests count, compiled over all client WebSockets on all client instances, collected through our suite,
+
+      sum over request count
+
+
+      Redis database successful hits, collected manually (\textit{info} command),
+
+      manual
+
+
+      MySQL query count, collected manually \ref{lstlisting:qcount},
+
+      manual
+
+
+System Effective Capacity Meter
+  System Load Meter output,
+
+  min avg max
+
+  System Performance Meter output,
+
+  min avg max
+
+  Computing Resource Utilization Meter,
+
+  min avg max
+
+  Estimated cost of running a given architecture setup for a given unit of time
+
+
+Effective Scalable Range
+  System Effective Capacity Meter output,
+      min avg max
+  System Load Meter output,
+      min avg max
+
+Effective System Scalability
+      Effective Scalable Range Meter output.
+        min max
+
 \section{Baseline Architecture}
+[TODO data in github repo link]
 
 \section{Proposed Architecture I}
+[TODO data in github repo link]
 latencies are blocking for the server in case of architecture II and III, whereas in I they happen outside of server handling and are parallelized. Db calls are blocking, so if the cross-region latency is a 100ms it all hapens on server-db BLOCKING and paralyzes the communication; that's why all metrics blow up
 
 [TODO diagram]
@@ -2142,23 +2278,14 @@ latencies are blocking for the server in case of architecture II and III, wherea
 [TODO prove with time loops simple db.add\_prediction()]
 
 \section{Proposed Architecture II}
+[TODO data in github repo link]
 
 read replicas scale only reades, our app farely write intensive
 
-\section{Client Report}
-
-paste one here
-
-screenshot of the tree with reports
-
-\subsection{Aggregation}
-
-\subsubsection{Latencies by region}
-They differ much - provide a comparison by region.
-
-\section{Sample Server Report}
-
 \section{Additional Observations}
+
+\subsection{Latencies by region}
+They differ much - provide a comparison by region.
 
 splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
 
