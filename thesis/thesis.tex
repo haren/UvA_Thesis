@@ -2033,7 +2033,7 @@ sub get_instance_id
 
 Each client machine generating load in the benchmarking process collects client side metrics and generates a small report. After the benchmark run, these metrics are aggregated across all client instances.
 
-The client script measures the following: handhskaing latency, request handling latency and message publishing latency. The request handling and publishing latency are computed differently: request handling latency is measured as the difference between the clients response reception timestamp and request sending timestamp. Broadcast latency is measured as a difference between client reception timestamp and server publish timestamp included in the broadcast message header (it serves mostly the purpose of showing the difference in reception times of the same message across clients).
+The client script measures the following: handhskaing latency, request handling latency and message publishing latency. The request handling and publishing latency are computed differently: request handling latency is measured as the difference between the clients response reception timestamp and request sending timestamp. Broadcast latency is measured as a difference between client reception timestamp and server publish timestamp included in the broadcast message header (it serves mostly the purpose of showing the difference in reception times of the same message across clients). Time synchronization between different machines is explained below \ref{Time synchronization across the system}.
 
 A sample client report is listed [TODO ref.]
 
@@ -2092,7 +2092,7 @@ We run repetetive tests to verify there is no huge influential differences in al
 
 One can also request dedicated rather than shared resources - outside of the scope of this project though, but offers finer control.
 
-\section{Time synchronization across the system}
+\section{Time synchronization across the system}\label{Time synchronization across the system}
 syncling clocks on machines using /etc/ntpd (polled from amazon servers)
 
 
