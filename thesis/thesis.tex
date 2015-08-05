@@ -2030,18 +2030,14 @@ sub get_instance_id
 \end{sourcecode}
 
 \subsection{Load Test Metric Collection}
-http://stackoverflow.com/questions/3871886/ssl-and-load-balancing
 
-elb uses dns name to server a pool of lb instances in the backend (you might exceed one instance connection limit)
-in order for the full range of ELB machine IP addresses to be utilized, “make sure each [client] refreshes their DNS resolution results every few minutes.”
-One test client equals one public IP address. ELB machines seem to route all traffic from a single IP address to the same back-end instance, so if you run more than one test client process behind a single public IP address, ELB regards these as a single client.
-Use 12 test clients for every availability zone you have enabled on the ELB. These test clients do not need to be in different availability zones – they do not even need to be in EC2 (although it is quite attractive to use EC2 instances for test clients). If you have configured your ELB to balance among two availability zones then you should use 24 test clients.
-Each test client should gradually ramp up its load over the course of a few hours. Each client can begin at (for example) one connection per second, and increase its rate of connections-per-second every X minutes until the load reaches your desired target after a few hours. - WE CANNOT DO THAT
+Each client machine generating load in the benchmarking process collects client side metrics and generates a small report. After the benchmark run, these metrics are aggregated across all client instances.
 
-[TODO] describe the process here - latency, handhskaing, all agreggarion, results snippet
-explain the difference between how broadcast latency is aggregated vs request handling
+The client script measures the following: handhskaing latency, request handling latency and message publishing latency. The request handling and publishing latency are computed differently: request handling latency is measured as the difference between the clients response reception timestamp and request sending timestamp. Broadcast latency is measured as a difference between client reception timestamp and server publish timestamp included in the broadcast message header (it serves mostly the purpose of showing the difference in reception times of the same message across clients).
 
-Tools described here \ref{Load Testing Framework}
+A sample client report is listed [TODO ref.]
+
+Tools used in client reporting are described in a dedicated  section \ref{Load Testing Framework}.
 
 \section{Selected Meters and Metrics}\label{Selected Meters and Metrics}
 Computing Resource Utilization Meter
