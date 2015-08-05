@@ -1000,6 +1000,325 @@ The project delivers the following:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Scalability Measurements} \label{Scalability Measurements}
+In this chapter I describe most relevant models and metrics from scientific literature and the subsets I decided to use in this research \ref{Selected Meters and Metrics}.
+
+\section{Scalability Meters}
+Models I find most useful were proposed by Pattabiraman et al \cite{Models}. As mentioned in Related Work section \ref{Related Work}, they divide the performance indicators into three groups and propose formal quantifiable meters for each of them:
+\begin{enumerate}
+  \item computing resource indicators (CPU, disk, memory, networks, etc.),
+  \begin{itemize}
+    \item Computing Resource Allocation Meter (CRAM),
+    \item Computing Resource Utilization Meter (CRUM),
+  \end{itemize}
+  \item workload indicators (connected users, throughput and latency, etc.),
+  \begin{itemize}
+    \item System Load Meter (SLM),
+  \end{itemize}
+  \item performance indicators (processing speed, system reliability, availability)
+  \begin{itemize}
+    \item System Performance Meter (SPM).
+  \end{itemize}
+\end{enumerate}
+They also propose model which allow to combine the above: System Capacity Meter (SCM), System Effective Capacity Meter (SEC), Effective System Scalability (ESS), and Effective Scalable Range (ESR).
+
+\subsection{Scalability Meters}
+
+The geometric interpretation of each of these meters is a polygon. The quantifiable value of the meter is the area of the polygon. Sample meter is plotted on the figure \ref{figure:polygon}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{angleradius}
+\caption{Polygon's radius and central angle}
+\label{figure:polygon1}
+\end{figure}
+
+The value of each metric plugged into the meter is represented by the radial distance between the center of the polygon and the vertex. Since all the metrics that serve as inputs to the meter have equal weights, the central angle (as shown of figure \ref{figure:polygon1}) between two consecutive radial distances is always going to be equal. For \textit{$n$} metrics in a meter, each central angle will have a value of \textit{$2\Pi/n$}.
+
+The area of a polygon can be computed as a sum of areas of the triangles that constitute it. The sides of each of these triangles consist of the side of the polygon and 2 radii.
+
+Area of a triangle can be computed using the formula:
+\begin{center}
+  $$A_t = 0.5 * a*b * \sin(\alpha_{ab}) $$
+  where \textit{$a$} and \textit{$b$} are to sides of the triangle and $\alpha_{ab}$ is the angle between them.
+\end{center}
+
+In case of these meters, $\alpha_{ab}$ is always equal to $2\Pi/n$. The area of a triangle limited by two radii with values of two metrics $x_i$ and $x_{i+1}$ would look like this:
+\begin{center}
+  $$A_t = 0.5 * x_i*x_{i+1} * \sin(2\Pi/n) $$
+\end{center}
+
+To compute the area of the polygon one needs to sum all the areas of the triangles formed by radii, and thus the formula is the following:
+\begin{center}
+  \texttt{$$A_p = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}x_i*x_{i+1}$$}
+  where \textit{$x_i$} is a value of an input metric and \textit{n} is the count of input metrics.
+\end{center}
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{polygon}
+\caption{Sample Meter Geometric Interpretation (SPM)}
+\label{figure:polygon}
+\end{figure}
+
+\subsubsection{Computing Resource Allocation Meter (CRAM)}
+\begin{center}
+  $$CRAM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}a_i*a_{i+1}$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which total resource allocation for the system is evaluated, \\*
+  \texttt{$a_i$} - represents the values of different types of \textit{allocated} computing resources to S by a cloud (network traffic boundary, cache allocated, memory allocated, cpu allocated, etc.), \\*
+  \texttt{$n$} - represents the count of different types of allocated computing resources to S by a cloud.
+
+\subsubsection{Computing Resource Utilization Meter (CRUM)}
+\begin{center}
+  $$CRUM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}u_i*u_{i+1}$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which total resource allocation for the system is evaluated, \\*
+  \texttt{$u_i$} - represents the values of different types of computing resources \textit{utilized} by S in a cloud (network traffic boundary, cache allocated, memory allocated, cpu allocated, etc.), \\*
+  \texttt{$n$} - represents the count of different types of computing resources utilized by S in a cloud.
+
+\subsubsection{System Performance Meter (SPM)}
+\begin{center}
+  $$SPM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}p_i*p_{i+1}$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which system performance is evaluated, \\*
+  \texttt{$p_i$} - represents the values of different performance metrics of the S in a cloud  (throughput ratio, reliability, availability, utilization, response time, etc.), \\*
+  \texttt{$n$} - represents the count of different performance metrics measured in S.
+
+\subsubsection{System Load Meter (SLM)}
+\begin{center}
+  $$SCM(S,t) = 0.5 * \sin(2\Pi/3) * [CTL(t)*UAL(t)+UAL(t)*SDL(t)+CTL(t)*CDL(t)]$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which load for the system is evaluated, \\*
+  \texttt{$CTL(t)$} - represents system communication traffic load, \\*
+  \texttt{$UAL(t)$} - represents system user access load, \\*
+  \texttt{$SDL(t)$} - represents system data load. \\*
+
+\subsubsection{System Capacity Meter (SCM)}
+\begin{center}
+  $$SCM(S,t) = 0.5 * \sin(2\Pi/3) * [SL(t)*SP(t)+SL(t)*AR(t)+SP(t)*AR(t)]$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which system capacity is evaluated, \\*
+  \texttt{$SL(t)$} - represents system load based on SLM, \\*
+  \texttt{$SP(t)$} - represents system performance based on SPM, \\*
+  \texttt{$AR(t)$} - represents system resource allocation based on CRAM. \\*
+
+\subsubsection{System Effective Capacity Meter (SEC)}
+\begin{center}
+  $$SEC(S,t) = 0.5 * \sin(2\Pi/3) * [SL(t)*SP(t)+SL(t)*RU(t)+SP(t)*RU(t)]$$
+\end{center}
+  \texttt{$S$} - represents the measured system, \\*
+  \texttt{$t$} - represents the time over which load for the system is evaluated, \\*
+  \texttt{$SL(t)$} - represents system load based on SLM, \\*
+  \texttt{$SP(t)$} - represents system performance based on SPM, \\*
+  \texttt{$RU(t)$} - represents system resource utilization based on CRUM. \\*
+
+Since all the meters above use the values sampled over a period of time as input, for each of the mentioned meters one can talk about \textit{min} and \textit{max} values. This is useful for the last two meters.
+
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.3]{sec}
+\caption{Sample System Effective Capacity Meter (SEC)}
+\label{figure:sec}
+\end{figure}
+
+\subsubsection{Effective Scalable Range (ESR)}
+\begin{center}
+  $$ESS = [SL(t) / SL_{min}] / [SEC(t) / SEC_{min}]$$
+\end{center}
+  \texttt{$t$} - represents the time over which the system is evaluated, \\*
+  \texttt{$SL(t)$} - represents system load based on SLM, \\*
+  \texttt{$SEC(t)$} - represents system effective capacity based on SEC. \\*
+
+\subsubsection{Effective System Scalability (ESS)}
+\begin{center}
+  $$ESR = (SEC_{max} - SEC_{min})$$
+\end{center}
+  \texttt{$SEC$} - represents \textit{max} and \textit{min} system effective capacity based on SEC. \\*
+
+Using the last two models (ESR and ESS), one can compare scalability of two systems/architectures in absolute quantifiable terms.
+
+The meters I decided to use in this research are described below \ref{Selected Meters and Metrics}.
+
+\subsection{Other Models}
+There is much more work related to the measuring scalability of distributed systems. Srinivas and Janakiram in their work \cite{SriJan} mention similar metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor.
+
+They propose a model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability:
+\begin{center}
+  $$scalability = f(availability, synchronization, consistency ,workload, faultload)$$ \\*
+\end{center}
+
+Jogalekar and Woodside \cite{EvaScaDS} propose a strategy-based scalability metric based on productivity and cost effectiveness (a function of system's throughput and it’s Quality of Service). It separates evaluation of throughput or quantity of work from Quality of Service (which, according to the authors, can be any suitable expression). Productivity can be computed as follows:
+\begin{center}
+  $$F(k) = \lambda(k) * f(k) / C(k)$$ \\*
+\end{center}
+  \texttt{$F(k)$} - represents the productivity of system at scale k, \\*
+  \texttt{$\lambda(k)$} - represents throughput in responses/s of the system at scale k, \\*
+  \texttt{$f(k)$} - represents the average value of a responses of the system at scale k, calculated from its QoS, \\*
+  \texttt{$f(k)$} - represents the running cost per second of the system at scale k. \\*
+
+Based on that, one can compute scalability metric relating systems at two different scale factors as the ratio of their productivity figures:
+\begin{center}
+  $$\upsilon(k_1,k_2) = (F(k_1)/F(k_2)) $$\\*
+\end{center}
+
+\section{AWS Available metrics} \label{AWS Available metrics}
+
+Since the System Under Test \ref{The System Under Test} is deployed to Amazon's Cloud \ref{Cloud architecture setup}, the metrics of the system need to be collected as a combination of metrics offered by Amazon's measurement service (CloudWatch\footnote{\url{https://aws.amazon.com/cloudwatch/}} and our custom collection process (described here \ref{Custom Metric Collection}).
+
+Metrics from CloudWatch are collectible by default every 5 minutes. They offer a paid \textit{detailed mode}, with which one can collect metrics every minute. From what I have experienced, even in the detailed mode, the requested metrics show up in the CloudWatch API results with a delay as high as 2 minutes.
+
+The CloudWatch API has its limitations - for instance, the allocation and utilization of memory for EC2 instances and processes is not available. This is something we are collecting in our custom metric collection process \ref{Custom Metric Collection}.
+
+As Pattabhiraman et al. \cite{Models} warn, there exist additional costs which are not apparent from the start.
+If one exceeds 10 metrics, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications, 5GB of incoming data logs or 5GB of data archiving per month then additional costs accrue. This is included in the cost estimates.
+
+CloudWatch Alarms \footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html}} can be configured based on these metrics. They can be applied to trigger AutoScaling actions that scale the deployed system in or out automatically.
+
+A very important limitation for the case of this research is that data cannot be aggregated automatically across AWS regions \footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html}}.
+
+For each metric collected for a given time window (1 or 5 minutes), CloudWatch offers the following statistics: min, max, average, sum and sample count (count (number) of data points used for the statistical calculation).
+
+Metrics can be aggregated over different domains - instances, AutoScaling groups, Elastic Load Balancers (all instances behind it) or availability zones. Metrics for groups of instances differ from metrics for single instances.
+
+\subsection{Instance Specific}
+The following metrics can be collected on an EC2 instance level:
+\begin{itemize}
+  \item CPU utilization (\% and absolute),
+  \item Network in/out (in bytes),
+  \item Disk read/write (number of operations and bytes),
+  \item Custom user-defined metrics,
+  \item Instance status checks data.
+\end{itemize}
+
+All these matrics are also available at an autoscale group level. They are automatically aggregated for all instances within a group. This is what I am using in my reporting.
+
+\subsection{Custom Instance Metric Collection} \label{Custom Metric Collection}
+A lot of tools (such as pidstat, which I used during local baseline preparations) are not available on Amazon Linux. Amazon provides perl scripts that allow to add metrics to cloudwatch, such as: disk space available, disk space used, disk space utilization, memory available, memory used, memory utilization, swap used and swap utilization. The scripts are \textit{not} officially maintained\footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mon-scripts.html}}.
+
+The scripts were setup by me in the following way. On a server image, the script is running as a cron job\footnote{\{url{http://www.unixgeeks.org/security/newbie/unix/cron-1.html}} and reports the metrics to cloudwatch every minute (that is the maximum avilable frequency in cloudwatch). A \texttt{warning} for this kind of usage - the script caches the instance id by default. That means that every new server instance created from an AMI with this script would report metrics for an instance from which the image was originally created. The cache flag needs to be changed to false in the script and the scripts need to be rebuild \ref{lstlisting:perl}.
+
+\begin{sourcecode}
+\begin{lstlisting}[style=mono, language=perl]
+use constant {
+  DO_NOT_CACHE => 0,
+  USE_CACHE => 1,
+};
+
+#
+# Obtains EC2 instance id from meta data.
+#
+sub get_instance_id
+{
+  if (!$instance_id) {
+    # The original script uses USE_CACHE below
+    # To verify that the correct instance id is used run:
+    # 'wget http://169.254.169.254/latest/meta-data/instance-id'
+    # and compare against what the script reports.
+    $instance_id = get_meta_data('/instance-id', DO_NOT_CACHE);
+  }
+  return $instance_id;
+}
+\end{lstlisting}
+\caption{Updated fragment of Amazon's custom cloudwatch metric reporting perl script.}
+\label{lstlisting:perl}
+\end{sourcecode}
+
+\subsection{Load Test Metric Collection}
+
+Each client machine generating load in the benchmarking process collects client side metrics and generates a small report. After the benchmark run, these metrics are aggregated across all client instances.
+
+The client script measures the following: handhskaing latency, request handling latency and message publishing latency. The request handling and publishing latency are computed differently: request handling latency is measured as the difference between the clients response reception timestamp and request sending timestamp. Broadcast latency is measured as a difference between client reception timestamp and server publish timestamp included in the broadcast message header (it serves mostly the purpose of showing the difference in reception times of the same message across clients). Time synchronization between different machines is explained below \ref{Time synchronization across the system}.
+
+A sample client report is listed [TODO ref.]
+
+Tools used in client reporting are described in a dedicated  section \ref{Load Testing Framework}.
+
+\section{Selected Meters and Metrics}\label{Selected Meters and Metrics}
+I selected the following scalability meters and metrics for their inputs:
+
+\begin{enumerate}
+  \item \texttt{Computing Resource Utilization Meter}, with inputs:
+    \begin{itemize}
+      \item Server CPU utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
+      \item Memory utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
+      \item Disk utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
+    \end{itemize}
+  \item \texttt{System Performance Meter}, with inputs:
+    \begin{itemize}
+      \item Handshaking latency, compiled over all client WebSockets on all client instances, collected through our suite,
+      \item Request handling latency, compiled over all client WebSockets on all client instances, collected through our suite,
+      \item Broadcast latency, compiled over all client WebSockets on all client instances, collected through our suite,
+      \item Total network data in, compiled over all connections collected through our suite / cloudwatch ([TODO DECIDE WHICH]),
+      \item Total network data out, compiled over all connections collected through our suite / cloudwatch ([TODO DECIDE WHICH]),
+    \end{itemize}
+  \item \texttt{System Load Meter}, with inputs:
+    \begin{itemize}
+      \item Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
+      \item Handled requests count, compiled over all client WebSockets on all client instances, collected through our suite,
+      \item Redis database successful hits, collected manually (\textit{info} command),
+      \item MySQL query count, collected manually \ref{lstlisting:qcount},
+    \end{itemize}
+  \item \texttt{System Effective Capacity Meter}, with inputs:
+    \begin{itemize}
+      \item System Load Meter output,
+      \item System Performance Meter output,
+      \item Computing Resource Utilization Meter,
+      \item Estimated cost of running a given architecture setup for a given unit of time (this is my own addition to the model from literature \cite{Models})
+    \end{itemize}
+  \item \texttt{Effective Scalable Range}, with inputs:
+    \begin{itemize}
+      \item System Effective Capacity Meter output,
+      \item System Load Meter output,
+    \end{itemize}
+  \item \texttt{Effective System Scalability}, with inputs:
+    \begin{itemize}
+      \item Effective Scalable Range Meter output.
+    \end{itemize}
+\end{enumerate}
+
+\begin{sourcecode}
+\begin{lstlisting}[style=mono, language=SQL]
+select VARIABLE_VALUE from information_schema.global_status where variable_name = "QUERIES";
+\end{lstlisting}
+\caption{Extracting MySql query count.}
+\label{lstlisting:qcount}
+\end{sourcecode}
+
+The benchmark is run against each of the deployed architecture setups and the resulting metrics are used to populated the described meters.
+
+\subsection{Excluded Metrics}\label{Excluded Metrics}
+
+I was forced to exclude availability - not enough resources (money and time) to run the tests long enough to run into any availability issues, since Amazon SLAs offer 99.9999\% orders of availability for selected technologies.
+
+Also forced to include Dynamic ScaleUp and Down. The way load test suite is setup is taht it hits a single Route53 url, which then distributes traffic between regions according to the specified policy. Dynamically adding / removing resources causes changes to that policy - that means global DNS records need to be updated. One can set TTL (time to live) which DNS records should respect and refresh their caches every TTL seconds. They don't and it's a known issue - I ran into this, had to wait even up to 30 minutes for 60s changes to propagate properly.
+
+\section{Controlling The Dynamic Cloud Environment}
+tl;dr - impossible.
+
+But you can pick instances that are more stable and have better guarantees (rather than some weird spikes and collecting credits if you run under limit - that's what happens on t1.micro isntances).
+
+We run repetetive tests to verify there is no huge influential differences in allocated resources.
+
+One can also request dedicated rather than shared resources - outside of the scope of this project though, but offers finer control.
+
+\section{Time synchronization across the system}\label{Time synchronization across the system}
+syncling clocks on machines using /etc/ntpd (polled from amazon servers)
+
+
+\section{Expected Answers}\label{Expected Answers}
+I am going to use the \textit{Effective System Scalability} and \textit{Effective Scalable Range} meters to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
+
+I expect to see differences in various metrics. Using all the other selected meters, I will be able to reason about singled out factors of scalability (such as cost or message handling latency).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Experiment Implementation} \label{Experiment Implementation}
 
 \epigraph{"At scale, everything breaks."}{--- Urs Holzle, Google Fellow}
@@ -1797,309 +2116,6 @@ Measuring the speed of scaling up and down proved to be very difficult and was e
   \item [DNS protocol issues] - a huge number of DNS servers do not obey TTLs (time-to-live) on DNS records. Therefore, there is no guarantee that even a record with a TTL set to 60 seconds becomes updated every minute for all, globally distributed, clients. I tested this empirically and my research lead me to conclusion that this is a known issue in the community\footnote{\url{http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-tcp-and-nginx-in-ec2/}}. There is simply no way to estimate when clients of the system are going to "see" the updates in a system topology.
 \end{description}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Scalability Measurements} \label{Scalability Measurements}
-In this chapter I describe most relevant models and metrics from scientific literature and the subsets I decided to use in this research \ref{Selected Meters and Metrics}.
-
-\section{Scalability Meters}
-Models I find most useful were proposed by Pattabiraman et al \cite{Models}. As mentioned in Related Work section \ref{Related Work}, they divide the performance indicators into three groups and propose formal quantifiable meters for each of them:
-\begin{enumerate}
-  \item computing resource indicators (CPU, disk, memory, networks, etc.),
-  \begin{itemize}
-    \item Computing Resource Allocation Meter (CRAM),
-    \item Computing Resource Utilization Meter (CRUM),
-  \end{itemize}
-  \item workload indicators (connected users, throughput and latency, etc.),
-  \begin{itemize}
-    \item System Load Meter (SLM),
-  \end{itemize}
-  \item performance indicators (processing speed, system reliability, availability)
-  \begin{itemize}
-    \item System Performance Meter (SPM).
-  \end{itemize}
-\end{enumerate}
-They also propose model which allow to combine the above: System Capacity Meter (SCM), System Effective Capacity Meter (SEC), Effective System Scalability (ESS), and Effective Scalable Range (ESR).
-
-\subsection{Scalability Meters}
-
-The geometric interpretation of each of these meters is a polygon. The quantifiable value of the meter is the area of the polygon. Sample meter is plotted on the figure \ref{figure:polygon}.
-
-\begin{figure}[h]
-\centering
-\includegraphics[scale=0.5]{angleradius}
-\caption{Polygon's radius and central angle}
-\label{figure:polygon1}
-\end{figure}
-
-The value of each metric plugged into the meter is represented by the radial distance between the center of the polygon and the vertex. Since all the metrics that serve as inputs to the meter have equal weights, the central angle (as shown of figure \ref{figure:polygon1}) between two consecutive radial distances is always going to be equal. For \textit{$n$} metrics in a meter, each central angle will have a value of \textit{$2\Pi/n$}.
-
-The area of a polygon can be computed as a sum of areas of the triangles that constitute it. The sides of each of these triangles consist of the side of the polygon and 2 radii.
-
-Area of a triangle can be computed using the formula:
-\begin{center}
-  $$A_t = 0.5 * a*b * \sin(\alpha_{ab}) $$
-  where \textit{$a$} and \textit{$b$} are to sides of the triangle and $\alpha_{ab}$ is the angle between them.
-\end{center}
-
-In case of these meters, $\alpha_{ab}$ is always equal to $2\Pi/n$. The area of a triangle limited by two radii with values of two metrics $x_i$ and $x_{i+1}$ would look like this:
-\begin{center}
-  $$A_t = 0.5 * x_i*x_{i+1} * \sin(2\Pi/n) $$
-\end{center}
-
-To compute the area of the polygon one needs to sum all the areas of the triangles formed by radii, and thus the formula is the following:
-\begin{center}
-  \texttt{$$A_p = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}x_i*x_{i+1}$$}
-  where \textit{$x_i$} is a value of an input metric and \textit{n} is the count of input metrics.
-\end{center}
-
-\begin{figure}[h]
-\centering
-\includegraphics[scale=0.5]{polygon}
-\caption{Sample Meter Geometric Interpretation (SPM)}
-\label{figure:polygon}
-\end{figure}
-
-\subsubsection{Computing Resource Allocation Meter (CRAM)}
-\begin{center}
-  $$CRAM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}a_i*a_{i+1}$$
-\end{center}
-  \texttt{$S$} - represents the measured system, \\*
-  \texttt{$t$} - represents the time over which total resource allocation for the system is evaluated, \\*
-  \texttt{$a_i$} - represents the values of different types of \textit{allocated} computing resources to S by a cloud (network traffic boundary, cache allocated, memory allocated, cpu allocated, etc.), \\*
-  \texttt{$n$} - represents the count of different types of allocated computing resources to S by a cloud.
-
-\subsubsection{Computing Resource Utilization Meter (CRUM)}
-\begin{center}
-  $$CRUM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}u_i*u_{i+1}$$
-\end{center}
-  \texttt{$S$} - represents the measured system, \\*
-  \texttt{$t$} - represents the time over which total resource allocation for the system is evaluated, \\*
-  \texttt{$u_i$} - represents the values of different types of computing resources \textit{utilized} by S in a cloud (network traffic boundary, cache allocated, memory allocated, cpu allocated, etc.), \\*
-  \texttt{$n$} - represents the count of different types of computing resources utilized by S in a cloud.
-
-\subsubsection{System Performance Meter (SPM)}
-\begin{center}
-  $$SPM(S,t) = 0.5 * \sin(2\Pi/n) * \sum_{i=1}^{n}p_i*p_{i+1}$$
-\end{center}
-  \texttt{$S$} - represents the measured system, \\*
-  \texttt{$t$} - represents the time over which system performance is evaluated, \\*
-  \texttt{$p_i$} - represents the values of different performance metrics of the S in a cloud  (throughput ratio, reliability, availability, utilization, response time, etc.), \\*
-  \texttt{$n$} - represents the count of different performance metrics measured in S.
-
-\subsubsection{System Load Meter (SLM)}
-\begin{center}
-  $$SCM(S,t) = 0.5 * \sin(2\Pi/3) * [CTL(t)*UAL(t)+UAL(t)*SDL(t)+CTL(t)*CDL(t)]$$
-\end{center}
-  \texttt{$S$} - represents the measured system, \\*
-  \texttt{$t$} - represents the time over which load for the system is evaluated, \\*
-  \texttt{$CTL(t)$} - represents system communication traffic load, \\*
-  \texttt{$UAL(t)$} - represents system user access load, \\*
-  \texttt{$SDL(t)$} - represents system data load. \\*
-
-\subsubsection{System Capacity Meter (SCM)}
-\begin{center}
-  $$SCM(S,t) = 0.5 * \sin(2\Pi/3) * [SL(t)*SP(t)+SL(t)*AR(t)+SP(t)*AR(t)]$$
-\end{center}
-  \texttt{$S$} - represents the measured system, \\*
-  \texttt{$t$} - represents the time over which system capacity is evaluated, \\*
-  \texttt{$SL(t)$} - represents system load based on SLM, \\*
-  \texttt{$SP(t)$} - represents system performance based on SPM, \\*
-  \texttt{$AR(t)$} - represents system resource allocation based on CRAM. \\*
-
-\subsubsection{System Effective Capacity Meter (SEC)}
-\begin{center}
-  $$SEC(S,t) = 0.5 * \sin(2\Pi/3) * [SL(t)*SP(t)+SL(t)*RU(t)+SP(t)*RU(t)]$$
-\end{center}
-  \texttt{$S$} - represents the measured system, \\*
-  \texttt{$t$} - represents the time over which load for the system is evaluated, \\*
-  \texttt{$SL(t)$} - represents system load based on SLM, \\*
-  \texttt{$SP(t)$} - represents system performance based on SPM, \\*
-  \texttt{$RU(t)$} - represents system resource utilization based on CRUM. \\*
-
-Since all the meters above use the values sampled over a period of time as input, for each of the mentioned meters one can talk about \textit{min} and \textit{max} values. This is useful for the last two meters.
-
-\begin{figure}[h]
-\centering
-\includegraphics[scale=0.3]{sec}
-\caption{Sample System Effective Capacity Meter (SEC)}
-\label{figure:sec}
-\end{figure}
-
-\subsubsection{Effective Scalable Range (ESR)}
-\begin{center}
-  $$ESS = [SL(t) / SL_{min}] / [SEC(t) / SEC_{min}]$$
-\end{center}
-  \texttt{$t$} - represents the time over which the system is evaluated, \\*
-  \texttt{$SL(t)$} - represents system load based on SLM, \\*
-  \texttt{$SEC(t)$} - represents system effective capacity based on SEC. \\*
-
-\subsubsection{Effective System Scalability (ESS)}
-\begin{center}
-  $$ESR = (SEC_{max} - SEC_{min})$$
-\end{center}
-  \texttt{$SEC$} - represents \textit{max} and \textit{min} system effective capacity based on SEC. \\*
-
-Using the last two models (ESR and ESS), one can compare scalability of two systems/architectures in absolute quantifiable terms.
-
-The meters I decided to use in this research are described below \ref{Selected Meters and Metrics}.
-
-\subsection{Other Models}
-There is much more work related to the measuring scalability of distributed systems. Srinivas and Janakiram in their work \cite{SriJan} mention similar metric evaluating scalability as a product of throughput and response time (or any value function) divided by the cost factor.
-
-They propose a model considering scalability as a function of synchronization, consistency, availability, workload and faultload. It aims on identifying bottlenecks and hence improving the scalability. The authors also emphasize the fact of interconnectedness of synchronization, consistency and availability:
-\begin{center}
-  $$scalability = f(availability, synchronization, consistency ,workload, faultload)$$ \\*
-\end{center}
-
-Jogalekar and Woodside \cite{EvaScaDS} propose a strategy-based scalability metric based on productivity and cost effectiveness (a function of system's throughput and it’s Quality of Service). It separates evaluation of throughput or quantity of work from Quality of Service (which, according to the authors, can be any suitable expression). Productivity can be computed as follows:
-\begin{center}
-  $$F(k) = \lambda(k) * f(k) / C(k)$$ \\*
-\end{center}
-  \texttt{$F(k)$} - represents the productivity of system at scale k, \\*
-  \texttt{$\lambda(k)$} - represents throughput in responses/s of the system at scale k, \\*
-  \texttt{$f(k)$} - represents the average value of a responses of the system at scale k, calculated from its QoS, \\*
-  \texttt{$f(k)$} - represents the running cost per second of the system at scale k. \\*
-
-Based on that, one can compute scalability metric relating systems at two different scale factors as the ratio of their productivity figures:
-\begin{center}
-  $$\upsilon(k_1,k_2) = (F(k_1)/F(k_2)) $$\\*
-\end{center}
-
-\section{AWS Available metrics} \label{AWS Available metrics}
-
-Since the System Under Test \ref{The System Under Test} is deployed to Amazon's Cloud \ref{Cloud architecture setup}, the metrics of the system need to be collected as a combination of metrics offered by Amazon's measurement service (CloudWatch\footnote{\url{https://aws.amazon.com/cloudwatch/}} and our custom collection process (described here \ref{Custom Metric Collection}).
-
-Metrics from CloudWatch are collectible by default every 5 minutes. They offer a paid \textit{detailed mode}, with which one can collect metrics every minute. From what I have experienced, even in the detailed mode, the requested metrics show up in the CloudWatch API results with a delay as high as 2 minutes.
-
-The CloudWatch API has its limitations - for instance, the allocation and utilization of memory for EC2 instances and processes is not available. This is something we are collecting in our custom metric collection process \ref{Custom Metric Collection}.
-
-As Pattabhiraman et al. \cite{Models} warn, there exist additional costs which are not apparent from the start.
-If one exceeds 10 metrics, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications, 5GB of incoming data logs or 5GB of data archiving per month then additional costs accrue. This is included in the cost estimates.
-
-CloudWatch Alarms \footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html}} can be configured based on these metrics. They can be applied to trigger AutoScaling actions that scale the deployed system in or out automatically.
-
-A very important limitation for the case of this research is that data cannot be aggregated automatically across AWS regions \footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html}}.
-
-For each metric collected for a given time window (1 or 5 minutes), CloudWatch offers the following statistics: min, max, average, sum and sample count (count (number) of data points used for the statistical calculation).
-
-Metrics can be aggregated over different domains - instances, AutoScaling groups, Elastic Load Balancers (all instances behind it) or availability zones. Metrics for groups of instances differ from metrics for single instances.
-
-\subsection{Instance Specific}
-The following metrics can be collected on an EC2 instance level:
-\begin{itemize}
-  \item CPU utilization (\% and absolute),
-  \item Network in/out (in bytes),
-  \item Disk read/write (number of operations and bytes),
-  \item Custom user-defined metrics,
-  \item Instance status checks data.
-\end{itemize}
-
-All these matrics are also available at an autoscale group level. They are automatically aggregated for all instances within a group. This is what I am using in my reporting.
-
-\subsection{Custom Instance Metric Collection} \label{Custom Metric Collection}
-A lot of tools (such as pidstat, which I used during local baseline preparations) are not available on Amazon Linux. Amazon provides perl scripts that allow to add metrics to cloudwatch, such as: disk space available, disk space used, disk space utilization, memory available, memory used, memory utilization, swap used and swap utilization. The scripts are \textit{not} officially maintained\footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mon-scripts.html}}.
-
-The scripts were setup by me in the following way. On a server image, the script is running as a cron job\footnote{\{url{http://www.unixgeeks.org/security/newbie/unix/cron-1.html}} and reports the metrics to cloudwatch every minute (that is the maximum avilable frequency in cloudwatch). A \texttt{warning} for this kind of usage - the script caches the instance id by default. That means that every new server instance created from an AMI with this script would report metrics for an instance from which the image was originally created. The cache flag needs to be changed to false in the script and the scripts need to be rebuild \ref{lstlisting:perl}.
-
-\begin{sourcecode}
-\begin{lstlisting}[style=mono, language=perl]
-use constant {
-  DO_NOT_CACHE => 0,
-  USE_CACHE => 1,
-};
-
-#
-# Obtains EC2 instance id from meta data.
-#
-sub get_instance_id
-{
-  if (!$instance_id) {
-    # The original script uses USE_CACHE below
-    # To verify that the correct instance id is used run:
-    # 'wget http://169.254.169.254/latest/meta-data/instance-id'
-    # and compare against what the script reports.
-    $instance_id = get_meta_data('/instance-id', DO_NOT_CACHE);
-  }
-  return $instance_id;
-}
-\end{lstlisting}
-\caption{Updated fragment of Amazon's custom cloudwatch metric reporting perl script.}
-\label{lstlisting:perl}
-\end{sourcecode}
-
-\subsection{Load Test Metric Collection}
-
-Each client machine generating load in the benchmarking process collects client side metrics and generates a small report. After the benchmark run, these metrics are aggregated across all client instances.
-
-The client script measures the following: handhskaing latency, request handling latency and message publishing latency. The request handling and publishing latency are computed differently: request handling latency is measured as the difference between the clients response reception timestamp and request sending timestamp. Broadcast latency is measured as a difference between client reception timestamp and server publish timestamp included in the broadcast message header (it serves mostly the purpose of showing the difference in reception times of the same message across clients). Time synchronization between different machines is explained below \ref{Time synchronization across the system}.
-
-A sample client report is listed [TODO ref.]
-
-Tools used in client reporting are described in a dedicated  section \ref{Load Testing Framework}.
-
-\section{Selected Meters and Metrics}\label{Selected Meters and Metrics}
-Computing Resource Utilization Meter
-Server CPU utilization, compiled over all server instances + RDS DB where applicable (Cloudwatch)
-Memory utilization, compiled over all server instances (Cloudwatch Custom)
-Disk utilization, compiled over all server instances (Cloudwatch)
-
-System Performance Meter
-Handshaking latencies (Our suite)
-Request Handling latencies (Our suite)
-Broadcast latencies (Our suite)
-% Mysql Read Latency (Cloudwatch)
-% Mysql Write Latency (Cloudwatch)
-Dropped Connections (Our suite)
-Total Network In (Our suite / cloudwatch)
-Total Network Out (Our suite / cloudwatch) - include internal, billable transfer somehow
-
-System Load Meter
-Concurrent users  (Our suite)
-Data sent + data received  (Our suite)
-Handled requests count (Our suite)
-Broadcast messages count (Our suite)
-Redis Hits (info | keyspace\_hits)
-Mysql queries select * from information\_schema.global\_status s1 where variable\_name = \"QUERIES\";
-% Mysql Read IOPS
-% Mysql Write IOPS
-
-System Effective Capacity Meter
-SLM + SPM + CRUM + 1 / (Computed Cost of running the architecture per unit of time)
-
-That's an update as to the proposed model.
-
-We need a valuable that's inversely proportional to the cost value (e.g. how long you can run on x \$)
-
-Effective Scalable Range and Effective System Scalability
-$SEC_max$ + $SEC_min$ + $SLM_max$ + $SLM_min$
-
-The benchmark is run against each of the deployed architecture setups and the resulting metrics are used to populated the described meters.
-
-\subsection{Excluded Metrics}\label{Excluded Metrics}
-
-I was forced to exclude availability - not enough resources (money and time) to run the tests long enough to run into any availability issues, since Amazon SLAs offer 99.9999\% orders of availability for selected technologies.
-
-Also forced to include Dynamic ScaleUp and Down. The way load test suite is setup is taht it hits a single Route53 url, which then distributes traffic between regions according to the specified policy. Dynamically adding / removing resources causes changes to that policy - that means global DNS records need to be updated. One can set TTL (time to live) which DNS records should respect and refresh their caches every TTL seconds. They don't and it's a known issue - I ran into this, had to wait even up to 30 minutes for 60s changes to propagate properly.
-
-\section{Controlling The Dynamic Cloud Environment}
-tl;dr - impossible.
-
-But you can pick instances that are more stable and have better guarantees (rather than some weird spikes and collecting credits if you run under limit - that's what happens on t1.micro isntances).
-
-We run repetetive tests to verify there is no huge influential differences in allocated resources.
-
-One can also request dedicated rather than shared resources - outside of the scope of this project though, but offers finer control.
-
-\section{Time synchronization across the system}\label{Time synchronization across the system}
-syncling clocks on machines using /etc/ntpd (polled from amazon servers)
-
-
-\section{Expected Answers}\label{Expected Answers}
-I am going to use the \textit{Effective System Scalability} and \textit{Effective Scalable Range} meters to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
-
-I expect to see differences in various metrics. Using all the other selected meters, I will be able to reason about singled out factors of scalability (such as cost or message handling latency).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
