@@ -1605,6 +1605,8 @@ ClassicWorker.prototype.createClient = function (callback) {
   };
 
   connection.onclose = function (reason, details) {
+    // Amazon Linux has a different internal socket library representation
+    // than Ubuntu e.g. - hence the '||' below.
     var read = connection._socket.bytesRead || connection._socket.socket.bytesRead;
     var send = connection._socket.bytesWritten || connection._socket.socket.bytesWritten;
     _this.metrics.close({send: send, read: read});
@@ -1697,7 +1699,7 @@ Each server machine hosts:
   \item the WebSocket API processes - 2, one for every 2 available CPU cores.
 \end{itemize}
 
-As a database solution, this architecture uses 1 big redis instance - m2.xlarge, 1 core (since I am running one-redis process anyway), 17.1 GB mem and 140GB of SSD storage with 4000 provisioned IOPS and a 1 big MySQL RDS instance (r3.4xlarge, 16 cores, 122 GB mem) and 100 GB disk 1000 IOPS\footnote{RDS IOPS/disk size max ratio is 10:1, so I decided to tradeoff cost of a 400GB disk (that is what is necessary for 4000 IOPS on RDS) for lower IOPS value (which is not expected to be a limitation anyway).}.
+As a database solution, this architecture uses 1 big redis instance - m2.xlarge, 1 core (since I am running one-redis process anyway), 17.1 GB mem and 140GB of SSD storage with 4000 provisioned IOPS and a 1 big MySQL RDS instance (r3.4xlarge, 16 cores, 122 GB mem) and 100 GB disk 1000 IOPS\footnote{RDS IOPS/disk size max ratio is 10:1, so I decided to tradeoff cost of a 400GB disk (that is what is necessary for 4000 IOPS on RDS) for lower IOPS value (which is not expected to be a limitation anyway - observed values were below 500 IOPS).}.
 
 \subsection{Proposed Architecture II Implementation Details}\label{Proposed Architecture II Implementation Details}
 
@@ -1714,7 +1716,7 @@ Each server and redis read replica instance is running on an m3.2xlarge instance
 
 Redis write master is using an m2.xlarge - 1 core with 17.1 GB of RAM. MySQL master RDS node uses db.r3.2xlarge instance - 8 cores with 61GB of RAM. Each MySQL read replica node is using a db.m3.medium (1 CPU core, 3.75 GB RAM) instance.
 
-Amazon introduces another limitation - no more than 5 read replicas per master. That made our setup slighlty asymmetrical - Irish WebSocket servers connect direcly to master instances, and Sydney's MySQL read replica replicates from Singapore's replica, and California's from Oregon (chaining up to 3 replicas is allowed), as depicted on the figure \ref{figure:archprop2}.
+Amazon introduces another limitation - no more than 5 read replicas per master. That made our setup slighlty asymmetrical - Irish WebSocket servers connect direcly to master instances, and Sydney's MySQL reads from a replica located in Singapore, and California reads from replica located in Oregon as depicted on the figure \ref{figure:archprop2}. Chaining up to 3 replicas is allowed, but no more than 1 cross-region boundary can be included in the chain\footnote{\url{http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html\#USER\_ReadRepl.XRgn}}. That means that a chain Ireland -> Singapore -> Sydney is not allowed.
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 The cloud architecture stack consists of the following:
@@ -1994,8 +1996,38 @@ The following metrics can be collected on an EC2 instance level:
   \item Instance status checks data.
 \end{itemize}
 
-\subsection{Cloud (group) Specific}
-Collected from Elastic Load Balancer for all instances connected.
+All these matrics are also available at an autoscale group level. They are automatically aggregated for all instances within a group. This is what I am using in my reporting.
+
+\subsection{Custom Instance Metric Collection} \label{Custom Metric Collection}
+A lot of tools (such as pidstat, which I used during local baseline preparations) are not available on Amazon Linux. Amazon provides perl scripts that allow to add metrics to cloudwatch, such as: disk space available, disk space used, disk space utilization, memory available, memory used, memory utilization, swap used and swap utilization. The scripts are \textit{not} officially maintained\footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mon-scripts.html}}.
+
+The scripts were setup by me in the following way. On a server image, the script is running as a cron job\footnote{\{url{http://www.unixgeeks.org/security/newbie/unix/cron-1.html}} and reports the metrics to cloudwatch every minute (that is the maximum avilable frequency in cloudwatch). A \texttt{warning} for this kind of usage - the script caches the instance id by default. That means that every new server instance created from an AMI with this script would report metrics for an instance from which the image was originally created. The cache flag needs to be changed to false in the script and the scripts need to be rebuild \ref{lstlisting:perl}.
+
+\begin{sourcecode}
+\begin{lstlisting}[style=mono, language=perl]
+use constant {
+  DO_NOT_CACHE => 0,
+  USE_CACHE => 1,
+};
+
+#
+# Obtains EC2 instance id from meta data.
+#
+sub get_instance_id
+{
+  if (!$instance_id) {
+    # The original script uses USE_CACHE below
+    # To verify that the correct instance id is used run:
+    # 'wget http://169.254.169.254/latest/meta-data/instance-id'
+    # and compare against what the script reports.
+    $instance_id = get_meta_data('/instance-id', DO_NOT_CACHE);
+  }
+  return $instance_id;
+}
+\end{lstlisting}
+\caption{Updated fragment of Amazon's custom cloudwatch metric reporting perl script.}
+\label{lstlisting:perl}
+\end{sourcecode}
 
 \subsection{Load Test Metric Collection}
 http://stackoverflow.com/questions/3871886/ssl-and-load-balancing
@@ -2010,28 +2042,6 @@ Each test client should gradually ramp up its load over the course of a few hour
 explain the difference between how broadcast latency is aggregated vs request handling
 
 Tools described here \ref{Load Testing Framework}
-
-\section{Custom Metric Collection} \label{Custom Metric Collection}
-
-locally:
-pidstat DIDN'T WORK
-latencies by our custom client suite
-for network we looked ad ntop, nethogs, nload, vnstat, wireshark but amazon provides this data.
-
-ss -s
-netstat -s
-
-plugged into statsd and graphite for real time monitoring
-
-THE ABOVE DOESN'T WORK ON AMAZON LINUX.
-
-perl scripts!!!!
-http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/mon-scripts.html
-end up in cloudwatch
-
-running as cronjob
-had to dig into perl script which cached the instance id - so all server instances were reporting metrics for the first instance the scripts were deployed on. (verified from the EC2 instance using the command wget http://169.254.169.254/latest/meta-data/instance-id),
-had to update our node scripts for collecting data pushed through and received on the sockets - the node library we use [REF] had a different internal representation so had to dig in to report data properly.
 
 \section{Selected Meters and Metrics}\label{Selected Meters and Metrics}
 Computing Resource Utilization Meter
@@ -2100,6 +2110,18 @@ I expect to see differences in various metrics. Using all the other selected met
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Experiment results}\label{Experiment results}
 
+\section{Run Benchmark overview}
+
+table:
+load 200 x 120 = 24k
+buildup 1x 120 = 120 s
+
+lasted for 90 minutes
+
+avg number of requests per user - 350 (one every ~21 seconds)
+
+avg number of broadcast messages received by each user
+
 \section{Baseline Architecture}
 
 \section{Proposed Architecture I}
@@ -2113,14 +2135,25 @@ latencies are blocking for the server in case of architecture II and III, wherea
 
 read replicas scale only reades, our app farely write intensive
 
+\section{Client Report}
+
+paste one here
+
+screenshot of the tree with reports
+
+\subsection{Aggregation}
+
+\subsubsection{Latencies by region}
+They differ much - provide a comparison by region.
+
+\section{Sample Server Report}
+
 \section{Additional Observations}
 
 splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
 
 backup by table from lab notes 21.07
 
-\section{Latencies by region}
-They differ much - provide a comparison by region.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
