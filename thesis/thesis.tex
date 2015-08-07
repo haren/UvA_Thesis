@@ -2214,7 +2214,9 @@ Computing Resource Utilization Meter
     INPUTING PERCENTAGES, SO FOR 15.52\% IT'S 15.52.
 
 System Performance Meter, with inputs:
-LONG TAILS SO USING 98 OERCENTILES?
+  LONG TAILS SO USING 98 OERCENTILES.
+
+  MEGABYTES USED FOR BETTER READABILITY
   Handshaking latency, compiled over all client WebSockets on all client instances, collected through our suite,
   Request handling latency, compiled over all client WebSockets on all client instances, collected through our suite,
   Broadcast latency, compiled over all client WebSockets on all client instances, collected through our suite,
@@ -2226,6 +2228,11 @@ LONG TAILS SO USING 98 OERCENTILES?
     mysql reports throughput / s so this * 60 gives the value
   Total network data out, compiled over all connections collected cloudwatch
     mysql reports throughput / s so this * 60 gives the value
+
+      computing using reverses of latencies cause they are negative values
+
+      don't have the benefit as in crum (latencies reported only globally so approximation).
+      but averages will be used to compare between architectures
 
 
 System Load Meter
@@ -2422,24 +2429,33 @@ System Performance Meter, with inputs:
  %                           'pooled_variance': 278044.6501492644,
  %                           'sample_count': 1066244,
  %                           'weighted_average': 128.2666444078466}},
- % 'global': {'broadcast_latency': {'max': 17935,
- %                                  'max_90': 372,
- %                                  'max_95': 1102,
- %                                  'max_98': 2631,
- %                                  'min': 6,
- %                                  'pooled_stddev': 176.2709338572403,
- %                                  'pooled_variance': 31071.44212290358,
- %                                  'sample_count': 43190400,
- %                                  'weighted_average': 302.60638171908573},
- %            'hanshaking': {'max': 15806,
- %                           'max_90': 372,
- %                           'max_95': 1102,
- %                           'max_98': 2631,
- %                           'min': 13,
- %                           'pooled_stddev': 174.40201146272554,
- %                           'pooled_variance': 30416.06160224465,
- %                           'sample_count': 23999,
- %                           'weighted_average': 671.3363473478062},
+% 'global': {'broadcast_latency': {'max': 17935,
+%                                   'max_90': 595,
+%                                   'max_95': 755,
+%                                   'max_98': 905,
+%                                   'min': 6,
+%                                   'pooled_stddev': 176.2709338572403,
+%                                   'pooled_variance': 31071.44212290358,
+%                                   'sample_count': 43190400,
+%                                   'weighted_average': 302.60638171908573},
+%             'hanshaking': {'max': 15806,
+%                            'max_90': 1318,
+%                            'max_95': 1333,
+%                            'max_98': 4152,
+%                            'min': 13,
+%                            'pooled_stddev': 174.40201146272554,
+%                            'pooled_variance': 30416.06160224465,
+%                            'sample_count': 23999,
+%                            'weighted_average': 671.3363473478062},
+%             'latency': {'max': 46019,
+%                         'max_90': 372,
+%                         'max_95': 1102,
+%                         'max_98': 2631,
+%                         'min': 3,
+%                         'pooled_stddev': 541.5009382907028,
+%                         'pooled_variance': 293223.26616971154,
+%                         'sample_count': 8449173,
+%                         'weighted_average': 291.5120331895204}},
  %            'latency': {'max': 46019,
  %                        'max_90': 372,
  %                        'max_95': 1102,
@@ -2558,6 +2574,28 @@ System Performance Meter, with inputs:
  %                           'sample_count': 1057975,
  %                           'weighted_average': 272.13254282946195}}}
 
+broadcast latency
+  min 6
+  weighetd\_avg 302
+  pooled\_stddev 176
+  max\_98 905
+  max 17935
+
+latency
+  min 3
+  weighetd\_avg 291
+  pooled\_stddev 541
+  max\_98 2631
+  max 46019
+
+handshaking
+  min 13
+  weighetd\_avg 671
+  pooled\_stddev 174
+  max\_98 4152
+  max 15806
+
+
    Total network data in (bytes)
     min 4727833
     avg 33620855
@@ -2568,6 +2606,10 @@ System Performance Meter, with inputs:
     avg 112251930
     max 338821638
     total 14705002960
+
+MIN 1/905 * 1 / 2631 * 1 / 4152 * 472783 * 21583 => 0.00439032465661
+AVG 1/302 * 1/291 * 1/671 * 33620855 * 112251930 => 1632.17798307
+MAX 1/6 * 1/3 * 1/13 * 43460504 * 338821638 => 1632.17798307
 
 System Load Meter
       Successful connections            23999
@@ -2752,33 +2794,33 @@ System Performance Meter, with inputs:
 %                            'pooled_variance': 3188902.168379232,
 %                            'sample_count': 540919,
 %                            'weighted_average': 8147.588132419087}},
-%  'global': {'broadcast_latency': {'max': 11697,
-%                                   'max_90': 3196827,
-%                                   'max_95': 3527434,
-%                                   'max_98': 3715669,
-%                                   'min': 8,
-%                                   'pooled_stddev': 162.18672005278168,
-%                                   'pooled_variance': 26304.532161479376,
-%                                   'sample_count': 10291391,
-%                                   'weighted_average': 293.797481312293},
-%             'hanshaking': {'max': 7412795,
-%                            'max_90': 3196827,
-%                            'max_95': 3527434,
-%                            'max_98': 3715669,
-%                            'min': 11,
-%                            'pooled_stddev': 1635168.875729538,
-%                            'pooled_variance': 2673777252154.601,
-%                            'sample_count': 13023,
-%                            'weighted_average': 1549675.66436305},
-%             'latency': {'max': 3878655,
-%                         'max_90': 3196827,
-%                         'max_95': 3527434,
-%                         'max_98': 3715669,
-%                         'min': 3,
-%                         'pooled_stddev': 170624.76377384693,
-%                         'pooled_variance': 29112810012.881065,
-%                         'sample_count': 589923,
-%                         'weighted_average': 90987.75715474732}},
+ % 'global': {'broadcast_latency': {'max': 11697,
+ %                                  'max_90': 842,
+ %                                  'max_95': 852,
+ %                                  'max_98': 1219,
+ %                                  'min': 8,
+ %                                  'pooled_stddev': 162.18672005278168,
+ %                                  'pooled_variance': 26304.532161479376,
+ %                                  'sample_count': 10291391,
+ %                                  'weighted_average': 293.797481312293},
+ %            'hanshaking': {'max': 7412795,
+ %                           'max_90': 5553974,
+ %                           'max_95': 6136985,
+ %                           'max_98': 6853492,
+ %                           'min': 11,
+ %                           'pooled_stddev': 1635168.875729538,
+ %                           'pooled_variance': 2673777252154.601,
+ %                           'sample_count': 13023,
+ %                           'weighted_average': 1549675.66436305},
+ %            'latency': {'max': 3878655,
+ %                        'max_90': 3196827,
+ %                        'max_95': 3527434,
+ %                        'max_98': 3715669,
+ %                        'min': 3,
+ %                        'pooled_stddev': 170624.76377384693,
+ %                        'pooled_variance': 29112810012.881065,
+ %                        'sample_count': 589923,
+ %                        'weighted_average': 90987.75715474732}},
 %  'sa-east-1': {'broadcast_latency': {'max': 1800,
 %                                      'max_90': 774,
 %                                      'max_95': 841,
@@ -2888,6 +2930,27 @@ System Performance Meter, with inputs:
 %                            'sample_count': 7162,
 %                            'weighted_average': 1084066.5287629154}}}
 
+broadcast latency
+  min 8
+  weighetd\_avg 293
+  pooled\_stddev 162
+  max\_98 1219
+  max 11697
+
+latency
+  min 3
+  weighetd\_avg 90987
+  pooled\_stddev 170624
+  max\_98 3715669
+  max 3878655
+
+handshaking
+  min 11
+  weighetd\_avg 1549675
+  pooled\_stddev 1635168
+  max\_98 6853492
+  max 7412795
+
   Total network data in (bytes)
     min 7714
     avg 24822428
@@ -2899,6 +2962,10 @@ System Performance Meter, with inputs:
     max 47679516
     total 12576723446
 
+
+MIN 1/1219 * 1 / 3715669 * 1 / 6853492 * 7714 * 5635 =>  1.58724680282e-05
+AVG 1/293 * 1/90987 * 1/1549675 * 33448732 * 24822428 => 359.06940249
+MAX 1/8 * 1/3 * 1/11 * 41564608 * 47679516 => 857.091315098
 
 System Load Meter
       Successful connections            13023
@@ -3066,20 +3133,22 @@ System Performance Meter, with inputs:
  %                           'pooled_variance': 1169478.671826534,
  %                           'weighted_average': 3932.501872017}},
  % 'global': {'broadcast_latency': {'max': 5667,
- %                                  'max_90': 1803013,
- %                                  'max_95': 2092834,
- %                                  'max_98': 2383959,
+ %                                  'max_90': 252,
+ %                                  'max_95': 275,
+ %                                  'max_98': 314,
  %                                  'min': 3,
  %                                  'pooled_stddev': 84.54735333142636,
  %                                  'pooled_variance': 7148.254955349053,
+ %                                  'sample_count': 18397714,
  %                                  'weighted_average': 141.95412332206055},
  %            'hanshaking': {'max': 5517715,
- %                           'max_90': 1803013,
- %                           'max_95': 2092834,
- %                           'max_98': 2383959,
+ %                           'max_90': 4565447,
+ %                           'max_95': 5047541,
+ %                           'max_98': 5511145,
  %                           'min': 10,
  %                           'pooled_stddev': 913436.7388889211,
  %                           'pooled_variance': 834366675952.0271,
+ %                           'sample_count': 15767,
  %                           'weighted_average': 733047.807509355},
  %            'latency': {'max': 2664879,
  %                        'max_90': 1803013,
@@ -3088,6 +3157,7 @@ System Performance Meter, with inputs:
  %                        'min': 5,
  %                        'pooled_stddev': 160809.15194625742,
  %                        'pooled_variance': 25859583349.674503,
+ %                        'sample_count': 796660,
  %                        'weighted_average': 82595.35185022469}},
  % 'sa-east-1': {'broadcast_latency': {'max': 5667,
  %                                     'max_90': 199,
@@ -3186,6 +3256,30 @@ System Performance Meter, with inputs:
  %                           'pooled_variance': 230001010471.0855,
  %                           'weighted_average': 732814.7552555875}}}
 
+
+broadcast latency
+  min 3
+  weighetd\_avg 141
+  pooled\_stddev 84
+  max\_98 252
+  max 5667
+
+latency
+  min 3
+  weighetd\_avg 733047
+  pooled\_stddev 913436
+  max\_98 5511145
+  max 3878655
+
+handshaking
+  min 5
+  weighetd\_avg 82595
+  pooled\_stddev 160809
+  max\_98 2383959
+  max 2664879
+
+
+
   Total network data in (bytes)
     min 50675
     avg 18198661
@@ -3196,6 +3290,11 @@ System Performance Meter, with inputs:
     avg 32868813
     max 383127725
     total 52524364120
+
+MIN 1/252 * 1 / 5511145 * 1 / 2383959 * 50675 * 21330 => 0.00044442910479
+AVG 1/141 * 1/733047 * 1/82595 * 18198661 * 32868813 =>  258.696583906
+MAX 1/3 * 1/3 * 1/5 * 40357232 * 47679516 => 832.195758052
+
 
 System Load Meter
       Successful connections            15767
