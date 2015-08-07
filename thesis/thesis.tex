@@ -1995,6 +1995,8 @@ The machine hosts:
 
 This architecture introduces no network overhead in terms of communication between system components, yet clients from across the globe have to connect to the remote server.
 
+All procesors at the EC2 instances are of type Intel Xeon E5-2680 v2 \footnote{\url{http://ark.intel.com/products/75277/Intel-Xeon-Processor-E5-2680-v2-25M-Cache-2_80-GHz}}.
+
 \subsection{Proposed Architecture I Implementation Details}\label{Proposed Architecture I Implementation Details}
 
 This Architecture consists of a 8 server machines (one per each region where clients connect from), single big redis and single big MySQL instances. Database instances are located in Ireland.
@@ -2120,8 +2122,8 @@ Each architecture was tested using the benchmark load specified in table \ref{ta
 \begin{tabular}{llll}
   \texttt{Value}          & \texttt{Each Client}        & \texttt{Number of Clients}  & \texttt{Total}\\
   \hline
-  Total concurrent users  & 200   & 120                     & 24000 \\
-  Connecting per second                     & 1   & 120                     & 120 \\
+  Total concurrent users  & 200                         & 120                         & 24000         \\
+  Connecting per second   & 1                           & 120                         & 120           \\
 \end{tabular}
 \end{center}
 \caption{Benchmark user load.}
@@ -2221,31 +2223,59 @@ Timestamp,Average,Maximum,Sum,SampleCount,Unit
 
 \section{Results and interpretation}
 
-COOL PYTHON TUPLE HANDLING HERE
+\subsection{Cloud Resources Utilization}
+To compared deployed architectures resource utilizaion, I use the \textit{Computing Resource Utilization Meter}.
+
+The meter has a value for every of the 94 measured system states. Every minute the following values are input into the meter:
+\begin{itemize}
+  \item \texttt{Server CPU Utilization}, compiled over all server instances + redis instances, for each instance $utilization percentage * number of cores$ is taken into computation (all processors are of the same speed - 2.8GHz), so the exact formula looks like this: $$util_{avg} = \sum_{i=1}^{n}(c*u) / \sum_{i=1}^{n}c$$ where $n$ is the number of instances, $c$ a number of cores on a given instance and $u$ utilization percentage of a given instance CPU.
+  \item \texttt{Memory Utilization}, compiled over all server instances + redis instances, computed as sum of total used memory divided by sum of total available memory,
+  \item \texttt{Disk Utilization}, compiled over all server instances + redis instances, computed as sum of total used disk space divided by sum of total available disk space.
+\end{itemize}
+
+It is worth noting that this means that the minimum CRUM value does not have to be comprised of minimum CPU, memory and disk utilizations. This would be the case only and only if all the minima happen at the same point in time.
+
+Each input is equal to the percentage value -so if a utilization is equal 15.52\%, the input will be 15.52. Results for the 3 compared architectures are presented in table \ref{table:crum}.
+
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Value}          & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II} \\
+  \hline
+  CPU min                 & 1.41000                 & 120                  & 24000                \\
+  CPU avg                 & 15.41234                         & 120                         & 24000         \\
+  CPU max                 & 17.57000                         & 120                         & 24000         \\
+  Available               & 32 * 2.8GHz                 & 120                  & 24000                \\
+  \hline
+  Memory min              & 6.46433                         & 120                         & 24000         \\
+  Memory avg              & 13.40652                         & 120                         & 24000         \\
+  Memory max              & 18.21367                         & 120                         & 24000         \\
+  Available               & 53.13884 (+/- 3GB) \\
+  \hline
+  Disk min                & 15.50860                         & 120                         & 24000         \\
+  Disk avg                & 16.55431                         & 120                         & 24000         \\
+  Disk max                & 18.64203                         & 120                         & 24000         \\
+  Available               & 118.04679(+/- 3GB) \\
+  \hline
+  \texttt{CRUM min}  & 56.82622                         & 120                         & 24000         \\
+  \texttt{CRUM avg}  & 298.30941                         & 120                         & 24000         \\
+  \texttt{CRUM max}  & 414.57287                         & 120                         & 24000         \\
+\end{tabular}
+\end{center}
+\caption{Resource utilization (all values in \%).}
+\label{table:crum}
+\end{table}
 
 Computing Resource Utilization Meter
-      Server CPU utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
 
-      min: for every minute, sum percentages * cores (and divide by the number of instances), pick min
-      min: for every minute, sum percentages * cores (and divide by the number of instances), pick avg
-      min: for every minute, sum percentages * cores (and divide by the number of instances), pick max
+MIN 56.8262225469
+AVG 298.3094056
+MAX 414.572872373
 
 
-      Memory utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
 
-      min: for every minute, sum memory available, sum memory used, used / available , pick min
-      min: for every minute, sum memory available, sum memory used, used / available , pick avg
-      min: for every minute, sum memory available, sum memory used, used / available , pick max
 
-      Disk utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
 
-      min: for every minute, sum space available, sum space used, used / available , pick min
-      min: for every minute, sum space available, sum space used, used / available , pick avg
-      min: for every minute, sum space available, sum space used, used / available , pick max
-
-    Computed at every minute, min / max / avg selected - THAT DOES NOT NECESSARILY MEAN IT IS LIKE THAT FOR EACH CASE - THAT 3 MINS GIVE MIN CRUM - THEY MIGHT HAPPEN AT DIFFERENT MOMENTS
-
-    INPUTING PERCENTAGES, SO FOR 15.52\% IT'S 15.52.
 
 System Performance Meter, with inputs:
   LONG TAILS SO USING 98 OERCENTILES.
@@ -2330,29 +2360,6 @@ Effective System Scalability
 
 \section{Baseline Architecture}
 [TODO data in github repo link]
-
-Computing Resource Utilization Meter
-      Server CPU utilization
-        min:  1.41000
-        avg: 15.41234
-        max: 17.57000
-        available total: 32 cores, 2.8GHz (move to architeture details - Intel Xeon E5-2680 v2)
-
-      Memory utilization
-        min: 6.46433
-        avg: 13.40652
-        max: 18.21367
-        available total: 53.13884 (GB +/- 3GB)
-
-      Disk utilization
-        min: 15.50860
-        avg: 16.55431
-        max: 18.64203
-        available total: 118.04679 (averaged out, varying between 115-119GB)
-
-MIN 56.8262225469
-AVG 298.3094056
-MAX 414.572872373
 
 System Performance Meter, with inputs:
 broadcast latency
