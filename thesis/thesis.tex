@@ -2254,22 +2254,8 @@ System Load Meter
 
       manual
 
-
-System Effective Capacity Meter
-  System Load Meter output,
-
-  min avg max
-
-  System Performance Meter output,
-
-  min avg max
-
-  Computing Resource Utilization Meter,
-
-  min avg max
-
-  COST:
-    ~500\$ the whole test process; skipped client costs here
+COST ESTIMATIONS
+      ~500\$ the whole test process; skipped client costs here
     only running costs (no setup - copying images etc., volume creation)
     monthly costts taken down to hourly assuming 30 days in a month
     some approximations
@@ -2282,6 +2268,20 @@ System Effective Capacity Meter
     data out
     detailed monitoring
     route53
+
+System Effective Capacity Meter
+  System Load Meter output
+  REDUCED BY $10^{12}$
+
+  System Performance Meter output,
+
+  min avg max
+
+  Computing Resource Utilization Meter,
+
+  min avg max
+
+  1/ COST
 
 
 Effective Scalable Range
@@ -2609,7 +2609,7 @@ handshaking
 
 MIN 1/905 * 1 / 2631 * 1 / 4152 * 472783 * 21583 => 0.00439032465661
 AVG 1/302 * 1/291 * 1/671 * 33620855 * 112251930 => 1632.17798307
-MAX 1/6 * 1/3 * 1/13 * 43460504 * 338821638 => 1632.17798307
+MAX 1/6 * 1/3 * 1/13 * 43460504 * 338821638 => 6368.4323814
 
 System Load Meter
       Successful connections            23999
@@ -2618,22 +2618,21 @@ System Load Meter
       Redis database misses             312581
       MySQL query count                 33158053
 
-SLM = 2.13832405204e+14
+SLM = 200.13832405204e+12
 
 System Effective Capacity Meter
-  System Load Meter output,
-
-  min avg max
-
+  System Load Meter output
+    200.138
   System Performance Meter output,
-
-  min avg max
-
-  Computing Resource Utilization Meter,
-
-  min avg max
-
-  Cost per hour:
+    MIN 0.00439032465661
+    AVG 1632.17798307
+    MAX 6368.4323814
+  Computing Resource Utilization Meter
+    MIN 56.8262225469
+    AVG 298.3094056
+    MAX 414.572872373
+  HOW MANY HOURS ON A DOLLAR:
+    1/2.486
     ec2 1.912\$ 
     ebs storage 140 GB * 0.138 / 30 / 24 (to get to an hour from mont) + 4000 * 0.072 /30 / 24 (provisioned IOPS)
       = .42\$
@@ -2643,7 +2642,9 @@ System Effective Capacity Meter
     detailed monitoring 3.5 / 24 /30 ~= 0.005\$
     route53 0
       2.486\$
-
+MIN 200.138 * 0.00439032465661 * 56.8262225469 * 1/2.486 => 52.2463433755
+AVG 200.138 * 1632.17798307 * 298.3094056 * 1/2.486 => 406877.691455
+MAX 200.138 * 6368.4323814 * 414.572872373 * 1/2.486 => 1957495.94694
 
 Effective Scalable Range
   System Effective Capacity Meter output,
@@ -2975,22 +2976,25 @@ System Load Meter
       Redis database misses             23514
       MySQL query count                 2343338
 
-SLM = 1.46401624445e+11
-
+SLM = .146401624445e+12
 
 System Effective Capacity Meter
-  System Load Meter output,
-
-  min avg max
+  System Load Meter output
+    .146401624445
 
   System Performance Meter output,
 
-  min avg max
+  0,00001587246803
+  359.06940249
+  857.091315098
 
   Computing Resource Utilization Meter,
 
-  min avg max
+  MIN 24.7454679399
+  AVG 63.0451431781
+  MAX 69.0270406427
 
+  Cost
     ec2 8 x .025 + .0171 (redis)
     ebs storage 140 GB * 0.138 / 30 / 24 (to get to an hour from mont) + 4000 * 0.072 /30 / 24 (provisioned IOPS)
       * 9 instances + (mysql) 100GB * 0.138 / 30 / 24 + 1000 * 0.072 /30 / 24 = 3.899\$
@@ -3000,6 +3004,10 @@ System Effective Capacity Meter
     detailed monitoring 3.5 / 24 /30 * 9 ~= 0.045\$
     route53 0.014
       6,864
+
+MIN .146401624445, 0,00001587246803, 24.7454679399, 1/6,864 => 1.8134164845
+AVG .146401624445, 359.06940249, 63.0451431781, 1/6,864 => 11349.678231
+MAX .146401624445, 857.091315098, 69.0270406427,  1/6,864 => 29649.0171593
 
 
 Effective Scalable Range
@@ -3309,17 +3317,18 @@ System Load Meter
 SLM =2.19933428943e+12
 
 System Effective Capacity Meter
-  System Load Meter output,
-
-  min avg max
+  System Load Meter output
+    2.19933428943
 
   System Performance Meter output,
-
-  min avg max
-
+    MIN 0.00044442910479
+    AVG  258.696583906
+    MAX 832.195758052
   Computing Resource Utilization Meter,
+    MIN 29.7197596499
+    AVG 74.8788265308
+    MAX 85.6387243439
 
-  min avg max
 
   Cost (per h)
 
@@ -3333,6 +3342,9 @@ System Effective Capacity Meter
     route53 0.014
       6,658
 
+MIN 2.19933428943, 0.00044442910479, 29.7197596499, 1/6.658 =>  2.40414109529
+AVG 2.19933428943, 258.696583906, 74.8788265308, 1/6.658 => 9975.71683594
+MAX 2.19933428943, 832.195758052, 85.6387243439,  1/6.658 => 36555.8263248
 
 Effective Scalable Range
   System Effective Capacity Meter output,
@@ -3410,6 +3422,8 @@ WE DON'T NEED A LOT OF USERS BUT WE ARE ALSO BAD AT UTILIZING RESOURCES
 Data Locality for the server matters tremendously if you do not have truly async i/o driven solution
 
 when publihsing make sure to batch your data in a sensible way
+
+models massive differences because of the system limit
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
