@@ -2203,12 +2203,15 @@ Computing Resource Utilization Meter
       min: for every minute, sum memory available, sum memory used, used / available , pick avg
       min: for every minute, sum memory available, sum memory used, used / available , pick max
 
-
       Disk utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
 
       min: for every minute, sum space available, sum space used, used / available , pick min
       min: for every minute, sum space available, sum space used, used / available , pick avg
       min: for every minute, sum space available, sum space used, used / available , pick max
+
+    Computed at every minute, min / max / avg selected - THAT DOES NOT NECESSARILY MEAN IT IS LIKE THAT FOR EACH CASE - THAT 3 MINS GIVE MIN CRUM - THEY MIGHT HAPPEN AT DIFFERENT MOMENTS
+
+    INPUTING PERCENTAGES, SO FOR 15.52\% IT'S 15.52.
 
 System Performance Meter, with inputs:
 LONG TAILS SO USING 98 OERCENTILES?
@@ -2305,6 +2308,10 @@ Computing Resource Utilization Meter
         avg: 16.55431
         max: 18.64203
         available total: 118.04679 (averaged out, varying between 115-119GB)
+
+MIN 56.8262225469
+AVG 298.3094056
+MAX 414.572872373
 
 System Performance Meter, with inputs:
  % {'ap-northeast-1': {'broadcast_latency': {'max': 6325,
@@ -2615,9 +2622,9 @@ latencies are blocking for the server in case of architecture II and III, wherea
 
 Computing Resource Utilization Meter
       Server CPU utilization
-        min: 0.11000
-        avg: 2.45823
-        max: 10.29000
+        min: 0.16000
+        avg: 4.72781
+        max: 5.45352
         available total: 8 x 4 + 2 (redis) + 16 MYSQL = 50 cores, 2.8GHz (move to architeture details - Intel Xeon E5-2680 v2)
 
       Memory utilization
@@ -2631,6 +2638,10 @@ Computing Resource Utilization Meter
         avg: 14.58421
         max: 14.58616
         available total: 118.04679 (averaged out, varying between 115-119GB)
+
+MIN 24.7454679399
+AVG 63.0451431781
+MAX 69.0270406427
 
 System Performance Meter, with inputs:
 % {'ap-northeast-1': {'broadcast_latency': {'max': 1476,
@@ -2936,9 +2947,9 @@ Effective System Scalability
 
 Computing Resource Utilization Meter
       Server CPU utilization
-        min: 0.10000
-        avg: 5.85399
-        max: 23.33000
+        min: 0.99950
+        avg: 5.89334
+        max: 6.63933
         available total: 8 * 8 + 1 + 8 64 cores, 2.8GHz (move to architeture details - Intel Xeon E5-2680 v2)
 
       Memory utilization
@@ -2952,6 +2963,10 @@ Computing Resource Utilization Meter
         avg: 14.37806
         max: 14.43662
         available total: 118.04679 (averaged out, varying between 115-119GB)
+
+MIN 29.7197596499
+AVG 74.8788265308
+MAX 85.6387243439
 
 System Performance Meter, with inputs:
  % 'ap-northeast-1': {'broadcast_latency': {'max': 4993,
