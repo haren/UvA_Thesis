@@ -2180,9 +2180,9 @@ Broadcast Latency    9       10      10      10      11      12      13      14 
 \end{sourcecode}
 
 \section{Sample Server Report}
-Each metric for each server is reported in a separate CSV file \ref{lstlisting:memutilsrv}.
+Each metric for each server is reported in a separate CSV file \ref{lstlisting:memutilsrv}. The metrics are collected with the finest granularity possible - every 1 minute. This is why minimum, average, maximum and sum values do not differ. They would only if the requested data granularity was bigger than collection granularity - in my case both are equal 1 minute.
 
-MIN MAX AVERAGE ALWAYS THE SAME CAUSE I USED THE MOST GRNAULAR SAMPLING (5 MINUTES INSTEAD OF 1 AND YOU'LL GET DIFFERENCES)
+Each server metric calculation are based on 94 data points - for 94 minutes of the benchmark, starting at the minute when the benchmark run was started.
 
 \begin{sourcecode}[H]
 \begin{lstlisting}[style=mono]
@@ -2197,17 +2197,31 @@ Timestamp,Average,Maximum,Sum,SampleCount,Unit
 \label{lstlisting:memutilsrv}
 \end{sourcecode}
 
+\subsection{Cloudwatch metrics discrepancy}
+
+For some metrics, such as memory or disk usage, Cloudwatch offers utilization (\%), available total and used total quantity. I have noticed that there exist some discrepancies between the 3 values. An example can be found in listing \ref{lstlisting:clouddiscr}. Cloudwatch reports 3123.859375 used and 57097.76953125 available memory. The ratio of these values is equal $3123.859375 / 57097.76953125 = 0,05471070763$, yet utilization reports 5.187\% instead of 5.471\%. This is why I decided \texttt{not} to use utilization values, and compute ratios for each of the metric. This is necessary for computing system averages anyway - to compute average deployed system memory utilization, I cannot average out the utilization percentages - all available values of all instances have to be added together, as do used values, and then a ratio of \textit{total used/total available} can be computed.
+
+\begin{sourcecode}[H]
+\begin{lstlisting}[style=mono]
+# Memory utilization
+Timestamp,Average,Maximum,Sum,SampleCount,Unit
+2015-07-24 17:58:00,5.18727146996151,5.18727146996151,5.18727146996151,5.18727146996151,1.0,Percent
+
+# Memory available
+Timestamp,Average,Maximum,Sum,SampleCount,Unit
+2015-07-24 17:58:00,57097.76953125,57097.76953125,57097.76953125,57097.76953125,1.0,Megabytes
+
+# Memory used
+Timestamp,Average,Maximum,Sum,SampleCount,Unit
+2015-07-24 17:58:00,3123.859375,3123.859375,3123.859375,3123.859375,1.0,Megabytes
+\end{lstlisting}
+\caption{Cloudwatch reporting discrepancy.}
+\label{lstlisting:clouddiscr}
+\end{sourcecode}
+
 \section{Results and interpretation}
 
-EXPLAIN HOW SERVER DATA IS CUT OUT - 200 + 90 * 60 + 120, EVERY MINUTE WE HAVE VALUES
-
-FOR EACH MIN AVG + MAX
-
 COOL PYTHON TUPLE HANDLING HERE
-
-94 DATA POINTS FOR EACH SERVER
-
-DESCTIBE AMAZON METRIC REPORTING DISCREPANCY
 
 Computing Resource Utilization Meter
       Server CPU utilization, compiled over all server instances + redis instance and RDS instance where applicable, collected through cloudwatch,
