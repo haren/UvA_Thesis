@@ -477,7 +477,7 @@ With the rise of global internet services, single applications have to server us
 The topic is nicely introduced by Tom Leighton in his article \textit{Improving performance of the internet} \cite{Akamai}. He provides a few arguments why it is important to keep data as close to end users as possible. Apart from obvious latency benefits, by doing this, one reduces the chances of suffering from a big \textit{middle mile} provider outage.
 He introduces a scale to reason about internet locality.
 
-\begin{table}[h]
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{llll}
   \texttt{Scale Name}       & \texttt{Range}        & \texttt{Latency Range}  & \texttt{Typical Packet Loss}\\
@@ -2111,17 +2111,37 @@ Measuring the speed of scaling up and down proved to be very difficult and was e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Experiment results}\label{Experiment results}
 
-\section{Run Benchmark overview}
+\section{Executed Benchmark Overview}
 
-table:
-load 200 x 120 = 24k
-buildup 1x 120 = 120 s
+Each architecture was tested using the benchmark load specified in table \ref{table:benchload}.
 
-lasted for 90 minutes
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Value}          & \texttt{Each Client}        & \texttt{Number of Clients}  & \texttt{Total}\\
+  \hline
+  Total concurrent users  & 200   & 120                     & 24000 \\
+  Connecting per second                     & 1   & 120                     & 120 \\
+\end{tabular}
+\end{center}
+\caption{Benchmark user load.}
+\label{table:benchload}
+\end{table}
 
-avg number of requests per user - 350 (one every ~21 seconds)
+Benchmark run lasted exactly $200 + 90 * 60 = 5600s (93.3min)$ and its message load is specified in table \ref{table:benchload2}.
 
-avg number of broadcast messages received by each user
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Value}          & \texttt{Total Number}        & \texttt{One per period of (s)} \\
+  \hline
+  Average number of requests per user  & 350   & 21\\
+  Average number of received broadcast messages  & 1800   & 3                     \\
+\end{tabular}
+\end{center}
+\caption{Benchmark message load.}
+\label{table:benchload2}
+\end{table}
 
 \section{Sample Client Report}\label{Client Report}
 Each client generating load during the benchmark run provides a report like the one on listing REF.
