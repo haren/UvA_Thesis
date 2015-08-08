@@ -2302,82 +2302,52 @@ For the minimum meter value, 98th percentile latencies and min network values we
 \begin{tabular}{llll}
   \texttt{Value}                & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II} \\
   \hline
-  Broadcast lat. min            & 6                   & 8              & 0.99950              \\
-  Broadcast lat. weighted avg   & 302                 & 293              & 5.89334              \\
-  Broadcast lat. pooled stddev  & 176                 & 162              & 5.89334              \\
-  Broadcast lat. 98th           & 905                 & 1219              & 6.63933              \\
-  Broadcast lat. max            & 17935               & 11697              & 6.63933              \\
+  Broadcast lat. min            & 6                   & 8                    & 3              \\
+  Broadcast lat. weighted avg   & 302                 & 293                  & 141              \\
+  Broadcast lat. pooled stddev  & 176                 & 162                  & 84              \\
+  Broadcast lat. 98th           & 905                 & 1219                 & 252              \\
+  Broadcast lat. max            & 17935               & 11697                & 5667              \\
   \hline
-  Request lat. min              & 3                   & 3              & 3.54456              \\
-  Request lat. weighted avg     & 291                 & 90987              & 4.34030              \\
-  Request lat. pooled stddev    & 541                 & 170624              & 4.34030              \\
-  Request lat. 98th             & 2631                & 3715669              & 4.90962              \\
-  Request lat. max              & 46019               & 3878655              & 4.90962              \\
+  Request lat. min              & 3                   & 3                    & 3              \\
+  Request lat. weighted avg     & 291                 & 90987                & 733047              \\
+  Request lat. pooled stddev    & 541                 & 170624               & 913436              \\
+  Request lat. 98th             & 2631                & 3715669              & 5511145              \\
+  Request lat. max              & 46019               & 3878655              & 3878655              \\
   \hline
-  Handshake lat. min            & 13                  & 11             & 14.32463             \\
-  Handshake lat. weighted avg   & 671                 & 1549675             & 14.37806             \\
-  Handshake lat. pooled stddev  & 174                 & 1635168              & 4.34030              \\
-  Handshake lat. 98th           & 4152                & 6853492             & 14.43662             \\
-  Handshake lat. max            & 15806               & 7412795             & 14.43662             \\
+  Handshake lat. min            & 13                  & 11                   & 5             \\
+  Handshake lat. weighted avg   & 671                 & 1549675              & 82595             \\
+  Handshake lat. pooled stddev  & 174                 & 1635168              & 160809              \\
+  Handshake lat. 98th           & 4152                & 6853492              & 2383959             \\
+  Handshake lat. max            & 15806               & 7412795              & 2664879             \\
   \hline
-  Network in min                & 4.5MB               & 0.56MB             & 14.32463             \\
-  Network in avg                & 32.06MB             & 36.71MB             & 14.32463             \\
-  Network in max                & 41.44MB             & 41.51MB             & 14.32463             \\
-  Network in total              & 2.91GB              & 3.37GB             & 14.32463             \\
+  Network in min                & 4.5MB               & 0.56MB               & 1.16MB             \\
+  Network in avg                & 32.06MB             & 36.71MB              & 154.48MB             \\
+  Network in max                & 41.44MB             & 41.51MB              & 166.15MB             \\
+  Network in total              & 2.91GB              & 3.37GB               & 13.88GB             \\
   \hline
-  Network out min               & 60.85MB             & 0.87MB             & 14.32463             \\
-  Network out avg               & 147.70MB            & 45.68MB             & 14.32463             \\
-  Network out max               & 323.15MB            & 52.15MB             & 14.32463             \\
-  Network out total             & 13.56GB             & 4.19GB             & 14.32463             \\
+  Network out min               & 60.85MB             & 0.87MB               & 12.28MB             \\
+  Network out avg               & 147.70MB            & 45.68MB              & 418.88MB             \\
+  Network out max               & 323.15MB            & 52.15MB              & 550.27MB             \\
+  Network out total             & 13.56GB             & 4.19GB               & 36.81GB             \\
   \hline
-  \texttt{SPM min}              & 130.46082           & 0.23341             & 29.71976         \\
-  \texttt{SPM avg}              & 2251.85501          & 797.62981             & 74.87883         \\
-  \texttt{SPM max}              & 6368.43238          & 1029.5834             & 85.63872         \\
+  \texttt{SPM min}              & 130.46082           & 0.23341              & 6.79360         \\
+  \texttt{SPM avg}              & \texttt{2251.85501} & \text{797.62981}     & \text{30771.49954}         \\
+  \texttt{SPM max}              & 6368.43238          & 1029.5834            & 43476.89380         \\
 \end{tabular}
 \end{center}
 \caption{System performance (latency values in ms, network values per minute (except for total)).}
 \label{table:spm}
 \end{table}
 
+Huge differences manifest themselves between the architectures when it comes to performance. Request handling and handshaking latencies in proposed architectures grow to levels unnaceptable by any system.
 
-broadcast latency
-  min 3
-  weighetd\_avg 141
-  pooled\_stddev 84
-  max\_98 252
-  max 5667
+Interestingly, broadcast latencies are not affected in the same way by the architure changes. The reason for that is that broadcasting load stays constant among the architectures and is done, on a server side, by a separate thread. So, even if the WebSocket server is not keeping up with handling the requests (as is the case in proposed architures), broadcasting is performed without delays.
 
-latency
-  min 3
-  weighetd\_avg 733047
-  pooled\_stddev 913436
-  max\_98 5511145
-  max 3878655
+Differences in data transfers result from different topologies. Proposed architectures have a lot of internal data transfer (especially the II one with mysql and redis automatic read replication), baseline architecture has none. Since baseline architecture sustains more users, the broadcast messages it sends out are bigger; hence the increased data transfered out values (in comparison with Proposed architecture I).
 
-handshaking
-  min 5
-  weighetd\_avg 82595
-  pooled\_stddev 160809
-  max\_98 2383959
-  max 2664879
+The values of the SPM meter are somewhat misleading - Proposed architecture II achieves highest average value (because of the higher data transfers), yet objectively the only architecture with acceptable performance is the baseline architecture.
 
-
-
-  Total network data in (bytes)
-    min 50675
-    avg 18198661
-    max 40357232
-    total 29045063883
-  Total network data out (bytes)
-    min 21330
-    avg 32868813
-    max 383127725
-    total 52524364120
-
-MIN 1/252 * 1 / 5511145 * 1 / 2383959 * 50675 * 21330 => 0.00044442910479
-AVG 1/141 * 1/733047 * 1/82595 * 18198661 * 32868813 =>  258.696583906
-MAX 1/3 * 1/3 * 1/5 * 40357232 * 47679516 => 832.195758052
-
+[TODO] plot spm.
 
 \subsection{System Load Meter}
       Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
