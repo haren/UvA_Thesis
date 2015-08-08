@@ -2639,21 +2639,28 @@ Following threats to validity have been identified:
 \end{itemize}
 
 \section{Host Company Benefits}
-even though primary question  not fully answered, massive bottlenecks identified
-- measerment suite for further improvements
-- real time telemetry introduced into the system
-- system performance objectively improved along the process, bottlenecks identified
-- cloud management suite
+Even though primary question has only been answered in scope of current system limitations, the research has already yielded multiple benefits for the host company (and hopefully will continue doing so):
+\begin{itemize}
+  \item Massive systems bottlenecks have been introduced, solutions designed and implemented.
+  \item Measurement and loat test suite can be used in the future to benchmark further architecture improvements.
+  \item A Baseline for further tests has been established; now, when a company switches to some other data solution (such as DynamoDB), there is a way to verify if the promised improvement is actually hapenning.
+  \item A real-time telemetry has been added to the system. The distributed servers report metrics that can be viewed in real time.
+  \item A cloud orchestration suite has been implemented - whenever a system architecture changes, the tools to deploy the updated architecture are available.
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 the journey continues (25 => 24000 => 10.000.000), nice logarithmic scale
 system needs to sustain loads orders of magnitude higher than 25k
 varying user distributions per region
 dynamodb, CLUSTERS
 improvement to the models so that weighs can be added to the scalability meteres according to preferences, so that they are not that sensitive
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 {%\tiny
 \bibliographystyle{alphaurl}
