@@ -1127,7 +1127,7 @@ Since all the meters above use the values sampled over a period of time as input
 \label{figure:sec}
 \end{figure}
 
-\subsubsection{Effective Scalable Range (ESR)}
+\subsubsection{Effective System Scalability (ESS)}
 \begin{center}
   $$ESS = [SL(t) / SL_{min}] / [SEC(t) / SEC_{min}]$$
 \end{center}
@@ -1135,7 +1135,7 @@ Since all the meters above use the values sampled over a period of time as input
   \texttt{$SL(t)$} - represents system load based on SLM, \\*
   \texttt{$SEC(t)$} - represents system effective capacity based on SEC. \\*
 
-\subsubsection{Effective System Scalability (ESS)}
+\subsubsection{Effective Scalable Range (ESR)}
 \begin{center}
   $$ESR = (SEC_{max} - SEC_{min})$$
 \end{center}
@@ -1271,14 +1271,10 @@ I selected the following scalability meters and metrics for their inputs:
       \item Computing Resource Utilization Meter,
       \item Estimated cost of running a given architecture setup for a given unit of time (this is my own addition to the model from literature \cite{Models})
     \end{itemize}
-  \item \texttt{Effective Scalable Range}, with inputs:
+  \item \texttt{Effective Scalable Scalability}, with inputs:
     \begin{itemize}
       \item System Effective Capacity Meter output,
       \item System Load Meter output,
-    \end{itemize}
-  \item \texttt{Effective System Scalability}, with inputs:
-    \begin{itemize}
-      \item Effective Scalable Range Meter output.
     \end{itemize}
 \end{enumerate}
 
@@ -1310,7 +1306,7 @@ Another way to have finer control over hardware in the cloud (in AWS case) is to
 The clocks on all machines are synchronised using the Network Time Protocol\footnote{\url{http://www.ntp.org/}}. All NTP daemons were synchronised with Amazon's NTP servers.
 
 \section{Expected Answers}\label{Expected Answers}
-I am going to use the \textit{Effective System Scalability} and \textit{Effective Scalable Range} meters to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
+I am going to use the \textit{Effective System Scalability} meter to perform a quantifiable comparison of the deployed architectures \ref{Compared Architectures}.
 
 I expect to see differences in various metrics. Using all the other selected meters, I will be able to reason about specific factors of scalability (such as cost or message handling latency).
 
@@ -2476,108 +2472,112 @@ It is measured using System Effective Capacity Meter extended with the cost fact
 \end{tabular}
 \end{center}
 \caption{System cost-adjusted effective capacity.}
-\label{table:cost}
+\label{table:sec}
 \end{table}
 
-Again, second proposed architecture achieves the best result according to the SEC meter so the results need to be taken in with a grain of salt. This is the propagated consequence of the high performance meter values for this architecture caused by high data transfers.
+Again, second proposed architecture achieves the best result according to the SEC meter so the results need to be taken in with a grain of salt \ref{table:sec}. This is the propagated consequence of the high performance meter values for this architecture caused by high data transfers.
 
 [TODO] plot SEC.
 
 \subsection{Effective Scalability}
-Effective Scalable Range
-  System Effective Capacity Meter output,
-      min avg max
-  System Load Meter output, => PERFORMANCE!!!!
-      min avg max
+I apply a change to the original model. Since I do not have a range of System Load Meter values, I use System Performance Meter values instead.
 
-Effective System Scalability
-      Effective Scalable Range Meter output.
-        min max
+\subsubsection{Effective System Scalability}
+I compute the Effective System Scalability as follows:
+
+$$ESS = (SPM_{max} - SPM_{min}) / (SEC_{max}-SEC_{min})$$
+
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Metric}               & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II}  \\
+  \hline
+  SPM min                       & 130.46082           & 0.23341              & 6.79360                 \\
+  SPM max                       & 6368.43238          & 1029.5834            & 43476.89380                 \\
+  \hline
+  SEC min                       & 16,814.25           & 4.75                 & 110.66         \\
+  SEC max                       & 1,957,497.59        & 35,615.04            & 1,909,469.13         \\
+  \hline
+  \texttt{ESS}                   & \texttt{0.00321}     & \texttt{0.0289}      & \texttt{0.02277}
+\end{tabular}
+\end{center}
+\caption{Effective System Scalability.}
+\label{table:ess}
+\end{table}
+
+Contrary to original expectations, the model does not provide useful insight to the performance of architectures. It informs about the difference between top and worst performance of each architecture.
+
+It also shows that models are rather sensitive to input values. For instance, the increased internal transfer in Proposed architecture II strongly influences all the derivative models based on System Performance Meter.
+
+The model could more useful when different loads are applied on the same architecture.
 
 \section{General Interpretation}
 
-BLOCKING DB DRIVERS
+According to all primary metrics Baseline architecture performs best, followed by the 2nd proposed architecture and the 1st proposed architecture performing worst.
 
-ASYNC STUFF GOES HERE
+The cause of such state of affairs is the combination of WebSocket server technology and database drivers that are used in the tested system \ref{The System Under Test}. The System runs Tornado, which is single-threaded. Without fully asynchronous and non-blocking I/O operations, system scalability is severely limited. Our database drivers have proven not to be fully non-blocking, which seems like a foreseable thing, and yet it wasn't discovered until the benchmark runs. The issue only manifests itself when data source is not located in server's proximity. This is when network latencies are added to each database query and, because of that, request handling times escalate.
 
-II BETTER THAN I - READS LOCAL AT LEAST
+A sample use case demonstrates the behaviour: 1000 users connecting from Sydney to Ireland at the same time. Let us assume a latency of the Sydney-Ireland roundtrip to be 1000ms, and the database query handling time to be 1ms.
 
-DERIVATIVE MODELS ALL OVER THE PLACE
+If the server is connected in the same data center as the database (as is the case in baseline architecture), all users arrive at the same time (more or less). First user's request is handled in 1ms, second user's in 2ms (the 1st millisecond was used for handling the 1st user's query, the server process was blocked), third user in 3ms and so on. On average, the thousand users are server with a latency of ~1500ms (1000ms for a Sydney-Ireland roundtrip) and 500ms as an average time before the database query can run (best case scenario is 1ms, worst case 1000ms). After 1000ms, the server has finished serving all the requests, and if another 1000 arrive next second, it will handle all of them too. This is a sustainable setup.
 
-\section{Baseline Architecture}
-[TODO data in github repo link]
+[TODO DIAGRAM OF THAT]
 
-Effective System Scalability
-  System Effective Capacity Meter output,
-      MIN 52.2463433755
-      AVG 406877.691455
-      MAX 1957495.94694
-  System Performance Meter output,
-      MIN  0.00439032465661
-      avg 1632.17798307
-      max 6368.4323814
+When the server is moved to Sydney, but the data source stays in Ireland, the flow is changed. When 1000 users send a request at the same time, all of them arrive at their local server (let's assume) instantly. First user is serverd in 1001ms (1ms database query + 1000ms roundtrip latency), second user is served in 2001 ms (initial 1000ms the server was blocked for the first user's blocking database query), third user in 3001 ms, etc. On average, the thousand users are serverd with a latency of around \texttt{500,000ms}. And this is just for the first round of requests. If another 1000 arrive at the second second, the latencies experienced by these users will be even higher. This is obviously not sustainable, yet this is the setup proposed architectures introduced - II proposed architectures to a lesser extent, since only database writes were done on a remote database, reads were performed on a local replica.
 
-  (SP\_MAX) - (SP\_MIN) / (SEC\_MAX-SEC\_MIN) => (6368.4323814 - 0.00439032465661) / (1957495.94694 - 52.2463433755) = 0.0032534412
+An attempt was made to replace the database drivers, yet this is no trivial task. One cannot simply code asynchronicity around the intrinsically synchronous calls. Nevertheless, the drivers were fully replaced with asynchronous ones, but another issue cropped up when this was performed.
 
-Effective Scalable Range
-      Effective Scalable Range Meter output.
-        MAX - MIN = 1957495.94694 - 52.2463433755 = 1957443.7006
-        MAX / MIN = 1957495.94694 / 52.2463433755 = 37466.6593004
+The server was now capable of serving users in an asynchronous manner, provided that there was no more than one asynchronous operation in each execution flow. Unfortunately, this is not alawys the case with the tested system. Listing \ref{lstlisting:async} explains the 3 cases: fully-synchronous, asynchronous working and asynchronous not working entirely as intended.
 
+\begin{sourcecode}[H]
+\begin{lstlisting}[style=mono, language=Python]
+# WebSocketHandler class
 
-\section{Proposed Architecture I}
-DROPBOX 2\_2
-[TODO data in github repo link]
-latencies are blocking for the server in case of architecture II and III, whereas in I they happen outside of server handling and are parallelized. Db calls are blocking, so if the cross-region latency is a 100ms it all hapens on server-db BLOCKING and paralyzes the communication; that's why all metrics blow up
-[TODO diagram]
-[TODO prove with time loops simple db.add\_prediction()]
+# synchronous
+def handle_message(self, message):
+    value = self.db(get_value)
+    # the whole process is blocked until the query above returns
+    return self.write(value)
 
+# asynchronous working
+@tornado.gen.engine
+@tornado.web.asynchronous
+def handle_message_async(self, message, callback):
+    value = yield tornado.gen.Task(self.db, get_value)
+    # execution of the flow stops here, but is not blocking the process
+    # other users are served at the same time
+    callback(self.write, value)
 
-Effective System Scalability
-  System Effective Capacity Meter output,
-      MIN 1.8134164845
-      AVG 11349.678231
-      MAX 29649.0171593
-  System Performance Meter output,
-    MIN .00001587246803
-    AVG 359.06940249
-    MAX 857.091315098
+# asynchronous not fully working
+@tornado.gen.engine
+@tornado.web.asynchronous
+def handle_message_async(self, message, callback):
+    value   = yield tornado.gen.Task(self.db, get_value)
+    # execution of the flow stops here, but is not blocking the process
+    value_2 = yield tornado.gen.Task(self.db, get_value_2)
+    # execution of the flow stops here, but is not blocking the process
+    # the two calls above WILL NOT be executed in parallel
+    # that means that each user request handling latency is multiplied
+    # the number of db queries - still unsustainable.
+    callback(self.write, value, value_2)
+\end{lstlisting}
+\caption{Synchronous vs Asynchronous Tornado.}
+\label{lstlisting:async}
+\end{sourcecode}
 
-  (SP\_MAX) - (SP\_MIN) / (SEC\_MAX-SEC\_MIN) => (857.091315098 - .00001587246803) / (29649.0171593 - 1.8134164845) = 0.02890968425
+The reason why mutiple yields cannot work in parallel is the following. The lines 13, 22 and 24 of the listing \ref{lstlisting:async} show the execution of so called coroutines. If a coroutine (self.db.get\_value) does not \textit{yield} from the inside (and it does not, since if performs an atomic I/O-bound operation), there is no way for the coroutine scheduler to interleave the calls and run them in parallel. That's the whole point of coroutines: they're cooperative, not preemptive.
 
-Effective Scalable Range
-      Effective Scalable Range Meter output.
-        MAX - MIN = 29649.0171593 - 1.8134164845 = 29647.2037428
-        MAX / MIN = 29649.0171593 / 1.8134164845 = 16349.8112059
-
-\section{Proposed Architecture II}
-[TODO data in github repo link]
-
-Effective System Scalability
-  System Effective Capacity Meter output,
-      MIN 1.8134164845
-      AVG 11349.678231
-      MAX 29649.0171593
-  System Performance Meter output,
-    MIN .00001587246803
-    AVG 359.06940249
-    MAX 857.091315098
-
-  (SP\_MAX) - (SP\_MIN) / (SEC\_MAX-SEC\_MIN) => (857.091315098 - .00001587246803) / (29649.0171593 - 1.8134164845) = 0.02890968425
-
-Effective Scalable Range
-      Effective Scalable Range Meter output.
-        MAX - MIN = 29649.0171593 - 1.8134164845 = 29647.2037428
-        MAX / MIN = 29649.0171593 / 1.8134164845 = 16349.8112059
+It is possible to make the architecture work on a current technology stack even with remote data sources, yet no more than one database query can be performed per each message handling. Queries should therefore be batched, and that requries major application code changes.
 
 \section{Additional Observations}
 
 \subsection{Latencies by region}
-They differ much - provide a comparison by region.
+[TODO] - bonus, not crucial for the thesis. 
+% They differ much - provide a comparison by region.
 
-splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
+% splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
 
-backup by table from lab notes 21.07
+% backup by table from lab notes 21.07
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2596,6 +2596,7 @@ shared environment, someone else might get ddosed or sth - you have no control o
 network is inherently non-deterministic, load tests needed to actually test availability
 
 \section{Host Company Benefits}
+even though primary question  not fully answered, massive bottlenecks identified
 - measerment suite for further improvements
 - real time telemetry introduced into the system
 - system performance objectively improved along the process, bottlenecks identified
@@ -2637,9 +2638,10 @@ read replicas scale only reades, our app farely write intensive
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
+system needs to sustain loads orders of magnitude higher than 25k
 varying user distributions per region
 dynamodb, CLUSTERS
-improvement to the models so that weighs can be added to the scalability meteres according to preferences.
+improvement to the models so that weighs can be added to the scalability meteres according to preferences, so that they are not that sensitive
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
