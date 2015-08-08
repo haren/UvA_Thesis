@@ -2223,6 +2223,8 @@ Timestamp,Average,Maximum,Sum,SampleCount,Unit
 
 \section{Results and interpretation}
 
+[TODO] link to repo results.
+
 \subsection{Cloud Resources Utilization}
 To compared deployed architectures resource utilizaion, I use the \textit{Computing Resource Utilization Meter}.
 
@@ -2443,20 +2445,43 @@ As shown in the table \ref{table:cost}, the baseline architecture is the cheapes
 A huge chunk of cost is comprised of EBS, which can be avoided. An AMI on which all the servers are based was originally created with EBS storage of 4000 IOPS (for high performance) and required minimum 140GB of storage. In order to reuse the image, each server needed to be assigned at least that amount of storage, which was otherwise not necessary.
 
 \subsection{System Effective Cost-Adjusted Capacity}
+It is measured using System Effective Capacity Meter extended with the cost factor. The inputs to the meter are the following:
+\begin{itemize}
+  \item \texttt{System Load Meter output} - with values reduced by $10^{12}$,
+  \item \texttt{System Performance Meter output} - with minimum, average and maximum values,
+  \item \texttt{Computing Resource Utilization Meter} - with minimum, average and maximum values,
+  \item \texttt{Cost} - how long a system can run on 1\$, so $1/hourlyTotalCost$ (computed in the previous section) is input.
+\end{itemize}
 
-System Effective Capacity Meter
-  System Load Meter output
-  REDUCED BY $10^{12}$
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Metric}               & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II}  \\
+  \hline
+  SLM                           & 200.193             & 0.14640              & 2.19933         \\
+  \hline
+  SPM min                       & 130.46082           & 0.23341              & 6.79360                 \\
+  SPM avg                       & 2251.88501          & 797.62981            & 30771.49954                 \\
+  SPM max                       & 6368.43238          & 1029.5834            & 43476.89380                 \\
+  \hline
+  CRUM min                      & 56.82622            & 24.74547             & 29.71976                \\
+  CRUM avg                      & 298.30941           & 63.04514             & 74.87883                 \\
+  CRUM max                      & 414.57287           & 69.02704             & 85.63872                 \\
+  \hline
+  Hours on 1\$                 & 1/2.4534             & 1/6.74939            & 1/7.13543                \\
+  \hline
+  \texttt{SEC min}              & 16,814.25           & 4.75                 & 110.66         \\
+  \texttt{SEC avg}              & \texttt{561,317.23} & \texttt{27,592.52}   & \texttt{1,185,910.70}         \\
+  \texttt{SEC max}              & 1,957,497.59        & 35,615.04            & 1,909,469.13         \\
+\end{tabular}
+\end{center}
+\caption{System cost-adjusted effective capacity.}
+\label{table:cost}
+\end{table}
 
-  System Performance Meter output,
+Again, second proposed architecture achieves the best result according to the SEC meter so the results need to be taken in with a grain of salt. This is the propagated consequence of the high performance meter values for this architecture caused by high data transfers.
 
-  min avg max
-
-  Computing Resource Utilization Meter,
-
-  min avg max
-
-  1/ COST
+[TODO] plot SEC.
 
 \subsection{Effective Scalability}
 Effective Scalable Range
@@ -2477,26 +2502,10 @@ ASYNC STUFF GOES HERE
 
 II BETTER THAN I - READS LOCAL AT LEAST
 
+DERIVATIVE MODELS ALL OVER THE PLACE
 
 \section{Baseline Architecture}
 [TODO data in github repo link]
-
-System Effective Capacity Meter
-  System Load Meter output
-    200.138
-  System Performance Meter output,
-    MIN 0.00439032465661
-    AVG 1632.17798307
-    MAX 6368.4323814
-  Computing Resource Utilization Meter
-    MIN 56.8262225469
-    AVG 298.3094056
-    MAX 414.572872373
-  HOW MANY HOURS ON A DOLLAR:
-      1/ 2.486\$
-MIN 200.138 * 0.00439032465661 * 56.8262225469 * 1/2.486 => 52.2463433755
-AVG 200.138 * 1632.17798307 * 298.3094056 * 1/2.486 => 406877.691455
-MAX 200.138 * 6368.4323814 * 414.572872373 * 1/2.486 => 1957495.94694
 
 Effective System Scalability
   System Effective Capacity Meter output,
@@ -2524,30 +2533,6 @@ latencies are blocking for the server in case of architecture II and III, wherea
 [TODO prove with time loops simple db.add\_prediction()]
 
 
-System Effective Capacity Meter
-  System Load Meter output
-    .146401624445
-
-  System Performance Meter output,
-
-  0,00001587246803
-  359.06940249
-  857.091315098
-
-  Computing Resource Utilization Meter,
-
-  MIN 24.7454679399
-  AVG 63.0451431781
-  MAX 69.0270406427
-
-  Cost
-      1 / 6.864
-
-MIN .146401624445, 0,00001587246803, 24.7454679399, 1/6,864 => 1.8134164845
-AVG .146401624445, 359.06940249, 63.0451431781, 1/6,864 => 11349.678231
-MAX .146401624445, 857.091315098, 69.0270406427,  1/6,864 => 29649.0171593
-
-
 Effective System Scalability
   System Effective Capacity Meter output,
       MIN 1.8134164845
@@ -2567,27 +2552,6 @@ Effective Scalable Range
 
 \section{Proposed Architecture II}
 [TODO data in github repo link]
-
-System Effective Capacity Meter
-  System Load Meter output
-    2.19933428943
-
-  System Performance Meter output,
-    MIN 0.00044442910479
-    AVG  258.696583906
-    MAX 832.195758052
-  Computing Resource Utilization Meter,
-    MIN 29.7197596499
-    AVG 74.8788265308
-    MAX 85.6387243439
-
-
-  Cost (per h)
-      1/6,658
-
-MIN 2.19933428943, 0.00044442910479, 29.7197596499, 1/6.658 =>  2.40414109529
-AVG 2.19933428943, 258.696583906, 74.8788265308, 1/6.658 => 9975.71683594
-MAX 2.19933428943, 832.195758052, 85.6387243439,  1/6.658 => 36555.8263248
 
 Effective System Scalability
   System Effective Capacity Meter output,
