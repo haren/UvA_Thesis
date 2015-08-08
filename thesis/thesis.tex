@@ -2257,9 +2257,9 @@ Each input is equal to the percentage value -so if a utilization is equal 15.52\
   Disk max                & 18.64203            & 14.58616             & 14.43662             \\
   Available               & 118(+/- 3GB)        & 240(+/- 0.01GB)      & 1082 (+/- 0.5GB)     \\
   \hline
-  \texttt{CRUM min}       & 56.82622            & 24.74547             & 29.71976         \\
-  \texttt{CRUM avg}       & 298.30941           & 63.04514             & 74.87883         \\
-  \texttt{CRUM max}       & 414.57287           & 69.02704             & 85.63872         \\
+  \texttt{CRUM min}       & 56.82622            & 24.74547             & 29.71976             \\
+  \texttt{CRUM avg}       & \texttt{298.30941}  & \texttt{63.04514}    & \texttt{74.87883}    \\
+  \texttt{CRUM max}       & 414.57287           & 69.02704             & 85.63872             \\
 \end{tabular}
 \end{center}
 \caption{Resource utilization (all values in \%).}
@@ -2295,6 +2295,7 @@ Since clients only report after the benchmark is finished, I do not have the ben
 
 Another fact that is noticed during the analysis of client reports, is that standard deviations were consistently higher than the means in all of the reported sets. This was originally surprising, since latencies can only take positive values (server cannot handle a request in less than 0 ms). Such values are possible only when the distribution is very right skewed\footnote{\url{http://www.itl.nist.gov/div898/handbook/eda/section3/eda35b.htm}}, which is common with sets of latencies and durations.
 
+For the minimum meter value, 98th percentile latencies and min network values were input, averages for and average model and minimum latencies and maximum network values for maximum meter value \ref{table:spm}; latencies in the form of $1/latency$, network values in megabytes.
 
 \begin{table}[H]
 \begin{center}
@@ -2322,30 +2323,21 @@ Another fact that is noticed during the analysis of client reports, is that stan
   Network in min                & 4.5MB            & 14.58213             & 14.32463             \\
   Network in avg                & 32.06MB            & 14.58213             & 14.32463             \\
   Network in max                & 41.44MB            & 14.58213             & 14.32463             \\
-  Network in total              & 5.82GB            & 14.58213             & 14.32463             \\
+  Network in total              & 2.91GB            & 14.58213             & 14.32463             \\
   \hline
-  Network out min               & 21.07KB            & 14.58213             & 14.32463             \\
-  Network out avg               & 32.06MB            & 14.58213             & 14.32463             \\
-  Network out max                & 41.44MB            & 14.58213             & 14.32463             \\
-  Network out total              & 5.82GB            & 14.58213             & 14.32463             \\
+  Network out min               & 60.85MB            & 14.58213             & 14.32463             \\
+  Network out avg               & 147.70MB            & 14.58213             & 14.32463             \\
+  Network out max               & 41.44MB            & 14.58213             & 14.32463             \\
+  Network out total             & 13.56GB            & 14.58213             & 14.32463             \\
   \hline
-  \texttt{SPM min}       & 56.82622            & 24.74547             & 29.71976         \\
-  \texttt{SPM avg}       & 298.30941           & 63.04514             & 74.87883         \\
-  \texttt{SPM max}       & 414.57287           & 69.02704             & 85.63872         \\
+  \texttt{SPM min}              & 130.46081954            & 24.74547             & 29.71976         \\
+  \texttt{SPM avg}              & 2251.85501           & 63.04514             & 74.87883         \\
+  \texttt{SPM max}              & 6368.432381           & 69.02704             & 85.63872         \\
 \end{tabular}
 \end{center}
 \caption{System performance (latency values in ms, network values per minute (except for total)).}
 \label{table:spm}
 \end{table}
-  Total network data out (bytes)
-    min 21583
-    avg 112251930
-    max 338821638
-    total 14705002960 / 112251930
-
-MIN 1/905 * 1 / 2631 * 1 / 4152 * 472783 * 21583 => 0.00439032465661
-AVG 1/302 * 1/291 * 1/671 * 33620855 * 112251930 => 1632.17798307
-MAX 1/6 * 1/3 * 1/13 * 43460504 * 338821638 => 6368.4323814
 
 \subsection{System Load Meter}
       Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
@@ -2381,6 +2373,7 @@ MAX 1/6 * 1/3 * 1/13 * 43460504 * 338821638 => 6368.4323814
     detailed monitoring
     route53
 
+\subsection{System Effective Cost-Adjusted Capacity}
 System Effective Capacity Meter
   System Load Meter output
   REDUCED BY $10^{12}$
@@ -2395,7 +2388,7 @@ System Effective Capacity Meter
 
   1/ COST
 
-
+\subsection{Effective Scalability}
 Effective Scalable Range
   System Effective Capacity Meter output,
       min avg max
@@ -2405,6 +2398,12 @@ Effective Scalable Range
 Effective System Scalability
       Effective Scalable Range Meter output.
         min max
+
+\section{General Interpretation}
+
+BLOCKING DB DRIVERS
+
+ASYNC STUFF GOES HERE
 
 \section{Baseline Architecture}
 [TODO data in github repo link]
