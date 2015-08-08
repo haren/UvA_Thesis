@@ -277,8 +277,7 @@ In this section I outline the structure of the thesis - all chapters with short 
   \item \texttt{Experiment Implementation} - contains a full description of the compared architectures and cloud stack on which the research is performed, including the technological details \ref{Experiment Implementation}.
   \item \texttt{Scalability Measurements} - contains a description of literature-based scalability metrics and models. Lists the models and metrics selected for measurements in this research, as well as all metrics collectible from the AWS cloud environment \ref{Scalability Measurements}.
   \item \texttt{Experiment results} - contains the data collected in the experiments \ref{Experiment results}.
-  \item \texttt{Evaluation} - contains evaluation of the experiment and analysis of the results \ref{Evaluation}.
-  \item \texttt{Conclusions} - contains a list of conclusions derived from the analysis of the experiment results \ref{Conclusions}.
+  \item \texttt{Conclusions and Evaluation} - contains a list of conclusions derived from the analysis of the experiment results and the evaluation of the experiment \ref{Conclusions and Evaluation}.
   \item \texttt{Further Work} - contains a description of relevant, testabl variables I did not have enough time to cover in this research. \ref{Further Work}
 \end{enumerate}
 
@@ -2580,20 +2579,64 @@ It is possible to make the architecture work on a current technology stack even 
 % backup by table from lab notes 21.07
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+\chapter{Conclusions and Evaluation}\label{Conclusions and Evaluation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Evaluation}\label{Evaluation}
+\epigraph{"Nine women can't make a baby in one month."}{--- Fred Brooks, The Mythical Man-Month}
 
-\section{Statistical Significance}
-http://technology.stitchfix.com/blog/2015/05/26/significant-sample/
-http://insightdatascience.com/blog/ab\_testing\_statistics.html
-http://www.qubit.com/sites/default/files/pdf/mostwinningabtestresultsareillusory\_0.pdf
-http://www.evanmiller.org/how-not-to-run-an-ab-test.html
+\section{Short Summary}
+In this research, a load test suite generating an arbitrary load over an arbitrary period of time according to the customizable messaging scenarios and user distributions has been designed and implemented. Metric collection for the client test suite and all system components has also been put in place. Multiple bottlenecks of the system have been identified and optimizations proposed and applied. Different architecture decompositions of the system \ref{The System Under Test} were proposed and tested with a benchmark utilizing the load test suite. Metrics have been collected, aggregated and a comparative, quantitative analysis of architectures has been performed.
+
+\section{Research Questions}
+
+\textit{The research questions put forward in the introduction are the following:
+\begin{enumerate}
+  \item What's the architecture decomposition stack that:
+    \begin{enumerate}
+      \item guarantees data delivery to geographically distributed users with minimal, consistent and manageable latency?
+      \item guarantees lowest cost and best degree of utilization of the employed resources within a data center?
+    \end{enumerate}
+  \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
+\end{enumerate}}
+
+The research has yielded the following answers:
+\begin{enumerate}
+  \item The baseline architecture \ref{Baseline Architecture} performs better than the proposed architectures \ref{Proposed Architecture I} \ref{Proposed Architecture II} with regard to all analyzed aspects of the system.
+  \item The distribuetd architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} do not provide better Quality of Service than the baseline architecture \ref{Baseline Architecture}.
+\end{enumerate}
+
+\subsection{Hypothesis}
+\textit{The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecure \ref{Baseline Architecture}.}
+
+The hypothesis is refuted in the research, the Baseline Architecture \ref{Baseline Architecture} performed better than the proposed improvements \ref{Proposed Architecture I} and \ref{Proposed Architecture II}.
+
+What needs to be emphasized that the answers and rebuttal of the hypothesis result from the inherent system limitations identified in this research. They are based on the every tested state of the system, yet they might not hold true anymore if the existing known limitations are overcome.
+
+\section{Other conclusions}
+As the research progressed, I have to multiple conclusions that might not be directly related to the research question but I believe are worth bringing up nevertheless:
+\begin{description}
+  \item[Building a scalable system] - this is fairly common knowledge, but in orded to be scalable the system needs to be designed in a way that facilitates that from the start. State should be concentrated in a layer that has good scalability mechansisms and all other system nodes should hold as little (or none at all) state as possible. This guarantees they can be dynamically added to and removed from the system. One cannot simply add a scalability module which will drastically improve the performance of the system at scale. It is a process of digging deeper and obtaining a better understanding of the system architecture and technologies used and applying that knowledge to a scalable design. It is important to set scalability goals that the system should satisfy, otherwise the process can go on forever.
+  \item[Hardware does not have to be the limit] - in the case of the tested system, resource utilization (as the metrics show) is fairly low. The operating system has been tuned to facilitate system's needs; if this is done properly, suboptimal utilization of some kind of resource or a suboptimal programming/architecture solution is most likely the limit to scalability. I am willing to jump to a conclusion that this holds true for most software systems.
+  \item[Deploying in the cloud] has proved to be much more challenging than expected. The distributed setup is significantly different from a simple, centralized one. One should be prepared to familiarize themselves thoroughly with the details of the cloud solution used in a process of preparing the system for dpeloyment in the cloud.
+  \item[Focus on achieving the predefined goals] - it is to get lost in trying to optimize irrelevant aspects of the architecture (guilty as charged). I have spent days making sure that the kernel is tuned so that thousand of users can connect simultaneously to find out later that our system can only sustain values order of magnitude smaller.
+  \item[AWS Cloud stack is not built for global setups] - at least for global setups that our system requires. A lot of functionality (elasticache, elastic load balancing, auto scaling) is limited to one region. If the same setup needs to be replicated in different regions, the whole process needs to be performed manually (or using AWS API, but still this proved to be time-consuming).
+  \item[Publishing user-generated content globally] - this needs to be performed with some degree of sensibility. If users generate content hundred times a second, it is not feasible (nor reasonable) to broadcast all updates to all users. They probably do not need to see all of them in real time. Some form of batching can be really helpful and can reduce amount of data sent by orders of magnitude.
+  \item[Read replication] - provides only some improved scalability. If the application is write-intensive (as is the tested system), this is not the best solution.
+  \item[Data Locality] - is extremely important. There is no way to beat the speed of light (and in most cases internet middle-man introduced overhead); one needs to make sure that the data retrieval mechanisms in the \texttt{stateless} servers are fully asynchronous and non-blocking or that a sufficient number of threads can be supported. Otherwise, at a big enough scale, a catastrophy will ensue.
+\end{description}
+
+% \section{Statistical Significance}
+% http://technology.stitchfix.com/blog/2015/05/26/significant-sample/
+% http://insightdatascience.com/blog/ab\_testing\_statistics.html
+% http://www.qubit.com/sites/default/files/pdf/mostwinningabtestresultsareillusory\_0.pdf
+% http://www.evanmiller.org/how-not-to-run-an-ab-test.html
 
 \section{Threats to validity}
-ec2 whacky, control over hardware released to amazon (can be dedicated machines)
-shared environment, someone else might get ddosed or sth - you have no control over that
-network is inherently non-deterministic, load tests needed to actually test availability
+Following threats to validity have been identified:
+\begin{itemize}
+  \item Cloud computing environments, such as EC2, are outside of the researcher's control. They can only be monitored and influenced to an extent. Since it is a shared environment, it is hard to predict how other systems that the deployed system is sharing resources with will behave (e.g they might end up under a DDOS attack).
+  \item Global network conditions are inherently non-deterministic, the benchmark might (and probably would) yield different results if performed e.g. during a Superbowl or World Cup final.
+  \item Because of the system limitations, I am not able to make any claims about other, truly asynchronous systems.
+\end{itemize}
 
 \section{Host Company Benefits}
 even though primary question  not fully answered, massive bottlenecks identified
@@ -2601,43 +2644,10 @@ even though primary question  not fully answered, massive bottlenecks identified
 - real time telemetry introduced into the system
 - system performance objectively improved along the process, bottlenecks identified
 - cloud management suite
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Conclusions}\label{Conclusions}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-QUOTE: 9 women won't make a baby in a month
-
-summary
-
-endless process of digging deeper, deeper, deeper and deeper - can be never ending. That's why it's importnat to set up goals up front.
-
-the journey continues (25 => 24000 => 10.000.000), nice logarithmic scale
-
-pure hardware is rarely the limit (that is, your app is a limitation most of the time - it's hard to utilize resources 100\% effectively)
-
-moving to the cloud provides more challenges that expeceted
-
-don't get too hung up on irrelevant details - don't waste days tuning the kernel to sustain 200k users instead of 60k if your system cannot take it anyway.
-
-DON'T JUMP IN AND BUILD - ANALYSE THE WHOLE PROCESS THOROUGHLY TO THE BEST POSSIBLE EXTENT BEFORE DIVING INTO CODE (GUILTY AS CHARGED)
-
-WHERE YOU STORE STATE MATTERS - YOU CAN'T BEAT SPEED OF LIGHT, LOCALITY MATTERS
-
-amazon cloud stack is not built for global developments - difficult to copy cross region, aggregatoin of metrics manual etc.
-
-WE DON'T NEED A LOT OF USERS BUT WE ARE ALSO BAD AT UTILIZING RESOURCES
-
-Data Locality for the server matters tremendously if you do not have truly async i/o driven solution
-
-when publihsing make sure to batch your data in a sensible way
-
-models massive differences because of the system limit
-
-read replicas scale only reades, our app farely write intensive
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
+the journey continues (25 => 24000 => 10.000.000), nice logarithmic scale
 system needs to sustain loads orders of magnitude higher than 25k
 varying user distributions per region
 dynamodb, CLUSTERS
