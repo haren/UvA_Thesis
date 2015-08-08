@@ -2349,41 +2349,101 @@ The values of the SPM meter are somewhat misleading - Proposed architecture II a
 
 [TODO] plot spm.
 
-\subsection{System Load Meter}
-      Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
+\subsection{System Load}
+System load is measured using the System Load Meter. Since all the input values (listed below) are in form of just one, summarizing value, the meter has one value per each architecture setup.
 
-      sum over connected
+Meter inputs:
+\begin{itemize}
+  \item \texttt{Successful connections} - number of users who successfully connected to the system (opened a WebSocket connection), summed from all client reports,
+  \item \texttt{Handled requests count} - sum of all user requests (send over the WebSocket connection) handled by the system,
+  \item \texttt{Redis hits} - number of successful queries directed at redis during the benchmark,
+  \item \texttt{MySQL queries} - number of MySQL queries performed during the benchmark run.
+\end{itemize}
 
-      Handled requests count, compiled over all client WebSockets on all client instances, collected through our suite,
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Value}                & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II} \\
+  \hline
+  Successful conn.              & 23,999              & 13,023               & 15,767              \\
+  Handled requests              & 8,449,173           & 589,923              & 796,660              \\
+  Redis hits                    & 50,025,404          & 3,492,791            & 5,513,412              \\
+  Redis misses                  & 312,581             & 23,514               & 36,518              \\
+  Mysql queries                 & 33,158,053          & 2,343,338            & 3,595,390              \\
+  \hline
+  \texttt{SLM}                  & \texttt{200.138324} & \texttt{0.14640}     & \texttt{2.199334}         \\
+\end{tabular}
+\end{center}
+\caption{System load (SLM value divided by $10^{12}$).}
+\label{table:slm}
+\end{table}
 
-      sum over request count
+The absolute SLM meter value and all the values presented in the table \ref{table:slm} clearly show that the Baseline architecture performs best. In case of system load, it outperforms the proposed architectures, which fail to sustain the load applied during benchmarking, by an order of magnitude.
 
-
-      Redis database successful hits, collected manually (\textit{info} command),
-
-      manual
-
-
-      MySQL query count, collected manually \ref{lstlisting:qcount},
-
-      manual
+[TODO] plot SLM.
 
 \subsection{Cost Estimates}
-      ~500\$ the whole test process; skipped client costs here
-    only running costs (no setup - copying images etc., volume creation)
-    monthly costts taken down to hourly assuming 30 days in a month
-    some approximations
-    data out counted as "to the internet" even though we really transferred to another ec2 region so paid double what is estimated
-    prices differ slightly be region, irish prices used
 
-    ec2
-    ebs storage
-    rds
-    data out
-    detailed monitoring
-    route53
+As cost of operating deployed architectures is important to the host organization, I updated the following model (System Effective Capacity) with cost adjustments.
+
+The cost was estimated using only running costs - no setup cost (such as copying AMIs across regions, volume creation) was included in the estimates. All costs are estimated on an hourly basis (since this is the minimum billing period with Amazon); costs specified as monthly rates where brought down to hourlt rates assuming 30 days in a month. All outgoing data was assumed to be going out "to the internet", even though different rates apply for Amazon cross-region transfer (which was really the case during benchmarking, but is not in the real-lide setup). Where costs differ across regions, Irish prices were applied to simplify the estimation process. The cost of this research, together with preparations and client machines, amounted to aroung 500\$. Costs computed using Amazon official sources\footnote{\url{http://aws.amazon.com/ec2/pricing/}}\footnote{\url{https://aws.amazon.com/ebs/pricing/}}\footnote{\url{http://aws.amazon.com/rds/pricing/}}.
+
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{AWS Service}               & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II}  \\
+  \hline
+  \texttt{EC2} \\
+  Unit hourly cost                   & 1.912               & (0.025;0.0171)       & (0.05;0.0171)         \\
+  Units                              & 1                   & (8;1)                & (8+1;1)                 \\
+  Total                              & 1.912               & 0.217                & 0.4671                \\
+  \hline
+  \texttt{EBS Storage} \\
+  Unit hourly cost                   & 0.00019             & 0.00019              & 0.00019               \\
+  Units                              & 140                 & 140 * (8+1) + 100    & 140 * (8+1) + 100 * 8 \\
+  Total                              & 0.026               & 0.253                & 0.3914                \\
+  \hline
+  \texttt{EBS IOPS} \\
+  Unit hourly cost                   & 0.0001              & 0.0001               & 0.0001                \\
+  Units                              & 4000                & 4000 * (8+1) + 1000  & 4000 * (8+1) + 1000 * 8 \\
+  Total                              & 0.4                 & 3.61                 & 4.4 \\
+  \hline
+  \texttt{RDS} \\
+  Unit cost                          & 0                   & 2.56                 & (0.85;0.09)              \\
+  Units                              & 0                   & 1                    & (1;7)                   \\
+  Total                              & 0                   & 2.56                 &  1.48                  \\
+  \hline
+  \texttt{Data In} \\
+  Unit cost per GB                   & 0.01                & 0.01                & 0.01              \\
+  Units (per hour)                   & 2.91 * 2/3          & 3.37 * 2/3          & 13.88 * 2/3  \\
+  Total                              & 0.0194              & 0.02246             & 0.09253  \\
+  \hline
+  \texttt{Data out} \\
+  Unit cost per GB                   & 0.01                & 0.01                & 0.01              \\
+  Units (per hour)                   & 13.6951 * 2/3       & 4.19 * 2/3          & 36.81 * 2/3        \\
+  Total                              & 0.091               & 0.02793             & 0.2454             \\
+  \hline
+  \texttt{Detailed monitoring} \\
+  Unit cost per hour                 & 0.005               & 0.005               & 0.005              \\
+  Units                              & 1                   & 8+1                 & 8+1     \\
+  Total                              & 0.005               & 0.045               & .045       \\
+  \hline
+  \texttt{Route 53} \\
+  Total                              & 0                   & 0.014               & 0.014              \\
+  \hline
+  \texttt{Total Cost}                & \texttt{2.4534} & \texttt{6.74939}     & \texttt{7.13543}         \\
+\end{tabular}
+\end{center}
+\caption{System running cost per hour (all prices in \$).}
+\label{table:cost}
+\end{table}
+
+As shown in the table \ref{table:cost}, the baseline architecture is the cheapest. It is the simplest and least distributed, this is why it needs least services to support it.
+
+A huge chunk of cost is comprised of EBS, which can be avoided. An AMI on which all the servers are based was originally created with EBS storage of 4000 IOPS (for high performance) and required minimum 140GB of storage. In order to reuse the image, each server needed to be assigned at least that amount of storage, which was otherwise not necessary.
 
 \subsection{System Effective Cost-Adjusted Capacity}
+
 System Effective Capacity Meter
   System Load Meter output
   REDUCED BY $10^{12}$
@@ -2415,17 +2475,11 @@ BLOCKING DB DRIVERS
 
 ASYNC STUFF GOES HERE
 
+II BETTER THAN I - READS LOCAL AT LEAST
+
+
 \section{Baseline Architecture}
 [TODO data in github repo link]
-
-System Load Meter
-      Successful connections            23999
-      Handled requests count            8449173
-      Redis database successful hits    50025404
-      Redis database misses             312581
-      MySQL query count                 33158053
-
-SLM = 200.13832405204e+12
 
 System Effective Capacity Meter
   System Load Meter output
@@ -2439,16 +2493,7 @@ System Effective Capacity Meter
     AVG 298.3094056
     MAX 414.572872373
   HOW MANY HOURS ON A DOLLAR:
-    1/2.486
-    ec2 1.912\$
-    ebs storage 140 GB * 0.138 / 30 / 24 (to get to an hour from mont) + 4000 * 0.072 /30 / 24 (provisioned IOPS)
-      = .42\$
-    rds 0
-    data in 6253479052 / 1024 / 1024/1024 * 0.01 * 2/3 = 0.039\$
-    data out 14705002960 / 1024 / 1024/1024 * 0.01 * 2/3 =0.091\$
-    detailed monitoring 3.5 / 24 /30 ~= 0.005\$
-    route53 0
-      2.486\$
+      1/ 2.486\$
 MIN 200.138 * 0.00439032465661 * 56.8262225469 * 1/2.486 => 52.2463433755
 AVG 200.138 * 1632.17798307 * 298.3094056 * 1/2.486 => 406877.691455
 MAX 200.138 * 6368.4323814 * 414.572872373 * 1/2.486 => 1957495.94694
@@ -2479,15 +2524,6 @@ latencies are blocking for the server in case of architecture II and III, wherea
 [TODO prove with time loops simple db.add\_prediction()]
 
 
-System Load Meter
-      Successful connections            13023
-      Handled requests count            589923
-      Redis database successful hits    349784
-      Redis database misses             23514
-      MySQL query count                 2343338
-
-SLM = .146401624445e+12
-
 System Effective Capacity Meter
   System Load Meter output
     .146401624445
@@ -2505,15 +2541,7 @@ System Effective Capacity Meter
   MAX 69.0270406427
 
   Cost
-    ec2 8 x .025 + .0171 (redis)
-    ebs storage 140 GB * 0.138 / 30 / 24 (to get to an hour from mont) + 4000 * 0.072 /30 / 24 (provisioned IOPS)
-      * 9 instances + (mysql) 100GB * 0.138 / 30 / 24 + 1000 * 0.072 /30 / 24 = 3.899\$
-    rds 2.56
-    data in 9333232933 / 1024 / 1024/1024 * 0.01 * 2/3 = 0.058\$
-    data out 12576723446 / 1024 / 1024/1024 * 0.01 * 2/3 =0.07\$
-    detailed monitoring 3.5 / 24 /30 * 9 ~= 0.045\$
-    route53 0.014
-      6,864
+      1 / 6.864
 
 MIN .146401624445, 0,00001587246803, 24.7454679399, 1/6,864 => 1.8134164845
 AVG .146401624445, 359.06940249, 63.0451431781, 1/6,864 => 11349.678231
@@ -2540,18 +2568,6 @@ Effective Scalable Range
 \section{Proposed Architecture II}
 [TODO data in github repo link]
 
-System Performance Meter, with inputs:
-
-
-System Load Meter
-      Successful connections            15767
-      Handled requests count            796660
-      Redis database successful hits    5513437
-      Redis database misses             36518
-      MySQL query count                 359539
-
-SLM =2.19933428943e+12
-
 System Effective Capacity Meter
   System Load Meter output
     2.19933428943
@@ -2567,16 +2583,7 @@ System Effective Capacity Meter
 
 
   Cost (per h)
-
-    ec2 8 x .05 + 0.0171
-    ebs storage (140 GB * 0.138 / 30 / 24 (to get to an hour from mont) + 4000 * 0.072 /30 / 24 (provisioned IOPS))
-      * 8 instances + (mysql) 8 * (100GB * 0.138 / 30 / 24 + 1000 * 0.072 /30 / 24 )= .427 * 8 + .119 * 8 = 4.368
-    rds .84 + 7 * .09
-    data in 29045063883 / 1024 / 1024/1024 * 0.01 * 2/3 = 0.018\$
-    data out 52524364120 / 1024 / 1024/1024 * 0.01 * 2/3 =0.326\$
-    detailed monitoring 3.5 / 24 /30 * 9 ~= 0.045\$
-    route53 0.014
-      6,658
+      1/6,658
 
 MIN 2.19933428943, 0.00044442910479, 29.7197596499, 1/6.658 =>  2.40414109529
 AVG 2.19933428943, 258.696583906, 74.8788265308, 1/6.658 => 9975.71683594
