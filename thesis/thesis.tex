@@ -1220,9 +1220,16 @@ Each client machine generating load in the benchmarking process collects client 
 
 The client script measures the following: handhskaing latency, request handling latency and message publishing latency. The request handling and publishing latency are computed differently: request handling latency is measured as the difference between the clients response reception timestamp and request sending timestamp. Broadcast latency is measured as a difference between client reception timestamp and server publish timestamp included in the broadcast message header (it serves mostly the purpose of showing the difference in reception times of the same message across clients). Time synchronization between different machines is explained below \ref{Time synchronization across the system}.
 
-A sample client report is listed in the Experiment Results chapter in a dedicated section \ref{Client Report}.
+A sample client report is listed in the Experiment Results chapter in a dedicated section \ref{Client Report}. General metric reporting structure is pictured on figure \ref{figure:structure}.
 
 Tools used in client reporting are described in a dedicated  section \ref{Load Testing Framework}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{structure}
+\caption{Metric report structure.}
+\label{figure:structure}
+\end{figure}
 
 \section{Selected Meters and Metrics}\label{Selected Meters and Metrics}
 I selected the following scalability meters and metrics for their inputs:
