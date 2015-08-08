@@ -2302,42 +2302,82 @@ For the minimum meter value, 98th percentile latencies and min network values we
 \begin{tabular}{llll}
   \texttt{Value}                & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II} \\
   \hline
-  Broadcast lat. min            & 6             & 0.16000              & 0.99950              \\
-  Broadcast lat. weighted avg   & 302            & 4.72781              & 5.89334              \\
-  Broadcast lat. pooled stddev  & 176            & 4.72781              & 5.89334              \\
-  Broadcast lat. 98th           & 905            & 5.45352              & 6.63933              \\
-  Broadcast lat. max            & 17935            & 5.45352              & 6.63933              \\
+  Broadcast lat. min            & 6                   & 8              & 0.99950              \\
+  Broadcast lat. weighted avg   & 302                 & 293              & 5.89334              \\
+  Broadcast lat. pooled stddev  & 176                 & 162              & 5.89334              \\
+  Broadcast lat. 98th           & 905                 & 1219              & 6.63933              \\
+  Broadcast lat. max            & 17935               & 11697              & 6.63933              \\
   \hline
-  Request lat. min              & 3             & 3.69206              & 3.54456              \\
-  Request lat. weighted avg     & 291            & 3.96222              & 4.34030              \\
-  Request lat. pooled stddev    & 541            & 3.96222              & 4.34030              \\
-  Request lat. 98th             & 2631            & 4.00332              & 4.90962              \\
-  Request lat. max              & 46019            & 4.00332              & 4.90962              \\
+  Request lat. min              & 3                   & 3              & 3.54456              \\
+  Request lat. weighted avg     & 291                 & 90987              & 4.34030              \\
+  Request lat. pooled stddev    & 541                 & 170624              & 4.34030              \\
+  Request lat. 98th             & 2631                & 3715669              & 4.90962              \\
+  Request lat. max              & 46019               & 3878655              & 4.90962              \\
   \hline
-  Handshake lat. min            & 13            & 14.58213             & 14.32463             \\
-  Handshake lat. weighted avg   & 671            & 14.58421             & 14.37806             \\
-  Handshake lat. pooled stddev  & 174            & 3.96222              & 4.34030              \\
-  Handshake lat. 98th           & 4152            & 14.58616             & 14.43662             \\
-  Handshake lat. max            & 15806            & 14.58616             & 14.43662             \\
+  Handshake lat. min            & 13                  & 11             & 14.32463             \\
+  Handshake lat. weighted avg   & 671                 & 1549675             & 14.37806             \\
+  Handshake lat. pooled stddev  & 174                 & 1635168              & 4.34030              \\
+  Handshake lat. 98th           & 4152                & 6853492             & 14.43662             \\
+  Handshake lat. max            & 15806               & 7412795             & 14.43662             \\
   \hline
-  Network in min                & 4.5MB            & 14.58213             & 14.32463             \\
-  Network in avg                & 32.06MB            & 14.58213             & 14.32463             \\
-  Network in max                & 41.44MB            & 14.58213             & 14.32463             \\
-  Network in total              & 2.91GB            & 14.58213             & 14.32463             \\
+  Network in min                & 4.5MB               & 0.56MB             & 14.32463             \\
+  Network in avg                & 32.06MB             & 36.71MB             & 14.32463             \\
+  Network in max                & 41.44MB             & 41.51MB             & 14.32463             \\
+  Network in total              & 2.91GB              & 3.37GB             & 14.32463             \\
   \hline
-  Network out min               & 60.85MB            & 14.58213             & 14.32463             \\
-  Network out avg               & 147.70MB            & 14.58213             & 14.32463             \\
-  Network out max               & 41.44MB            & 14.58213             & 14.32463             \\
-  Network out total             & 13.56GB            & 14.58213             & 14.32463             \\
+  Network out min               & 60.85MB             & 0.87MB             & 14.32463             \\
+  Network out avg               & 147.70MB            & 45.68MB             & 14.32463             \\
+  Network out max               & 323.15MB            & 52.15MB             & 14.32463             \\
+  Network out total             & 13.56GB             & 4.19GB             & 14.32463             \\
   \hline
-  \texttt{SPM min}              & 130.46081954            & 24.74547             & 29.71976         \\
-  \texttt{SPM avg}              & 2251.85501           & 63.04514             & 74.87883         \\
-  \texttt{SPM max}              & 6368.432381           & 69.02704             & 85.63872         \\
+  \texttt{SPM min}              & 130.46082           & 0.23341             & 29.71976         \\
+  \texttt{SPM avg}              & 2251.85501          & 797.62981             & 74.87883         \\
+  \texttt{SPM max}              & 6368.43238          & 1029.5834             & 85.63872         \\
 \end{tabular}
 \end{center}
 \caption{System performance (latency values in ms, network values per minute (except for total)).}
 \label{table:spm}
 \end{table}
+
+
+broadcast latency
+  min 3
+  weighetd\_avg 141
+  pooled\_stddev 84
+  max\_98 252
+  max 5667
+
+latency
+  min 3
+  weighetd\_avg 733047
+  pooled\_stddev 913436
+  max\_98 5511145
+  max 3878655
+
+handshaking
+  min 5
+  weighetd\_avg 82595
+  pooled\_stddev 160809
+  max\_98 2383959
+  max 2664879
+
+
+
+  Total network data in (bytes)
+    min 50675
+    avg 18198661
+    max 40357232
+    total 29045063883
+  Total network data out (bytes)
+    min 21330
+    avg 32868813
+    max 383127725
+    total 52524364120
+
+MIN 1/252 * 1 / 5511145 * 1 / 2383959 * 50675 * 21330 => 0.00044442910479
+AVG 1/141 * 1/733047 * 1/82595 * 18198661 * 32868813 =>  258.696583906
+MAX 1/3 * 1/3 * 1/5 * 40357232 * 47679516 => 832.195758052
+
 
 \subsection{System Load Meter}
       Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
@@ -2468,43 +2508,6 @@ latencies are blocking for the server in case of architecture II and III, wherea
 [TODO diagram]
 [TODO prove with time loops simple db.add\_prediction()]
 
-System Performance Meter, with inputs:
-broadcast latency
-  min 8
-  weighetd\_avg 293
-  pooled\_stddev 162
-  max\_98 1219
-  max 11697
-
-latency
-  min 3
-  weighetd\_avg 90987
-  pooled\_stddev 170624
-  max\_98 3715669
-  max 3878655
-
-handshaking
-  min 11
-  weighetd\_avg 1549675
-  pooled\_stddev 1635168
-  max\_98 6853492
-  max 7412795
-
-  Total network data in (bytes)
-    min 7714
-    avg 24822428
-    max 41564608
-    total 9333232933
-  Total network data out (bytes)
-    min 5635
-    avg 33448732
-    max 47679516
-    total 12576723446
-
-
-MIN 1/1219 * 1 / 3715669 * 1 / 6853492 * 7714 * 5635 =>  00001587246803
-AVG 1/293 * 1/90987 * 1/1549675 * 33448732 * 24822428 => 359.06940249
-MAX 1/8 * 1/3 * 1/11 * 41564608 * 47679516 => 857.091315098
 
 System Load Meter
       Successful connections            13023
@@ -2568,44 +2571,6 @@ Effective Scalable Range
 [TODO data in github repo link]
 
 System Performance Meter, with inputs:
-
-broadcast latency
-  min 3
-  weighetd\_avg 141
-  pooled\_stddev 84
-  max\_98 252
-  max 5667
-
-latency
-  min 3
-  weighetd\_avg 733047
-  pooled\_stddev 913436
-  max\_98 5511145
-  max 3878655
-
-handshaking
-  min 5
-  weighetd\_avg 82595
-  pooled\_stddev 160809
-  max\_98 2383959
-  max 2664879
-
-
-
-  Total network data in (bytes)
-    min 50675
-    avg 18198661
-    max 40357232
-    total 29045063883
-  Total network data out (bytes)
-    min 21330
-    avg 32868813
-    max 383127725
-    total 52524364120
-
-MIN 1/252 * 1 / 5511145 * 1 / 2383959 * 50675 * 21330 => 0.00044442910479
-AVG 1/141 * 1/733047 * 1/82595 * 18198661 * 32868813 =>  258.696583906
-MAX 1/3 * 1/3 * 1/5 * 40357232 * 47679516 => 832.195758052
 
 
 System Load Meter
