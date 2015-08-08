@@ -125,9 +125,8 @@ The answer to these questions is seeked among the 3 tested architecture, describ
 In order to answer the Research Questions \ref{Research Questions}, a solution consisting of the following steps was developed:
 \begin{enumerate}
   \item \texttt{Preparing the load test suite}. It is used to simulate geographical distribution of users and load they generate as well as to collect latency-related metrics of WebSocket handshakes and message delivery. Described in details in a Load Testing Framework section \ref{Load Testing}.
-  [TODO] diagram of the distributed load test suite
+  % [TODO] diagram of the distributed load test suite
   \item \texttt{Preparing the metric collection suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{AWS Available metrics}.
-  [TODO] diagram of the metric collection suite (custom metrics + cloudwatch automatic + )
   \item \texttt{Feeding the collected metric into scalability meters}.
   \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include our custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) was built.
 \end{enumerate}
@@ -171,7 +170,8 @@ Overall, it’s a complex project requiring knowledge of multiple aspects of bot
 \subsection{Hypothesis}
 The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecure \ref{Baseline Architecture}.
 
-The geographically distributed architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} [TODO insert diagrams] should provide lower user-experienced request handling and broacast latencies than the baseline architecture \ref{Baseline Architecture}. Some of the latencies that are unavoidable due to geographical global distances, in case of these architectures, can be pushed down to lower levels of the systems. This means that the data retrieval / synchronization can happen asynchronously, in the background, rather than synchronously on every user's request.
+The geographically distributed architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} should provide lower user-experienced request handling and broacast latencies than the baseline architecture \ref{Baseline Architecture}. Some of the latencies that are unavoidable due to geographical global distances, in case of these architectures, can be pushed down to lower levels of the systems. This means that the data retrieval / synchronization can happen asynchronously, in the background, rather than synchronously on every user's request.
+
 
 On the other hand, the distributed versions of the architecture add complexity in multiple system layers. Implications of these will probably increase the cost of system utilization (due to increased internal data transfer).
 
@@ -778,7 +778,7 @@ The goal of the project is to design a scalability framework for a real-time per
 The goal of the project is to see if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple http applications cannot always be translated to websocket applications since the communication protocol differs. Websockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with http). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 
 \section{Problem To Be Solved}
-The host company is facing the problem of scaling up their system. It has been designed in a way that should support scalability - all processes are decoupled and communicate over TCP sockets, using the ZMQ library [TODO reference zmq here]. Most internal messaging happens using pub-sub architecture. Thanks to that, new nodes can be added to the system in order to increase its capacity.
+The host company is facing the problem of scaling up their system. It has been designed in a way that should support scalability - all processes are decoupled and communicate over TCP sockets, using the ZMQ library\footnote{\url{http://zeromq.org/}}. Most internal messaging happens using pub-sub architecture. Thanks to that, new nodes can be added to the system in order to increase its capacity.
 
 Even though the system has been designed for scalabilility, it has note been battle-tested. The scalability process is performed in this research; multiple system limitations and have been identified \ref{Discovered System Limitations} and solutions proposed and implemented.
 
@@ -787,8 +787,6 @@ Our (the host company) preliminary research has not yielded definitive answers a
 Furthermore, the organization does not possess any tools to measure application performance. This research provides the organization with a set of tools to measure any component of the system (in terms of resource usage and processing time), store the metrics and visualize them in real-time in a comprehensible way.
 
 On top that, my research delivers the design and implementation of the load testing suite, including cloud client operating system images, orchestration scripts for simluating the load testing from the clients and collecting the metrics onto a master machine.
-
-[TODO image - sampe graphite dashboard]
 
 \section{Question to be answered}
 \begin{enumerate}
@@ -809,8 +807,8 @@ The research method I selected is \textit{Controlled experiment} \ref{Research M
 
 Variables constant across benchmark runs against different architectures include:
 \begin{itemize}
-  \item Number of connecting users ([TODO] exact number),
-  \item Pace at which users connect ([TODO] exact number),
+  \item Number of connecting users (24,000),
+  \item Pace at which users connect (120 users per second),
   \item Number of requests that need to be handled (with some random, controlled variance),
   \item Number of updates that need to be broadcast (with some random, controlled variance),
   \item The length of the benchmark execution,
@@ -968,8 +966,6 @@ The technical specification of the instances, number of processes and other tech
 Results are evaluated using literature-based scalability meters \cite{Models}. I selected (ans slighlty modified - added cost factor) the ones \ref{Selected Meters and Metrics} which best facilitate reasoning about factors most important to the host organization - client latencies, cloud resources utilization and operating cost. The tested architectures are compared using these quantifiable meters.
 
 The selected meters allow to compare deployed architectures in general scalability terms, but also provide insight into specific aspects of the system, so that analysis can be broken down and architectures can be compared in terms of e.g. latency or cost exclusively.
-
-[TODO list these meters here]
 
 \section{Experiment deliverables}\label{Experiment deliverables}
 
@@ -1243,8 +1239,8 @@ I selected the following scalability meters and metrics for their inputs:
       \item Handshaking latency, compiled over all client WebSockets on all client instances, collected through our suite,
       \item Request handling latency, compiled over all client WebSockets on all client instances, collected through our suite,
       \item Broadcast latency, compiled over all client WebSockets on all client instances, collected through our suite,
-      \item Total network data in, compiled over all connections collected through our suite / cloudwatch ([TODO DECIDE WHICH]),
-      \item Total network data out, compiled over all connections collected through our suite / cloudwatch ([TODO DECIDE WHICH]),
+      \item Total network data in, compiled over all connections collected through cloudwatch,
+      \item Total network data out, compiled over all connections collected through cloudwatch,
     \end{itemize}
   \item \texttt{System Load Meter}, with inputs:
     \begin{itemize}
@@ -1316,8 +1312,6 @@ Since Node.js is single-threaded, I prepared scripts that allow to run multiple 
 As far as the WebSocket server is concerned, I have identified 2 core thread types (among many more that the server consists of) - one for request handling, another one for pushing redis-published messages through the user's WebSocket. Since TCP is a 1-1 communication protocol, a UDP-like broadcast to all WebSockets is not possible. For every channel that users subscribe to (games are channels on the domain level), the system needs a thread that listens to a redis channel and iterates over a list of WebSockets of users subscribed to that channel. These threads, and the message handling threads are by far the two most resource (CPU-bound) intensive.
 
 This allowed us to calculate the optimal number of WebSocket server processes that should be running on each machine - the number of machine CPU cores divided by 2. Since the WebSocket servers are fully stateless, any number can be run in parallel.
-
-[TODO - sync vs async db?]
 
 \subsection{Discovered System Limitations}\label{Discovered System Limitations}
 
@@ -2211,7 +2205,7 @@ Timestamp,Average,Maximum,Sum,SampleCount,Unit
 
 \section{Results and interpretation}
 
-[TODO] link to repo results.
+Full experiment results are available online\footnote{\url{https://github.com/haren/UvA_Thesis/tree/master/thesis/results}}.
 
 \subsection{Cloud Resources Utilization}
 To compared deployed architectures resource utilizaion, I use the \textit{Computing Resource Utilization Meter}.
