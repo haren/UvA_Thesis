@@ -2520,12 +2520,23 @@ The cause of such state of affairs is the combination of WebSocket server techno
 
 A sample use case demonstrates the behaviour: 1000 users connecting from Sydney to Ireland at the same time. Let us assume a latency of the Sydney-Ireland roundtrip to be 1000ms, and the database query handling time to be 1ms.
 
-If the server is connected in the same data center as the database (as is the case in baseline architecture), all users arrive at the same time (more or less). First user's request is handled in 1ms, second user's in 2ms (the 1st millisecond was used for handling the 1st user's query, the server process was blocked), third user in 3ms and so on. On average, the thousand users are server with a latency of ~1500ms (1000ms for a Sydney-Ireland roundtrip) and 500ms as an average time before the database query can run (best case scenario is 1ms, worst case 1000ms). After 1000ms, the server has finished serving all the requests, and if another 1000 arrive next second, it will handle all of them too. This is a sustainable setup.
+If the server is connected in the same data center as the database (as is the case in baseline architecture), all users arrive at the same time (more or less). First user's request is handled in 1ms, second user's in 2ms (the 1st millisecond was used for handling the 1st user's query, the server process was blocked), third user in 3ms and so on. On average, the thousand users are server with a latency of ~1500ms (1000ms for a Sydney-Ireland roundtrip) and 500ms as an average time before the database query can run (best case scenario is 1ms, worst case 1000ms). After 1000ms, the server has finished serving all the requests, and if another 1000 arrive next second, it will handle all of them too. This is a sustainable setup. This case is depicted on figure \ref{figure:case1}.
 
-[TODO DIAGRAM OF THAT]
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{case1}
+\caption{Baseline architecture case.}
+\label{figure:case1}
+\end{figure}
 
-When the server is moved to Sydney, but the data source stays in Ireland, the flow is changed. When 1000 users send a request at the same time, all of them arrive at their local server (let's assume) instantly. First user is serverd in 1001ms (1ms database query + 1000ms roundtrip latency), second user is served in 2001 ms (initial 1000ms the server was blocked for the first user's blocking database query), third user in 3001 ms, etc. On average, the thousand users are serverd with a latency of around \texttt{500,000ms}. And this is just for the first round of requests. If another 1000 arrive at the second second, the latencies experienced by these users will be even higher. This is obviously not sustainable, yet this is the setup proposed architectures introduced - II proposed architectures to a lesser extent, since only database writes were done on a remote database, reads were performed on a local replica.
+When the server is moved to Sydney, but the data source stays in Ireland, the flow is changed. When 1000 users send a request at the same time, all of them arrive at their local server (let's assume) instantly. First user is serverd in 1001ms (1ms database query + 1000ms roundtrip latency), second user is served in 2001 ms (initial 1000ms the server was blocked for the first user's blocking database query), third user in 3001 ms, etc. On average, the thousand users are serverd with a latency of around \texttt{500,000ms}. And this is just for the first round of requests. If another 1000 arrive at the second second, the latencies experienced by these users will be even higher. This case is depicted on figure \ref{figure:case2}. This is obviously not sustainable, yet this is the setup proposed architectures introduced - II proposed architectures to a lesser extent, since only database writes were done on a remote database, reads were performed on a local replica.
 
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{case2}
+\caption{Proposed architectures case.}
+\label{figure:case2}
+\end{figure}
 An attempt was made to replace the database drivers, yet this is no trivial task. One cannot simply code asynchronicity around the intrinsically synchronous calls. Nevertheless, the drivers were fully replaced with asynchronous ones, but another issue cropped up when this was performed.
 
 The server was now capable of serving users in an asynchronous manner, provided that there was no more than one asynchronous operation in each execution flow. Unfortunately, this is not alawys the case with the tested system. Listing \ref{lstlisting:async} explains the 3 cases: fully-synchronous, asynchronous working and asynchronous not working entirely as intended.
