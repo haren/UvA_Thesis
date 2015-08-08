@@ -2331,7 +2331,12 @@ Differences in data transfers result from different topologies. Proposed archite
 
 The values of the SPM meter are somewhat misleading - Proposed architecture II achieves highest average value (because of the higher data transfers), yet objectively the only architecture with acceptable performance is the baseline architecture.
 
-[TODO] plot spm.
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{spm}
+\caption{System Performance Meter.}
+\label{figure:spm}
+\end{figure}
 
 \subsection{System Load}
 System load is measured using the System Load Meter. Since all the input values (listed below) are in form of just one, summarizing value, the meter has one value per each architecture setup.
@@ -2363,8 +2368,6 @@ Meter inputs:
 \end{table}
 
 The absolute SLM meter value and all the values presented in the table \ref{table:slm} clearly show that the Baseline architecture performs best. In case of system load, it outperforms the proposed architectures, which fail to sustain the load applied during benchmarking, by an order of magnitude.
-
-[TODO] plot SLM.
 
 \subsection{Cost Estimates}
 
