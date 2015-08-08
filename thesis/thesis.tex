@@ -546,7 +546,7 @@ Access-Control-Allow-Origin: http://www.websocket.org
 
 That leads to opening a websocket (\textit{ws://}) communication channel between the client and the server. Secure websocket connections (\textit{wss://}) are also possible.
 
-\begin{figure}[h]
+\begin{figure}[H]
 \centering
 \includegraphics[scale=0.3]{ws}
 \caption{WebSocket Protocol}
@@ -2120,7 +2120,7 @@ Each architecture was tested using the benchmark load specified in table \ref{ta
 \begin{table}[H]
 \begin{center}
 \begin{tabular}{llll}
-  \texttt{Value}          & \texttt{Each Client}        & \texttt{Number of Clients}  & \texttt{Total}\\
+  \texttt{Value}          & \texttt{Each Client Machine}        & \texttt{Number of Client Machines}  & \texttt{Total}\\
   \hline
   Total concurrent users  & 200                         & 120                         & 24000         \\
   Connecting per second   & 1                           & 120                         & 120           \\
@@ -2228,7 +2228,7 @@ To compared deployed architectures resource utilizaion, I use the \textit{Comput
 
 The meter has a value for every of the 94 measured system states. Every minute the following values are input into the meter:
 \begin{itemize}
-  \item \texttt{Server CPU Utilization}, compiled over all server instances + redis instances, for each instance $utilization percentage * number of cores$ is taken into computation (all processors are of the same speed - 2.8GHz), so the exact formula looks like this: $$util_{avg} = \sum_{i=1}^{n}(c*u) / \sum_{i=1}^{n}c$$ where $n$ is the number of instances, $c$ a number of cores on a given instance and $u$ utilization percentage of a given instance CPU.
+  \item \texttt{Server CPU Utilization}, compiled over all server instances + redis + mysql RDS instances, for each instance $utilization percentage * number of cores$ is taken into computation (all processors are of the same speed - 2.8GHz), so the exact formula looks like this: $$util_{avg} = \sum_{i=1}^{n}(c*u) / \sum_{i=1}^{n}c$$ where $n$ is the number of instances, $c$ a number of cores on a given instance and $u$ utilization percentage of a given instance CPU.
   \item \texttt{Memory Utilization}, compiled over all server instances + redis instances, computed as sum of total used memory divided by sum of total available memory,
   \item \texttt{Disk Utilization}, compiled over all server instances + redis instances, computed as sum of total used disk space divided by sum of total available disk space.
 \end{itemize}
@@ -2242,64 +2242,112 @@ Each input is equal to the percentage value -so if a utilization is equal 15.52\
 \begin{tabular}{llll}
   \texttt{Value}          & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II} \\
   \hline
-  CPU min                 & 1.41000                 & 120                  & 24000                \\
-  CPU avg                 & 15.41234                         & 120                         & 24000         \\
-  CPU max                 & 17.57000                         & 120                         & 24000         \\
-  Available               & 32 * 2.8GHz                 & 120                  & 24000                \\
+  CPU min                 & 1.41000             & 0.16000              & 0.99950              \\
+  CPU avg                 & 15.41234            & 4.72781              & 5.89334              \\
+  CPU max                 & 17.57000            & 5.45352              & 6.63933              \\
+  Available               & 32 * 2.8GHz         & 50 * 2.8GHz          & 73 * 2.8GHz          \\
   \hline
-  Memory min              & 6.46433                         & 120                         & 24000         \\
-  Memory avg              & 13.40652                         & 120                         & 24000         \\
-  Memory max              & 18.21367                         & 120                         & 24000         \\
-  Available               & 53.13884 (+/- 3GB) \\
+  Memory min              & 6.46433             & 3.69206              & 3.54456              \\
+  Memory avg              & 13.40652            & 3.96222              & 4.34030              \\
+  Memory max              & 18.21367            & 4.00332              & 4.90962              \\
+  Available               & 53.13884(+/- 3GB)   & 31(+/- 0.1GB)        & 24(+/- 2.3GB)        \\
   \hline
-  Disk min                & 15.50860                         & 120                         & 24000         \\
-  Disk avg                & 16.55431                         & 120                         & 24000         \\
-  Disk max                & 18.64203                         & 120                         & 24000         \\
-  Available               & 118.04679(+/- 3GB) \\
+  Disk min                & 15.50860            & 14.58213             & 14.32463             \\
+  Disk avg                & 16.55431            & 14.58421             & 14.37806             \\
+  Disk max                & 18.64203            & 14.58616             & 14.43662             \\
+  Available               & 118(+/- 3GB)        & 240(+/- 0.01GB)      & 1082 (+/- 0.5GB)     \\
   \hline
-  \texttt{CRUM min}  & 56.82622                         & 120                         & 24000         \\
-  \texttt{CRUM avg}  & 298.30941                         & 120                         & 24000         \\
-  \texttt{CRUM max}  & 414.57287                         & 120                         & 24000         \\
+  \texttt{CRUM min}       & 56.82622            & 24.74547             & 29.71976         \\
+  \texttt{CRUM avg}       & 298.30941           & 63.04514             & 74.87883         \\
+  \texttt{CRUM max}       & 414.57287           & 69.02704             & 85.63872         \\
 \end{tabular}
 \end{center}
 \caption{Resource utilization (all values in \%).}
 \label{table:crum}
 \end{table}
 
-Computing Resource Utilization Meter
+As the results show, the utilization resource is fairly low in all cases. Differences in allocated resources result from different infrastructure needs for each of the architectures. Baseline architecture performs best by far - average CRUM value of 298.30941, followed by Proposed architecture II with 85.63872 and Proposed I with 63.04514, as graphed on figure \ref{figure:crum}.
 
-MIN 56.8262225469
-AVG 298.3094056
-MAX 414.572872373
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{crum}
+\caption{CRUM meter comparison (the bigger the area the better).}
+\label{figure:crum}
+\end{figure}
 
+\subsection{System Performance}
+To compared performance of the deployed architectures, I use the \textit{System Performance Meter}.
 
+The meter uses following metrics as inputs:
+\begin{itemize}
+  \item \texttt{handshaking latency} - a weighted averave of all reports of all clients, reverse of minimum, average and 98th percentile values,
+  \item \texttt{request handling latency} - a weighted averave of all reports of all clients, reverse of minimum, average and 98th percentile values,
+  \item \texttt{broadcast latency} - a weighted averave of all reports of all clients, reverse of minimum, average and 98th percentile values,
+  \item \texttt{network data in} - this is measured collectively over all server, redis and mysql instances in the deployed system. It includes system internal data transfers. This is important because this is the data that is billable.
+  \item \texttt{network data out} - this is measured collectively over all server, redis and mysql instances in the deployed system. It includes system internal data transfers. This is important because this is the data that is billable.
+\end{itemize}
 
+There are a few remarks that need to be made regarding the input metrics. Since I observed that the latencies have a long-tailed distribution, I decided to use 98th percentile value as the upper value rather than the absolute maximum.
 
+Because each client provides a separate report consisting (among others) of the mean and standard deviation, but not of the full data set, and because the deviations are relatively similar, pooled variance and standard deviation were computed for the global set of client-reported latencies. Since high latencies are undesireable, the reverse of measured latencies is input into the meter.
 
+Since clients only report after the benchmark is finished, I do not have the benefit of providing a value of the meter for every minute of the benchmark run (as is the case with CRUM). The average values can provide comparison between architectures.
 
-System Performance Meter, with inputs:
-  LONG TAILS SO USING 98 OERCENTILES.
-
-  MEGABYTES USED FOR BETTER READABILITY
-  Handshaking latency, compiled over all client WebSockets on all client instances, collected through our suite,
-  Request handling latency, compiled over all client WebSockets on all client instances, collected through our suite,
-  Broadcast latency, compiled over all client WebSockets on all client instances, collected through our suite,
-
-  top 3 need to use pooled variance: https://en.wikipedia.org/wiki/Pooled\_variance
-
-  THIS IS NOT DAT TRANSMITTER IN AND OUT OF THE SYSTEM BUT COLLECTIVELY TRANSMITTED BY ALL PARTS OF THE SYSTEM - which is more important, since this is what is charged
-  Total network data in, compiled over all connections collected cloudwatch
-    mysql reports throughput / s so this * 60 gives the value
-  Total network data out, compiled over all connections collected cloudwatch
-    mysql reports throughput / s so this * 60 gives the value
-
-      computing using reverses of latencies cause they are negative values
-
-      don't have the benefit as in crum (latencies reported only globally so approximation).
-      but averages will be used to compare between architectures
+Another fact that is noticed during the analysis of client reports, is that standard deviations were consistently higher than the means in all of the reported sets. This was originally surprising, since latencies can only take positive values (server cannot handle a request in less than 0 ms). Such values are possible only when the distribution is very right skewed\footnote{\url{http://www.itl.nist.gov/div898/handbook/eda/section3/eda35b.htm}}, which is common with sets of latencies and durations.
 
 
-System Load Meter
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Value}                & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II} \\
+  \hline
+  Broadcast lat. min            & 6             & 0.16000              & 0.99950              \\
+  Broadcast lat. weighted avg   & 302            & 4.72781              & 5.89334              \\
+  Broadcast lat. pooled stddev  & 176            & 4.72781              & 5.89334              \\
+  Broadcast lat. 98th           & 905            & 5.45352              & 6.63933              \\
+  Broadcast lat. max            & 17935            & 5.45352              & 6.63933              \\
+  \hline
+  Request lat. min              & 3             & 3.69206              & 3.54456              \\
+  Request lat. weighted avg     & 291            & 3.96222              & 4.34030              \\
+  Request lat. pooled stddev    & 541            & 3.96222              & 4.34030              \\
+  Request lat. 98th             & 2631            & 4.00332              & 4.90962              \\
+  Request lat. max              & 46019            & 4.00332              & 4.90962              \\
+  \hline
+  Handshake lat. min            & 13            & 14.58213             & 14.32463             \\
+  Handshake lat. weighted avg   & 671            & 14.58421             & 14.37806             \\
+  Handshake lat. pooled stddev  & 174            & 3.96222              & 4.34030              \\
+  Handshake lat. 98th           & 4152            & 14.58616             & 14.43662             \\
+  Handshake lat. max            & 15806            & 14.58616             & 14.43662             \\
+  \hline
+  Network in min                & 4.5MB            & 14.58213             & 14.32463             \\
+  Network in avg                & 32.06MB            & 14.58213             & 14.32463             \\
+  Network in max                & 41.44MB            & 14.58213             & 14.32463             \\
+  Network in total              & 5.82GB            & 14.58213             & 14.32463             \\
+  \hline
+  Network out min               & 21.07KB            & 14.58213             & 14.32463             \\
+  Network out avg               & 32.06MB            & 14.58213             & 14.32463             \\
+  Network out max                & 41.44MB            & 14.58213             & 14.32463             \\
+  Network out total              & 5.82GB            & 14.58213             & 14.32463             \\
+  \hline
+  \texttt{SPM min}       & 56.82622            & 24.74547             & 29.71976         \\
+  \texttt{SPM avg}       & 298.30941           & 63.04514             & 74.87883         \\
+  \texttt{SPM max}       & 414.57287           & 69.02704             & 85.63872         \\
+\end{tabular}
+\end{center}
+\caption{System performance (latency values in ms, network values per minute (except for total)).}
+\label{table:spm}
+\end{table}
+  Total network data out (bytes)
+    min 21583
+    avg 112251930
+    max 338821638
+    total 14705002960 / 112251930
+
+MIN 1/905 * 1 / 2631 * 1 / 4152 * 472783 * 21583 => 0.00439032465661
+AVG 1/302 * 1/291 * 1/671 * 33620855 * 112251930 => 1632.17798307
+MAX 1/6 * 1/3 * 1/13 * 43460504 * 338821638 => 6368.4323814
+
+\subsection{System Load Meter}
       Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
 
       sum over connected
@@ -2318,7 +2366,7 @@ System Load Meter
 
       manual
 
-COST ESTIMATIONS
+\subsection{Cost Estimates}
       ~500\$ the whole test process; skipped client costs here
     only running costs (no setup - copying images etc., volume creation)
     monthly costts taken down to hourly assuming 30 days in a month
@@ -2361,44 +2409,6 @@ Effective System Scalability
 \section{Baseline Architecture}
 [TODO data in github repo link]
 
-System Performance Meter, with inputs:
-broadcast latency
-  min 6
-  weighetd\_avg 302
-  pooled\_stddev 176
-  max\_98 905
-  max 17935
-
-latency
-  min 3
-  weighetd\_avg 291
-  pooled\_stddev 541
-  max\_98 2631
-  max 46019
-
-handshaking
-  min 13
-  weighetd\_avg 671
-  pooled\_stddev 174
-  max\_98 4152
-  max 15806
-
-
-   Total network data in (bytes)
-    min 4727833
-    avg 33620855
-    max 43460504
-    total 6253479052
-  Total network data out (bytes)
-    min 21583
-    avg 112251930
-    max 338821638
-    total 14705002960
-
-MIN 1/905 * 1 / 2631 * 1 / 4152 * 472783 * 21583 => 0.00439032465661
-AVG 1/302 * 1/291 * 1/671 * 33620855 * 112251930 => 1632.17798307
-MAX 1/6 * 1/3 * 1/13 * 43460504 * 338821638 => 6368.4323814
-
 System Load Meter
       Successful connections            23999
       Handled requests count            8449173
@@ -2421,7 +2431,7 @@ System Effective Capacity Meter
     MAX 414.572872373
   HOW MANY HOURS ON A DOLLAR:
     1/2.486
-    ec2 1.912\$ 
+    ec2 1.912\$
     ebs storage 140 GB * 0.138 / 30 / 24 (to get to an hour from mont) + 4000 * 0.072 /30 / 24 (provisioned IOPS)
       = .42\$
     rds 0
@@ -2458,30 +2468,6 @@ DROPBOX 2\_2
 latencies are blocking for the server in case of architecture II and III, whereas in I they happen outside of server handling and are parallelized. Db calls are blocking, so if the cross-region latency is a 100ms it all hapens on server-db BLOCKING and paralyzes the communication; that's why all metrics blow up
 [TODO diagram]
 [TODO prove with time loops simple db.add\_prediction()]
-
-
-Computing Resource Utilization Meter
-      Server CPU utilization
-        min: 0.16000
-        avg: 4.72781
-        max: 5.45352
-        available total: 8 x 4 + 2 (redis) + 16 MYSQL = 50 cores, 2.8GHz (move to architeture details - Intel Xeon E5-2680 v2)
-
-      Memory utilization
-        min: 3.69206
-        avg: 3.96222
-        max: 4.00332
-        available total: 53.13884 (GB +/- 3GB)
-
-      Disk utilization
-        min: 14.58213
-        avg: 14.58421
-        max: 14.58616
-        available total: 118.04679 (averaged out, varying between 115-119GB)
-
-MIN 24.7454679399
-AVG 63.0451431781
-MAX 69.0270406427
 
 System Performance Meter, with inputs:
 broadcast latency
@@ -2581,29 +2567,6 @@ Effective Scalable Range
 
 \section{Proposed Architecture II}
 [TODO data in github repo link]
-
-Computing Resource Utilization Meter
-      Server CPU utilization
-        min: 0.99950
-        avg: 5.89334
-        max: 6.63933
-        available total: 8 * 8 + 1 + 8 64 cores, 2.8GHz (move to architeture details - Intel Xeon E5-2680 v2)
-
-      Memory utilization
-        min: 3.54456
-        avg: 4.34030
-        max: 4.90962
-        available total: 53.13884 (GB +/- 3GB)
-
-      Disk utilization
-        min: 14.32463
-        avg: 14.37806
-        max: 14.43662
-        available total: 118.04679 (averaged out, varying between 115-119GB)
-
-MIN 29.7197596499
-AVG 74.8788265308
-MAX 85.6387243439
 
 System Performance Meter, with inputs:
 
@@ -2710,10 +2673,6 @@ They differ much - provide a comparison by region.
 splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
 
 backup by table from lab notes 21.07
-
-+ my stddev is consistently higher than the mean
-and no negative values are possible in latencies
-The SD values are possible, but only if the distribution is very right skewed (which is common in durations) [http://stats.stackexchange.com/questions/90628/sd-larger-than-mean-non-negative-scale].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
