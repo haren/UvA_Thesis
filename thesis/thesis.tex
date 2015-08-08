@@ -35,23 +35,13 @@
 \host{Instamrkt, \url{https://instamrkt.com}}
 
 \abstract{
-  This section summarises the content of the thesis for potential readers who do not have time to read it whole,
-  or for those undecided whether to read it at all. Sum up the following aspects:
+  As the globalization of the world progresses, so does the globalization of web platforms and applications. Clients are expected to connect to the same system and generate and receive data in \textit{real time} (as close to the speed light limits as possible).
 
-  \begin{itemize}
-    \item relevance and motivation for the research
-    \item research question(s) and a brief description of the research method
-    \item results, contributions and conclusions
-  \end{itemize}
+  The host company intends to have their cloud-based system as close to the physical and hardware limits as possible. A solution that satisfies latency, resource utilization and running cost criteria is sought for.
 
-Kent Beck~\cite{JohnsonBBCGW93} proposes to have four sentences in a good abstract:
+  In this research, I proposed three different architecture decompositions with varying degrees of geographical distribution. A cloud-based load test suite was designed to generate load used to benchmark 3 different architectures. Metric collection has been implemented for both client and server machines  (also real-time monitoring for the servers) and analysis of the metrics has been performed using scalability meters derived from scientific literature \cite{Models}.
 
-  \begin{enumerate}
-    \item The first states the problem.
-    \item The second states why the problem is a problem.
-    \item The third is the startling sentence.
-    \item The fourth states the implication of the startling sentence.
-  \end{enumerate}
+  Research questions concern the geographic distribution of users and their proximity to WebSocket servers. The hypothesis is that when they are close, their experienced latencies and general system performance can be improved. According to some system limitations that cannot be easily overcome (not fully asynchronous database connectivity), the hypothesis has been refuted.
 }
 
 \begin{document}
@@ -274,8 +264,8 @@ In this section I outline the structure of the thesis - all chapters with short 
   \item \texttt{Benchmarking} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{Benchmarking}.
   \item \texttt{The System Under Test} - contains a description and guidelines regarding the benchmarking process, which constitutes a big part of this research. Lists typical benchmarking mistakes and what I do to avoid them \ref{The System Under Test}.
   \item \texttt{Experiment Outline and Design} - contains a description of the conducted experiment, its goals and deliverables \ref{Experiment Outline and Design}.
-  \item \texttt{Experiment Implementation} - contains a full description of the compared architectures and cloud stack on which the research is performed, including the technological details \ref{Experiment Implementation}.
   \item \texttt{Scalability Measurements} - contains a description of literature-based scalability metrics and models. Lists the models and metrics selected for measurements in this research, as well as all metrics collectible from the AWS cloud environment \ref{Scalability Measurements}.
+  \item \texttt{Experiment Implementation} - contains a full description of the compared architectures and cloud stack on which the research is performed, including the technological details \ref{Experiment Implementation}.
   \item \texttt{Experiment results} - contains the data collected in the experiments \ref{Experiment results}.
   \item \texttt{Conclusions and Evaluation} - contains a list of conclusions derived from the analysis of the experiment results and the evaluation of the experiment \ref{Conclusions and Evaluation}.
   \item \texttt{Further Work} - contains a description of relevant, testabl variables I did not have enough time to cover in this research. \ref{Further Work}
@@ -2108,6 +2098,9 @@ Measuring the speed of scaling up and down proved to be very difficult and was e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Experiment results}\label{Experiment results}
 
+\epigraph{"You can't always get what you want, but if you try sometimes you just might find
+you get what you need."}{--- The Rolling Stones}
+
 \section{Executed Benchmark Overview}
 
 Each architecture was tested using the benchmark load specified in table \ref{table:benchload}.
@@ -2586,8 +2579,8 @@ It is possible to make the architecture work on a current technology stack even 
 \section{Short Summary}
 In this research, a load test suite generating an arbitrary load over an arbitrary period of time according to the customizable messaging scenarios and user distributions has been designed and implemented. Metric collection for the client test suite and all system components has also been put in place. Multiple bottlenecks of the system have been identified and optimizations proposed and applied. Different architecture decompositions of the system \ref{The System Under Test} were proposed and tested with a benchmark utilizing the load test suite. Metrics have been collected, aggregated and a comparative, quantitative analysis of architectures has been performed.
 
-\section{Research Questions}
-
+\section{Research Questions and Hypothesis}
+\subsection{Research Questions}
 \textit{The research questions put forward in the introduction are the following:
 \begin{enumerate}
   \item What's the architecture decomposition stack that:
@@ -2651,13 +2644,14 @@ Even though primary question has only been answered in scope of current system l
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-the journey continues (25 => 24000 => 10.000.000), nice logarithmic scale
-system needs to sustain loads orders of magnitude higher than 25k
-varying user distributions per region
-dynamodb, CLUSTERS
-improvement to the models so that weighs can be added to the scalability meteres according to preferences, so that they are not that sensitive
 
+The scalability of the System Under Test \ref{The System Under Test} is not at a level that satisfies business goals, yet. The journey that was started at literally 25 users continues. The system currently sustains loads in order of tens of thousands, the desired number is around ten million. This will probably require major architectural changes and has been therefore ruled outside of scope for this research.
 
+The benchmark is planned to be reused with varying user distributions per region. This is a natural consecutive step having established system's behaviour in basic cases.
+
+A plan exists to test different database technologies - DynamoDB of AWS offering and custom setup of redis and MySQL clusters. A baseline against which to compare this data solutions within our system already exists.
+
+Finally, improvements to the used scalability models could be introduced so that the meter inputs can be weighted in order to reflect researcher's preferences. This could guarantee that they are not that sensitive to single values that influence the meter and its derivatives.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
