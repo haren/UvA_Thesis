@@ -63,13 +63,13 @@
 
 \epigraph{"Does this solution scale?"}{--- Every business person ever}
 
-Everyone these days, probably more than ever, wants to build solutions that scale. Together with the globalization of our lives and businesses grows the need for global, distributed, scalable software systems.
+Everyone these days, probably more than ever, wants to build solutions that scale well. Together with globalization of our lives and businesses grows the need for global, distributed, scalable software systems.
 
-To address this needs, more and more providers offer Cloud Computing solutions \ref{Cloud Scalability}, giving rise to the new architecture model called \textit{Infrastructure as a Service (IaaS)}. This makes building scalable software systems easier, since the system engineers do not have to design and maintain their proprietary server infrastructure anymore. This also allows to build systems that are more efficient in terms of resource usage - the existing \textit{IaaS} solutions offer scaling up and down capabilities in response to changes in demand for system's services.
+To address these needs, more and more providers offer Cloud Computing solutions \ref{Cloud Scalability}, giving rise to the new architecture model called \textit{Infrastructure as a Service (IaaS)}. This makes building scalable software systems easier, since the system engineers do not have to design and maintain their proprietary server infrastructure anymore. This also allows to build systems that are more efficient in terms of resource usage - the existing \textit{IaaS} solutions offer scaling up and down capabilities in response to changes in demand for system's services.
 
 As more and more systems are deployed to the cloud, a need for measuring their properties becomes more and more ubiquitous.
 
-In order to reason about scalability-related properties of the system, one needs to define this notion considered by many as vague. For reasoning about cloud scalability, I find the following definition most relevant:
+In order to reason about scalability-related properties of the system, one needs a precise definition of this notion considered by many as vague. For reasoning about cloud scalability, I find the following definition most relevant:
 
 \begin{quote}
 \cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload by repeatedly applying a cost-effective strategy for extending a system capacity.
@@ -89,7 +89,7 @@ Initial study pointed me to the relevant scalability vectors discussed by resear
 
 The study yielded multipile scalability measurement models. I analyzed the work of Jogalekar and Woodside \cite{EvaScaDS}, Srinivas and Janakiram \cite{SriJan}, Cooper et al. \cite{Ycsb} and multiple others.
 
-Some of the proposed models are note applicable since they were designed for different types of scalability - not for a cloud-based distributed system, but for instance for multiprocessor or multi-threading scalability.
+Some of the proposed models are not applicable since they were designed for different types of scalability - not for a cloud-based distributed system, but for instance for multiprocessor or multi-threading scalability.
 
 The models I selected to use for measurements in this research were proposed by Pattabhiraman et al. \cite{Models}. They were designed specifically for the task I am performing - measuring properties of a distributed system deployed in a cloud environment. Their models are also customizable - one can plug in metrics one deems relevant, which allowed us to select metrics that are representative of the business goal of the System Under Test \ref{The System Under Test}.
 
@@ -102,10 +102,10 @@ The problem that I study in this research concerns application stack decompositi
 \begin{itemize}
   \item utilizing real-time, uncacheable data,
   \item utilizing user-generated data,
-  \item broadcast to user base distributed globally,
-  \item broadcast using the WebSocket protocol \ref{WebSocket Protocol},
+  \item broadcasting to user base distributed globally,
+  \item broadcasting using the WebSocket protocol \ref{WebSocket Protocol},
   \item deployed in the cloud,
-  \item dynamically scalable (up and down).
+  \item dynamically scalable (up and down/in and out).
 \end{itemize}
 
 This regards the size and geographical placement of WebSocket server instances, database and cache server instances (with data distribution), routing between them and internal layer communication.
@@ -129,19 +129,19 @@ The answer to these questions is sought among the 3 tested architecture, describ
 
 \subsection{Solution Outline}
 
-In order to answer the Research Questions \ref{Research Questions}, a solution consisting of the following steps was developed:
+In order to answer the Research Questions \ref{Research Questions}, a solution consisting of the following steps has been developed:
 \begin{enumerate}
   \item \texttt{Preparing the load test suite}. It is used to simulate geographical distribution of users and load they generate as well as to collect latency-related metrics of WebSocket handshakes and message delivery. Described in details in a Load Testing Framework section \ref{Load Testing}.
   % [TODO] diagram of the distributed load test suite
   \item \texttt{Preparing the metric collection suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{AWS Available metrics}.
   \item \texttt{Feeding the collected metric into scalability meters}.
-  \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include our custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) was built.
+  \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include our custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) has been built.
 \end{enumerate}
 
 The solution is used to generate realistic user load and benchmark the performance of the system in 3 different versions of varying geographic distributions \ref{Compared Architectures}.
 
 \subsection{Research Method}\label{Research Method}
-Software Engineering is a relatively difficult field to investigate. Most of the problems are of design (rather than pure scientific) nature. West Churchman coined a specific term for these kind of problems \cite{Wckd}. He calls them \texttt{wicked}, since they are resistant to resolutions.
+Software Engineering is a relatively difficult field to investigate. Most of the problems are of design (rather than purely scientific) nature. West Churchman coined a specific term for these kind of problems \cite{Wckd}. He calls them \texttt{wicked}, since they are resistant to resolutions.
 
 Easterbrook et al. \cite{EastBr} claim it is often difficult to identify the true underlying nature of the research problem and thus the best method to research it. In their work, they name and compare five most common classes of research methods to select from:
 \begin{itemize}
@@ -162,7 +162,7 @@ The questions of this research are of the last type. The authors \cite{EastBr} s
 The detailed description of each of the methods helped me to settle for the \texttt{controlled experiment} as a research method for this research. It is well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of my research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described in Scalability Measurements \ref{Scalability Measurements} chapter.
 
 \subsection{Research Difficulty}
-The experiments is performed in a shared cloud environment, which is inherently unpredictable and changing. Non-deterministic network conditions play a significant role here. Aside from that, one has to acknowledge the fact that control over hardware in a cloud environment is by definition given up by the researcher.
+The experiments is performed in a shared cloud environment, which is inherently unpredictable and changing. Non-deterministic network conditions play a significant role. Aside from that, one has to acknowledge the fact that control over hardware in a cloud environment is by definition given up by the researcher.
 
 Designing and executing a test, yielding statistically relevant results, where all the necessary variables are controlled (within reasonable boundaries) is a huge challenge. Bornholt \cite{BornBen} mentions that even the linking order in the process of generating binaries can have an effect of the performance of the benchmarked system!
 
@@ -170,9 +170,7 @@ The focus of the project is on scaling a WebSocket application. This is a relati
 
 Some of the necessary development and data collection tools are relatively low-level and require thorough understanding of UNIX operating systems, on which the servers are deployed. The same is applicable to tuning the operating system for optimal TCP-related performance \ref{Kernel tuning}.
 
-Simulating the geo-location of clients with reasonable accuracy also proves problematic.
-
-Overall, it’s a complex project requiring knowledge of multiple aspects of both hardware (TCP, WebSocket protocol, networks, operating system), software (architecture, cloud computing, data replication/sharding).
+Overall, the project is complex and requires knowledge of multiple aspects of both hardware (TCP, WebSocket protocol, networks, operating system), software (architecture, cloud computing, data replication/sharding).
 
 \subsection{Hypothesis}
 The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecture \ref{Baseline Architecture}.
@@ -186,7 +184,7 @@ On the other hand, the distributed versions of the architecture add complexity i
 The research will result in the following contributions:
 
 \begin{enumerate}
-  \item Architecture decomposition analysis for system's meeting the criteria described in the Problem Statement section \ref{Problem Statement}.
+  \item Architecture decomposition analysis for systems meeting the criteria described in the Problem Statement section \ref{Problem Statement}.
   \item Case Study on Amazon Web Services\footnote{\url{http://aws.amazon.com/}} and usability of their cloud stack for applications using WebSocket protocol.
   \item Open sourced pieces of code for:
   \begin{itemize}
@@ -204,9 +202,9 @@ There is two key papers this research is based on. First of them is \textit{Mult
 
 \subsubsection{Multi-Cloud Provisioning and Load Distribution for Three-Tier Applications}
 
-In this work, the authors tackle the problem of deploying applications across multiple clouds while satisfying system's nonfunctional requirements (in their understanding, application deployed in Amazon's \textit{us-east-1} region and \textit{eu-west-1} region would be deployed to multiple clouds). They propose algorithms for resource provisioning and load distribution. They focus on resource utilization and cost and legal regulations regarding serving users and servers geographical location and include them in their algorithms.
+In this work, the authors tackle the problem of deploying applications across multiple clouds while satisfying system nonfunctional requirements (in their understanding, application deployed in Amazon's \textit{us-east-1} region and \textit{eu-west-1} region would be deployed to multiple clouds). They propose algorithms for resource provisioning and load distribution. They focus on resource utilization and cost and legal regulations regarding serving users and servers geographical location and include them in their algorithms.
 
-In order to satisfy the requirements, the authors had to develop their own routing stack. Both Amazon's services involved in the routing process -- Route 53 \footnote{\url{http://aws.amazon.com/route53/}} and Elastic Load Balancing\footnote{\url{http://aws.amazon.com/elasticloadbalancing/}} -- do not consider application's regulatory requirements when selecting a data center site. Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center.
+In order to satisfy the requirements, the authors had to develop their own routing stack. Both Amazon's services involved in the routing process -- Route 53\footnote{\url{http://aws.amazon.com/route53/}} and Elastic Load Balancing\footnote{\url{http://aws.amazon.com/elasticloadbalancing/}} -- do not consider application's regulatory requirements when selecting a data center site. Moreover, they do not consider the cost and degree of utilization of the employed resources within a data center.
 
 This is how they perform cloud selection to serve a user:
 \begin{enumerate}
@@ -230,7 +228,7 @@ Why is this work relevant? The authors are attempting to solve the same problem 
 
 \subsubsection{SaaS performance and scalability evaluation in clouds}
 
-Pattabhiraman et al realized that cloud computing and its measurement provides a new set of challenges when it comes to measuring performance, as opposed to measuring performance of traditional software systems. They list key points for measuring cloud applications - validating and ensuring the elasticity of scalability and evaluating utility service billings and pricing models. Both are important in my case. They raise an interesting question regarding the latter:
+Pattabhiraman et al \cite{Models} realized that cloud computing and its measurement provides a new set of challenges when it comes to measuring performance, as opposed to measuring performance of traditional software systems. They list key points for measuring cloud applications - validating and ensuring the elasticity of scalability and evaluating utility service billings and pricing models. Both are important in my case. They raise an interesting question regarding the latter:
 
 \begin{quote}
  How to use a transparent approach to monitor and evaluate the correctness of the utility bill based on a posted price model during system performance evaluation and scalability measurement?
