@@ -780,12 +780,12 @@ There are multiple unique aspects of the system that make this research interest
 
 The goal of the project is to design a scalability framework for a real-time persistent WebSocket distributed application (the system). The core researched topic is whether a systems awareness of clients geographical distribution can improve the system performance according to selected metrics, in comparison with traditional approach \ref{Baseline Architecture}.
 
-The goal of the project is to see if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple HTTP applications cannot always be translated to WebSocket applications since the communication protocol differs. WebSockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with HTTP). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
+The goal of the project is to see if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple HTTP applications cannot always be translated to WebSocket applications since the communication protocols differ. WebSockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with HTTP). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 
 \section{Problem To Be Solved}
 The host company is facing the problem of scaling up their system. It has been designed in a way that should support scalability - all processes are decoupled and communicate over TCP sockets, using the ZMQ library\footnote{\url{http://zeromq.org/}}. Most internal messaging happens using pub-sub architecture. Thanks to that, new nodes can be added to the system in order to increase its capacity.
 
-Even though the system has been designed for scalability, it has note been battle-tested. The scalability process is performed in this research; multiple system limitations and have been identified \ref{Discovered System Limitations} and solutions proposed and implemented.
+Even though the system has been designed for scalability, it has not been battle-tested. The scalability process is performed in this research; multiple system limitations and have been identified \ref{Discovered System Limitations} and solutions proposed and implemented.
 
 Our (the host company) preliminary research has not yielded definitive answers as two which level of geographic architecture decomposition will result in best system performance. The key metrics influencing these performance are user-experienced WebSocket handshaking, message handling latencies, utilization of the allocated cloud resources and utilization cost.
 
@@ -856,7 +856,7 @@ Once all the client and server instances are brought up and reachable (verifiabl
 
 \subsection{Load Testing}\label{Load Testing}
 
-Simulated clients come from instances located in all available Auto-Scaling AWS regions \footnote{\url{http://docs.aws.amazon.com/general/latest/gr/rande.html}}, except for eu-central-1 (Frankfurt) \ref{Exluding Frankfurt Region}.
+Simulated clients come from instances located in all available Auto-Scaling AWS regions \footnote{\url{http://docs.aws.amazon.com/general/latest/gr/rande.html}}, except for eu-central-1 (Frankfurt, \ref{Exluding Frankfurt Region}).
 
 The load testing process is enumerated below:
 \begin{enumerate}
@@ -968,7 +968,7 @@ The second proposed architecture adds the distribution of the data layer. Read r
 The technical specification of the instances, number of processes and other technical details can be found in the next chapter \ref{Proposed Architecture II Implementation Details}.
 
 \section{Results Evaluation}
-Results are evaluated using literature-based scalability meters \cite{Models}. I selected (ans slightly modified - added cost factor) the ones \ref{Selected Meters and Metrics} which best facilitate reasoning about factors most important to the host organization - client latencies, cloud resources utilization and operating cost. The tested architectures are compared using these quantifiable meters.
+Results are evaluated using literature-based scalability meters \cite{Models}. I selected (and slightly modified - added cost factor) the ones \ref{Selected Meters and Metrics} which best facilitate reasoning about factors most important to the host organization - client latencies, cloud resources utilization and operating cost. The tested architectures are compared using these quantifiable meters.
 
 The selected meters allow to compare deployed architectures in general scalability terms, but also provide insight into specific aspects of the system, so that analysis can be broken down and architectures can be compared in terms of e.g. latency or cost exclusively.
 
@@ -1030,7 +1030,7 @@ The area of a polygon can be computed as a sum of areas of the triangles that co
 Area of a triangle can be computed using the formula:
 \begin{center}
   $$A_t = 0.5 * a*b * \sin(\alpha_{ab}) $$
-  where \textit{$a$} and \textit{$b$} are to sides of the triangle and $\alpha_{ab}$ is the angle between them.
+  where \textit{$a$} and \textit{$b$} are 2 sides of the triangle (2 radii of the polygon) and $\alpha_{ab}$ is the (central) angle between them.
 \end{center}
 
 In case of these meters, $\alpha_{ab}$ is always equal to $2\Pi/n$. The area of a triangle limited by two radii with values of two metrics $x_i$ and $x_{i+1}$ would look like this:
@@ -1066,7 +1066,7 @@ To compute the area of the polygon one needs to sum all the areas of the triangl
 \end{center}
   \texttt{$S$} - represents the measured system, \\*
   \texttt{$t$} - represents the time over which total resource allocation for the system is evaluated, \\*
-  \texttt{$u_i$} - represents the values of different types of computing resources \textit{utilized} by S in a cloud (network traffic boundary, cache allocated, memory allocated, CPU allocated, etc.), \\*
+  \texttt{$u_i$} - represents the values of different types of computing resources \textit{utilized} by S in a cloud (network traffic boundary, cache utilization, memory utilization, CPU utilization, etc.), \\*
   \texttt{$n$} - represents the count of different types of computing resources utilized by S in a cloud.
 
 \subsubsection{System Performance Meter (SPM)}
@@ -1157,20 +1157,22 @@ Based on that, one can compute scalability metric relating systems at two differ
   $$\upsilon(k_1,k_2) = (F(k_1)/F(k_2)) $$\\*
 \end{center}
 
+One can therefore see a general theme to measuring scalability, around which literature suggests building proprietary measurement models.
+
 \section{AWS Available metrics} \label{AWS Available metrics}
 
-Since the System Under Test \ref{The System Under Test} is deployed to Amazon's Cloud \ref{Cloud architecture setup}, the metrics of the system need to be collected as a combination of metrics offered by Amazon's measurement service (CloudWatch\footnote{\url{https://aws.amazon.com/cloudwatch/}} and our custom collection process (described here \ref{Custom Metric Collection}).
+Since the System Under Test \ref{The System Under Test} is deployed to Amazon's Cloud \ref{Cloud architecture setup}, the metrics of the system need to be collected as a combination of metrics offered by Amazon's measurement service (CloudWatch\footnote{\url{https://aws.amazon.com/cloudwatch/}}) and our custom collection process (described later \ref{Custom Metric Collection}).
 
 Metrics from CloudWatch are collectible by default every 5 minutes. They offer a paid \textit{detailed mode}, with which one can collect metrics every minute. From what I have experienced, even in the detailed mode, the requested metrics show up in the CloudWatch API results with a delay as high as 2 minutes.
 
 The CloudWatch API has its limitations - for instance, the allocation and utilization of memory for EC2 instances and processes is not available. This is something we are collecting in our custom metric collection process \ref{Custom Metric Collection}.
 
 As Pattabhiraman et al. \cite{Models} warn, there exist additional costs which are not apparent from the start.
-If one exceeds 10 metrics, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications, 5GB of incoming data logs or 5GB of data archiving per month then additional costs accrue. This is included in the cost estimates.
+If one exceeds 10 metrics, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications, 5GB of incoming data logs or 5GB of data archiving per month then additional costs accrue.
 
-CloudWatch Alarms \footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html}} can be configured based on these metrics. They can be applied to trigger AutoScaling actions that scale the deployed system in or out automatically.
+CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-cloudwatch.html}} can be configured based on these metrics. They can be applied to trigger AutoScaling actions that scale the deployed system in or out automatically.
 
-A very important limitation for the case of this research is that data cannot be aggregated automatically across AWS regions \footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html}}.
+A very important limitation for the case of this research is that data cannot be aggregated automatically across AWS regions\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/cloudwatch_concepts.html}}.
 
 For each metric collected for a given time window (1 or 5 minutes), CloudWatch offers the following statistics: min, max, average, sum and sample count (count (number) of data points used for the statistical calculation).
 
@@ -1258,7 +1260,7 @@ I selected the following scalability meters and metrics for their inputs:
     \begin{itemize}
       \item Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
       \item Handled requests count, compiled over all client WebSockets on all client instances, collected through our suite,
-      \item Redis database successful hits, collected manually (\textit{info} command),
+      \item Redis database successful hits, collected manually (through \textit{info} command),
       \item MySQL query count, collected manually \ref{lstlisting:qcount},
     \end{itemize}
   \item \texttt{System Effective Capacity Meter}, with inputs:
