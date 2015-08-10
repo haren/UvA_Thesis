@@ -2598,9 +2598,52 @@ It is possible to make the architecture work on a current technology stack even 
 \section{Additional Observations}
 
 \subsection{Latencies by region}
-[TODO] - bonus, not crucial for the thesis. 
-% They differ much - provide a comparison by region.
+As table \ref{table:regionlats} shows, the differences between regions are observable in each of the architectures. In all cases, most servers (and writable database masters) are located in Ireland's data center. One can deduce that the bigger the geographical distance between clients location and Ireland, the bigger the latencies.
 
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Region}               & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II}  \\
+  \hline
+  \texttt{Handshaking} \\
+  Ireland                       & 19                  & 452                  & 348                 \\
+  N. Virginia                   & 319                 & 1162379              & 291177                 \\
+  Oregon                        & 574                 & 1998393              & 585971                 \\
+  California                    & 633                 & 1932505              & 707331                 \\
+  Sao Paulo                     & 818                 & 1884244              & 958826                 \\
+  Singapore                     & 858                 & 2131407              & 942381                 \\
+  Tokyo                         & 877                 & 1981380              & 1002561                 \\
+  Sydney                        & 1269                & 1857882              & 1655476                 \\
+  \texttt{Global}               & \texttt{671}        & \texttt{1549675}     & \texttt{733047}                 \\
+  \hline
+  \texttt{Request Handling} \\
+  Ireland                       & 128                 & 8147                 & 3932                 \\
+  N. Virginia                   & 205                 & 640398               & 522244                 \\
+  Oregon                        & 272                 & 1084066              & 732814                 \\
+  California                    & 284                 & 1160773              & 765508                 \\
+  Sao Paulo                     & 330                 & 992451               & 815666                 \\
+  Singapore                     & 325                 & 1184645              & 812563                 \\
+  Tokyo                         & 347                 & 1319677              & 846521                 \\
+  Sydney                        & 441                 & 1556088              & 938513                 \\
+  \texttt{Global}               & \texttt{291}        & \texttt{90987}       & \texttt{82595}                 \\
+  \hline
+  \texttt{Broadcast} \\
+  Ireland                       & 223                 & 96                   & 107                 \\
+  N. Virginia                   & 287                 & 126                  & 114                 \\
+  Oregon                        & 268                 & 419                  & 145                 \\
+  California                    & 296                 & 440                  & 147                 \\
+  Sao Paulo                     & 322                 & 588                  & 168                 \\
+  Singapore                     & 315                 & 542                  & 156                 \\
+  Tokyo                         & 327                 & 587                  & 176                 \\
+  Sydney                        & 379                 & 829                  & 217                 \\
+  \texttt{Global}               & \texttt{302}        & \texttt{293}         & \texttt{141}                 \\
+\end{tabular}
+\end{center}
+\caption{Weighted average latencies (in ms) reported by clients, grouped by region.}
+\label{table:regionlats}
+\end{table}
+
+\subsection{TCP vs CPU}
 % splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
 
 % backup by table from lab notes 21.07
