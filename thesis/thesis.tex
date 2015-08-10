@@ -600,7 +600,7 @@ Bornholt \cite{BornBen} lists some of the many environmental factors that can ha
 
 Author also states a need for the scientific community to unify and standardize the tools for benchmarking systems. A lot of researchers rebuild their infrastructures and build their scripts anew on every project. This is where I hope to contribute to the scientific and open source communities with releasing all the possible parts of the tooling build for the purpose of this project (described in details later \ref{Experiment deliverables}).
 
-For a benchmark to be dependable, results need to be reproducible \cite{BornBen}. That means the same results can be obtained reruning the benchmark later on a machine with the same hardware and the same software versions. Reproducibility of experimental results requires measurements to be reliable. A measurement can be called reliable, if the method guarantees accuracy (small systematic and random measurement error, i.e., no bias or "volatile" effects, resp.) and sufficient precision.
+For a benchmark to be dependable, results need to be reproducible \cite{BornBen}. That means the same results can be obtained reruning the benchmark later on a machine with the same hardware and the same software versions. Reproducibility of experimental results requires measurements to be reliable. A measurement can be called reliable, if the method guarantees accuracy (small systematic and random measurement error, i.e., no bias or "volatile" effects respectively) and sufficient precision.
 
 Beyer et al \cite{BenRM} list well-established benchmarks for specific tasks:
 \begin{description}
@@ -612,7 +612,7 @@ Beyer et al \cite{BenRM} list well-established benchmarks for specific tasks:
   - Natural Language Requirements Processing\footnote{\url{http://nlrp.ipd.kit.edu/}}. They provide benchmarks for Requirements Engineering.
 \end{description}
 
-In case of the system being benchmarked in this research \ref{The System Under Test}, it is hard to reuse any of these since the performance depends on a custom set of operations spreading across multiple system layers.
+In case of the system benchmarked in this research \ref{The System Under Test}, it is hard to reuse any of these since the performance depends on a custom set of operations spreading across multiple system layers.
 
 Authors of "Benchmarking cloud serving systems with YCSB" \cite{Ycsb} point out that it is important to have random distributions for benchmarking loads - \textit{uniform}, \textit{zipfian}, \textit{latest}, \textit{multinomial}, etc.
 
@@ -636,13 +636,13 @@ Gernot Heiser prepared a list \cite{GerHeiBench} of \textit{benchmarking crimes}
 
     As an economist Mielton Friedman used to put it, \textit{there's no such thing as free lunch}\footnote{\url{http://www.amazon.com/Theres-Such-Thing-Free-Lunch/dp/087548297X}}.
 
-    In this context, we can interpret it in the following way. Techniques improving performance in some capacity usually entail an additional cost (extra bookkeeping, caching). As Heiser writes: "This is really at the heart of systems: it's all about picking the right trade-offs" \cite{GerHeiBench}. In our case the potential improved performance comes at a cost of increased data transfers between data centers (and therefore costs) and simply increased complexity of certain system layers.
+    In this context, we can interpret it in the following way. Techniques improving performance in some capacity usually entail an additional cost (extra bookkeeping, caching). As Heiser writes \cite{GerHeiBench}: "This is really at the heart of systems: it's all about picking the right trade-offs". In our case the potential improved performance comes at a cost of increased data transfers between data centers (and therefore costs) and simply increased complexity of certain system layers.
   \item Subsetting a benchmark without strong justification. A warning sign that one might sin in this way:
     \begin{itemize}
       \item "we picked a representative subset", "typical results are shown" - reads as "we cherry picked the data to fit our expected results".
     \end{itemize}
     If benchmarking is performed on a subset of a system, a strong justification needs to be as to why a given subset of functionalities / components was selected. I am benchmarking a real-life system use case.
-  \item Selective data set hiding deficiencies. Luckily, more and more statistical tools are being developed to detect that \footnote{\url{http://dataskeptic.com/epnotes/ep55_detecting-cheating-in-chess.php}}.
+  \item Selective data set hiding deficiencies. Luckily, more and more statistical tools are being developed to detect that\footnote{\url{http://dataskeptic.com/epnotes/ep55_detecting-cheating-in-chess.php}}.
 \end{enumerate}
 
 \subsubsection{Using the same dataset for calibration and validation}
@@ -675,7 +675,7 @@ The proper way to do this (i.e. arrive at a single figure of merit) is to use th
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{The System Under Test}\label{The System Under Test}
 
-A system under test can be best described as a \textit{real-time, dynamic, parimutuel prediction market}. It is a platform with a publicly exposed RESTful and WebSocket APIs \footnote{\url{http://instamrkt.github.io/slate/}}, through which system clients can connect their websites and mobile applications to access functionality. The scope of this project concerns the WebSocket API.
+A system under test can be best described as a \textit{real-time, dynamic, parimutuel prediction market}. It is a platform with a publicly exposed RESTful and WebSocket APIs\footnote{\url{http://instamrkt.github.io/slate/}}, through which system clients can connect their websites and mobile applications to access functionality. The scope of this project concerns the WebSocket API.
 
 The core functionality of the platform is to allow users to make predictions on (near) future events. Users can also ask their own questions regarding these events and send them out globally or to their friends. The events can literally be anything - users' imagination is the limit. A simple use case of the system would be a live football match or an e-game match broadcast on a streaming service like \textit{twitch.tv\footnote{\url{http://www.twitch.tv/}}}. Questions can also be automatically generated based on an incoming stream of events regarding the e-game/sports match. The stream can consist of an "admin" inputting the events manually through the system's admin interface, or, if a game/match has an automatic stream of data available, it can also be connected to the platform.
 
@@ -687,7 +687,7 @@ In order to keep the users informed on what the current distribution is (and thu
 
 As mentioned above, one of the simplest use cases of the platform is a live football match. A client, who has connected his application to the platform can now offer users real time questions and placing predictions on them.
 
-A case illustrating the need for the research well would be \textit{UEFA Champions League}\footnote{\url{http://www.uefa.com/uefachampionsleague/}} final, for instance between \textit{Real Madrid} and \textit{FC Barcelona}. These events generate viewership in the range of hundreds of millions \footnote{\url{http://www.uefa.com/uefachampionsleague/news/newsid=2111684.html}}.
+A case illustrating the need for the research well would be \textit{UEFA Champions League}\footnote{\url{http://www.uefa.com/uefachampionsleague/}} final, for instance between \textit{Real Madrid} and \textit{FC Barcelona}. These events generate viewership in the range of hundreds of millions\footnote{\url{http://www.uefa.com/uefachampionsleague/news/newsid=2111684.html}}.
 
 Let's assume we have 10 million users connected to the platform throughout the game. Most of them come from Spain and the rest of Europe (65\%). Since the time-zone suits football-loving South Americans well, a lot of users are connected from there too (20\%). The platform also hosts some North American fans (5\%), with the rest comprised of hard-core Asian (9\%) and Australian (1\%) fans.
 
@@ -733,7 +733,7 @@ The system consists of the following units:
 
 \section{Technology Stack} \label{Technology Stack}
 
-The platform is written mostly in Python \texttt{2.7.6}. Data storages used by the platform consist of Redis \texttt{2.8.10} as a caching solution and MySQL \texttt{2.8.6} as persistent storage. A sample client application is written in Ampersand.js\footnote{\url{http://ampersandjs.com/}}. Cloud stack used to which the application is deployed is fully described later \ref{Cloud architecture setup}.
+The platform is written mostly in Python \texttt{2.7.6}. Data storages used by the platform consist of Redis \texttt{2.8.10} as a caching solution and MySQL \texttt{5.6.21} as persistent storage. A sample client application is written in Ampersand.js\footnote{\url{http://ampersandjs.com/}}. Cloud stack used to which the application is deployed is fully described later \ref{Cloud architecture setup}.
 
 \section{Web Server}
 
