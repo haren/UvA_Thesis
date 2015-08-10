@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex thesis"] 1439232249 "thesis.aux" "thesis.bbl" "thesis" 1439233142
+["bibtex thesis"] 1439234697 "thesis.aux" "thesis.bbl" "thesis" 1439234935
   "/usr/local/texlive/2014/texmf-dist/bibtex/bst/urlbst/alphaurl.bst" 1311291550 33980 c8409be7db470882c31229bb09deb6ac ""
-  "thesis.aux" 1439233141 37623 5197dfcbb90cdffcfed3293f248f5907 ""
+  "thesis.aux" 1439234933 37900 c3af33ba160fbde5366643474292ad2d ""
   "thesis.bcf" 0 -1 0 ""
   "thesis.bib" 1439045674 10909 dc272410fdb5c59c3b904449cc75c928 ""
   (generated)
-  "thesis.blg"
   "thesis.bbl"
-["pdflatex"] 1439233132 "thesis.tex" "thesis.pdf" "thesis" 1439233142
+  "thesis.blg"
+["pdflatex"] 1439234926 "thesis.tex" "thesis.pdf" "thesis" 1439234935
   "/usr/local/texlive/2014/texmf-dist/tex/context/base/supp-pdf.mkii" 1337017135 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/local/texlive/2014/texmf-dist/tex/generic/ifxetex/ifxetex.sty" 1284331290 1458 43ab4710dc82f3edeabecd0d099626b2 ""
   "/usr/local/texlive/2014/texmf-dist/tex/generic/oberdiek/gettitlestring.sty" 1303254447 8237 52810bdb4db2270e717422560a104aea ""
@@ -87,6 +87,7 @@
   "figures/case1.png" 1439058622 60031 ba8ac33888a56860d83ea5c4eb49d91d ""
   "figures/case2.png" 1439058721 74002 19b493134ee4afb4e5e78f176307cfb5 ""
   "figures/cloudsetup.png" 1438723597 76324 d4ff1e690aaf93086c098d8d89549987 ""
+  "figures/cooppreemp.png" 1439234516 85954 003fba176dd2fccd8334f99a291b1db3 ""
   "figures/crum.png" 1438994476 204044 9a9b3bee39ec58bcc06730f4d4757a16 ""
   "figures/elbautoscale.png" 1438700950 100299 a25e6b3386197036813ba5d8574606b1 ""
   "figures/graphiteTCP.png" 1438617656 171941 d626c60da080e1db172c770ffa99ff84 ""
@@ -101,14 +102,14 @@
   "figures/structure.png" 1439059349 38162 da6a06254332b6e8aa4fc7a11c4425d2 ""
   "figures/ws.png" 1436471520 34620 d30ded3179bb8ebd7be1ba8ea6b71d3a ""
   "program-listings.tex" 1439206771 2551 260c3d482d7a875d2bc00861a198a01a ""
-  "thesis.aux" 1439233141 37623 5197dfcbb90cdffcfed3293f248f5907 ""
-  "thesis.bbl" 1439232250 8326 7650fceb3cd0f073649f913846b6cd64 "bibtex thesis"
-  "thesis.tex" 1439233131 215939 ed457c52e77e5eecece7484267f1ea45 ""
-  "thesis.toc" 1439233141 13176 d821b826187529c7a3a1b6ce8de5aae9 ""
+  "thesis.aux" 1439234933 37900 c3af33ba160fbde5366643474292ad2d ""
+  "thesis.bbl" 1439234697 8326 7650fceb3cd0f073649f913846b6cd64 "bibtex thesis"
+  "thesis.tex" 1439234925 216334 d511ce1357ba1dc51e509a557f1149f3 ""
+  "thesis.toc" 1439234933 13176 3e039a0cc1120b335cd3f9d7a8a635e1 ""
   "uva.pdf" 1431173289 1677 ca941aecd8bffdac245d574f2ea5950f ""
   "uvamscse.cls" 1431188922 4748 7f6a90c12bf04dde4ebf6934779cba01 ""
   (generated)
-  "thesis.log"
   "thesis.aux"
-  "thesis.toc"
   "thesis.pdf"
+  "thesis.log"
+  "thesis.toc"

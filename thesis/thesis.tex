@@ -2147,7 +2147,7 @@ Benchmark run lasted exactly $200 + 90 * 60 = 5600s (93.3min)$ and its message l
 \end{table}
 
 \section{Sample Client Report}\label{Client Report}
-Each client generating load during the benchmark run provides a report like the one on listing REF.
+Each client generating load during the benchmark run provides a report like the one on listing \ref{lstlisting:clientreport}.
 
 \begin{sourcecode}[H]
 \begin{lstlisting}[language=json]
@@ -2157,7 +2157,7 @@ Launch bench with 10 total connection, 1 concurent connection
 WS server : classic
 
 
-On-line               188118 milliseconds
+On-line              188118 milliseconds
 Time taken           188118 milliseconds
 Connected            10
 Disconnected         0
@@ -2179,7 +2179,7 @@ Latency              19      20      20      20      21      26      33      35 
 Broadcast Latency    9       10      10      10      11      12      13      14      17
 \end{lstlisting}
 \caption{A sample single client load test report (latencies in milliseconds).}
-\label{lstlisting:prediction}
+\label{lstlisting:clientreport}
 \end{sourcecode}
 
 \section{Sample Server Report}
@@ -2202,7 +2202,7 @@ Timestamp,Average,Maximum,Sum,SampleCount,Unit
 
 \subsection{Cloudwatch metrics discrepancy}
 
-For some metrics, such as memory or disk usage, Cloudwatch offers utilization (\%), available total and used total quantity. I have noticed that there exist some discrepancies between the 3 values. An example can be found in listing \ref{lstlisting:clouddiscr}. Cloudwatch reports 3123.859375 used and 57097.76953125 available memory. The ratio of these values is equal $3123.859375 / 57097.76953125 = 0,05471070763$, yet utilization reports 5.187\% instead of 5.471\%. This is why I decided \texttt{not} to use utilization values, and compute ratios for each of the metric. This is necessary for computing system averages anyway - to compute average deployed system memory utilization, I cannot average out the utilization percentages - all available values of all instances have to be added together, as do used values, and then a ratio of \textit{total used/total available} can be computed.
+For some metrics, such as memory or disk usage, Cloudwatch offers utilization (\%), available total and used total quantity. I have noticed that there exist some discrepancies between the 3 values. An example can be found in listing \ref{lstlisting:clouddiscr}. Cloudwatch reports 3123.859375 used and 57097.76953125 available memory. The ratio of these values is equal $3123.859375 / 57097.76953125 = 0,05471070763$, yet utilization reports 5.187\% instead of 5.471\%. This is why I decided \texttt{not} to use utilization values, and compute ratios for each of the metric. This is necessary for computing system averages anyway - to compute average deployed system memory utilization, I cannot average out the utilization percentages - all available values of all instances have to be added together, as do used values, and then a ratio of \textit{total used/total available} can be computed to give total resource utilization.
 
 \begin{sourcecode}[H]
 \begin{lstlisting}[style=mono]
@@ -2231,14 +2231,14 @@ To compared deployed architectures resource utilization, I use the \textit{Compu
 
 The meter has a value for every of the 94 measured system states. Every minute the following values are input into the meter:
 \begin{itemize}
-  \item \texttt{Server CPU Utilization}, compiled over all server instances + redis + MySQL RDS instances, for each instance $utilization percentage * number of cores$ is taken into computation (all processors are of the same speed - 2.8GHz), so the exact formula looks like this: $$util_{avg} = \sum_{i=1}^{n}(c*u) / \sum_{i=1}^{n}c$$ where $n$ is the number of instances, $c$ a number of cores on a given instance and $u$ utilization percentage of a given instance CPU.
+  \item \texttt{Server CPU Utilization}, compiled over all server instances + redis + MySQL RDS instances, for each instance $utilizationPercentage * numberOfCores$ is taken into computation (all processors are of the same speed - 2.8GHz), so the exact formula looks like this: $$util_{avg} = \sum_{i=1}^{n}(c*u) / \sum_{i=1}^{n}c$$ where $n$ is the number of instances, $c$ a number of cores on a given instance and $u$ utilization percentage of a given instance CPU.
   \item \texttt{Memory Utilization}, compiled over all server instances + redis instances, computed as sum of total used memory divided by sum of total available memory,
   \item \texttt{Disk Utilization}, compiled over all server instances + redis instances, computed as sum of total used disk space divided by sum of total available disk space.
 \end{itemize}
 
 It is worth noting that this means that the minimum CRUM value does not have to be comprised of minimum CPU, memory and disk utilizations. This would be the case only and only if all the minima happen at the same point in time.
 
-Each input is equal to the percentage value -so if a utilization is equal 15.52\%, the input will be 15.52. Results for the 3 compared architectures are presented in table \ref{table:crum}.
+Each input is equal to the percentage value - so if utilization is equal 15.52\%, the input will be 15.52. Results for the 3 compared architectures are presented in table \ref{table:crum}.
 
 \begin{table}[H]
 \begin{center}
@@ -2334,7 +2334,7 @@ For the minimum meter value, 98th percentile latencies and min network values we
   Network out total             & 13.56GB             & 4.19GB               & 36.81GB             \\
   \hline
   \texttt{SPM min}              & 130.46082           & 0.23341              & 6.79360         \\
-  \texttt{SPM avg}              & \texttt{2251.85501} & \text{797.62981}     & \text{30771.49954}         \\
+  \texttt{SPM avg}              & \texttt{2251.85501} & \texttt{797.62981}     & \texttt{30771.49954}         \\
   \texttt{SPM max}              & 6368.43238          & 1029.5834            & 43476.89380         \\
 \end{tabular}
 \end{center}
@@ -2363,7 +2363,7 @@ System load is measured using the System Load Meter. Since all the input values 
 Meter inputs:
 \begin{itemize}
   \item \texttt{Successful connections} - number of users who successfully connected to the system (opened a WebSocket connection), summed from all client reports,
-  \item \texttt{Handled requests count} - sum of all user requests (send over the WebSocket connection) handled by the system,
+  \item \texttt{Handled requests count} - sum of all user requests (sent over the WebSocket connection) handled by the system,
   \item \texttt{Redis hits} - number of successful queries directed at redis during the benchmark,
   \item \texttt{MySQL queries} - number of MySQL queries performed during the benchmark run.
 \end{itemize}
@@ -2535,11 +2535,11 @@ The model could more useful when different loads are applied on the same archite
 
 According to all primary metrics Baseline architecture performs best, followed by the 2nd proposed architecture and the 1st proposed architecture performing worst.
 
-The cause of such state of affairs is the combination of WebSocket server technology and database drivers that are used in the tested system \ref{The System Under Test}. The System runs Tornado, which is single-threaded. Without fully asynchronous and non-blocking I/O operations, system scalability is severely limited. Our database drivers have proven not to be fully non-blocking, which seems like a foreseeable thing, and yet it wasn't discovered until the benchmark runs. The issue only manifests itself when data source is not located in server's proximity. This is when network latencies are added to each database query and, because of that, request handling times escalate.
+The cause of such state of affairs is the combination of WebSocket server technology and database drivers that are used in the tested system \ref{The System Under Test}. The System runs Tornado, which is single-threaded. Without fully asynchronous and non-blocking I/O operations, system scalability is severely limited. Our database drivers have proven not to be fully non-blocking, which seems like a foreseeable problem, yet it was not discovered until the benchmark runs. The issue only manifests itself when data source is not located in server's proximity. This is when network latencies are added to each database query and, because of that, request handling times escalate.
 
-A sample use case demonstrates the behavior: 1000 users connecting from Sydney to Ireland at the same time. Let us assume a latency of the Sydney-Ireland round-trip to be 1000ms, and the database query handling time to be 1ms.
+A sample use case demonstrates the behavior: 1000 users connecting from Sydney to Ireland at the same time. Let us assume latency of the Sydney-Ireland round-trip to be 1000ms, and the database query handling time to be 1ms.
 
-If the server is connected in the same data center as the database (as is the case in baseline architecture), all users arrive at the same time (more or less). First user's request is handled in 1ms, second user's in 2ms (the 1st millisecond was used for handling the 1st user's query, the server process was blocked), third user in 3ms and so on. On average, the thousand users are server with a latency of ~1500ms (1000ms for a Sydney-Ireland round-trip) and 500ms as an average time before the database query can run (best case scenario is 1ms, worst case 1000ms). After 1000ms, the server has finished serving all the requests, and if another 1000 arrive next second, it will handle all of them too. This is a sustainable setup. This case is depicted on figure \ref{figure:case1}.
+If the server is located in the same data center as the database (as is the case in baseline architecture), and all users arrive at the same time (more or less), first user's request is handled in 1ms, second user's in 2ms (the 1st millisecond was used for handling the 1st user's query, the server process was blocked), third user in 3ms and so on. On average, the thousand users are server with a latency of ~1500ms (1000ms for a Sydney-Ireland round-trip) and 500ms as an average time before the database query can run (best case scenario is 1ms, worst case 1000ms). After 1000ms, the server has finished serving all the requests, and if another 1000 arrive next second, it will handle all of them too. This is a sustainable setup. This case is depicted on figure \ref{figure:case1}.
 
 \begin{figure}[H]
 \centering
@@ -2556,7 +2556,7 @@ When the server is moved to Sydney, but the data source stays in Ireland, the fl
 \caption{Proposed architectures case.}
 \label{figure:case2}
 \end{figure}
-An attempt was made to replace the database drivers, yet this is no trivial task. One cannot simply code asynchronicity around the intrinsically synchronous calls. Nevertheless, the drivers were fully replaced with asynchronous ones, but another issue cropped up when this was performed.
+An attempt was made to replace the database drivers, yet this is no trivial task. One cannot simply code asynchronicity around the intrinsically synchronous calls. Thu, the drivers were fully replaced with asynchronous ones, and another issue cropped up when this was performed.
 
 The server was now capable of serving users in an asynchronous manner, provided that there was no more than one asynchronous operation in each execution flow. Unfortunately, this is not always the case with the tested system. Listing \ref{lstlisting:async} explains the 3 cases: fully-synchronous, asynchronous working and asynchronous not working entirely as intended.
 
@@ -2566,7 +2566,7 @@ The server was now capable of serving users in an asynchronous manner, provided 
 
 # synchronous
 def handle_message(self, message):
-    value = self.db(get_value)
+    value = self.db.get_value())
     # the whole process is blocked until the query above returns
     return self.write(value)
 
@@ -2596,7 +2596,14 @@ def handle_message_async(self, message, callback):
 \label{lstlisting:async}
 \end{sourcecode}
 
-The reason why multiple yields cannot work in parallel is the following. The lines 13, 22 and 24 of the listing \ref{lstlisting:async} show the execution of so called coroutines. If a coroutine (\textit{self.db.get\_value}) does not \textit{yield} from the inside (and it does not, since if performs an atomic I/O-bound operation), there is no way for the coroutine scheduler to interleave the calls and run them in parallel. That's the whole point of coroutines: they're cooperative, not preemptive.
+The reason why multiple yields cannot work in parallel is the following. The lines 13, 22 and 24 of the listing \ref{lstlisting:async} show the execution of so called coroutines. If a coroutine (\textit{self.db.get\_value}) does not \textit{yield} from the inside (and it does not in this case, since if performs an atomic I/O-bound operation), there is no way for the coroutine scheduler to interleave the calls and run them in parallel. This is because coroutines are co-operative, not pre-emptive, and co-operative tasks cannot be forcibly suspended \ref{figure:cooppreemp}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.7]{cooppreemp}
+\caption{Difference between co-operative and pre-emptive task scheduling.}
+\label{figure:cooppreemp}
+\end{figure}
 
 It is possible to make the architecture work on a current technology stack even with remote data sources, yet no more than one database query can be performed per each message handling. Queries should therefore be batched, and that requires major application code changes.
 
@@ -2722,7 +2729,7 @@ In this research, a load test suite generating an arbitrary load over an arbitra
 The research has yielded the following answers:
 \begin{enumerate}
   \item The baseline architecture \ref{Baseline Architecture} performs better than the proposed architectures \ref{Proposed Architecture I} \ref{Proposed Architecture II} with regard to all analyzed aspects of the system.
-  \item The distribuetd architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} do not provide better Quality of Service than the baseline architecture \ref{Baseline Architecture}.
+  \item The distributed architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} do not provide better Quality of Service than the baseline architecture \ref{Baseline Architecture}.
 \end{enumerate}
 
 \subsection{Hypothesis}
@@ -2756,7 +2763,7 @@ Following threats to validity have been identified:
 \begin{itemize}
   \item Cloud computing environments, such as EC2, are outside of the researcher's control. They can only be monitored and influenced to an extent. Since it is a shared environment, it is hard to predict how other systems that the deployed system is sharing resources with will behave (e.g they might end up under a DDOS attack).
   \item Global network conditions are inherently non-deterministic, the benchmark might (and probably would) yield different results if performed e.g. during a Superbowl or World Cup final.
-  \item Because of the system limitations, I am not able to make any claims about other, truly asynchronous systems.
+  \item Because of the system \ref{The System Under Test} limitations, I am not able to make any claims about other, truly asynchronous systems.
 \end{itemize}
 
 \section{Host Company Benefits}
@@ -2773,7 +2780,7 @@ Even though primary question has only been answered in scope of current system l
 \chapter{Further Work}\label{Further Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The scalability of the System Under Test \ref{The System Under Test} is not at a level that satisfies business goals, yet. The journey that was started at literally 25 users continues. The system currently sustains loads in order of tens of thousands, the desired number is around ten million. This will probably require major architectural changes and has been therefore ruled outside of scope for this research.
+The scalability of the System Under Test \ref{The System Under Test} is not yet at a level that satisfies business goals. The journey that was started at literally 25 users continues. The system currently sustains loads in order of tens of thousands, the desired number is around ten million. This will probably require major architectural changes and has been therefore ruled outside of scope for this research.
 
 
 The benchmark is planned to be reused with varying user distributions per region. This is a natural consecutive step having established system's behavior in basic cases.
