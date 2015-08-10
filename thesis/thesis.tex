@@ -2652,10 +2652,47 @@ As table \ref{table:regionlats} shows, the differences between regions are obser
 
 Depicted geographic distance on figure \ref{figure:latgeo} is measured between Ireland and a city/state of a given data center. Global uses an average of all others. Latencies are taken from the results of the benchmark run against the baseline architecture.
 
-% \subsection{TCP vs CPU}
-% splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
+\subsection{TCP vs CPU}
+During the preparations for the benchmark runs, on smaller instances, I researched the influence  of splitting the server and the databases (MySQL and redis) into separate instances on resource utilization.
 
-% backup by table from lab notes 21.07
+\begin{sourcecode}[h]
+\begin{lstlisting}[style=mono,language=python]
+def rt(n):
+    for i in range(n):
+      db.db_r.set("x:%s:x" % i, i)
+      x = db.db_r.get("x:%s:x" % i)
+    keys = ["x:%s:x" % i for i in range(n)]
+    db.db_r.delete(*keys)
+
+# timeit -n 100 rt(1000)
+\end{lstlisting}
+\caption{Small redis performance test.}
+\label{lstlisting:redistest}
+\end{sourcecode}
+
+Snippet \ref{lstlisting:redistest} shows the code used to test redis. Table \ref{table:redistest} shows the comparison between the resource usage in 2 cases. It is worth observing what influence on the CPU utilization separating the database onto a different server instance has. The whole server - database communication has to happen over TCP; handling of that communication is putting a  strain on the CPUs and can be observed in average and maximum values of the Server Instance and Database Instance (second and third column of table \ref{table:redistest}) collected during the test.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{llll}
+  \texttt{Region}               & \texttt{Mutual Instance} & \texttt{Server Instance} & \texttt{Database Instance} \\
+  \hline
+  Memory Utilization \\
+  min                           & 46.93                    & 59.74                    & 62.30                 \\
+  avg                           & 48.89                    & 60.12                    & 63.40                 \\
+  max                           & 52.77                    & 60.53                    & 64.87                 \\
+  \hline
+  CPU Utilization\\
+  min                           & 9.84                     & 8.47                     & 11.86                 \\
+  avg                           & 11.46                    & \textit{\texttt{49.34}}  & \textit{\texttt{51.86}}                 \\
+  max                           & 13.11                    & \textit{\texttt{100}}    & \textit{\texttt{100}}                 \\
+  \hline
+  Test Result                   & 1.1s                     & 1.85s                    & - \\
+\end{tabular}
+\end{center}
+\caption{All utilization values in \%. First column - first test, second and third column - second test.}
+\label{table:redistest}
+\end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Conclusions and Evaluation}\label{Conclusions and Evaluation}
