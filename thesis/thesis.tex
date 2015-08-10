@@ -2600,7 +2600,7 @@ It is possible to make the architecture work on a current technology stack even 
 \subsection{Latencies by region}
 As table \ref{table:regionlats} shows, the differences between regions are observable in each of the architectures. In all cases, most servers (and writable database masters) are located in Ireland's data center. One can observe on figure \ref{figure:latgeo} that the bigger the geographical distance between clients location and Ireland, the bigger the latencies.
 
-\begin{table}[H]
+\begin{table}[h]
 \begin{center}
 \begin{tabular}{llll}
   \texttt{Region}               & \texttt{Baseline}   & \texttt{Proposed I}  & \texttt{Proposed II}  \\
@@ -2643,7 +2643,7 @@ As table \ref{table:regionlats} shows, the differences between regions are obser
 \label{table:regionlats}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[h]
 \centering
 \includegraphics[scale=0.3]{latgeo}
 \caption{Latencies by region (geographic distance in km, rescaled).}
@@ -2652,7 +2652,7 @@ As table \ref{table:regionlats} shows, the differences between regions are obser
 
 Depicted geographic distance on figure \ref{figure:latgeo} is measured between Ireland and a city/state of a given data center. Global uses an average of all others. Latencies are taken from the results of the benchmark run against the baseline architecture.
 
-\subsection{TCP vs CPU}
+% \subsection{TCP vs CPU}
 % splitting up redis and MySQL onto separate instances causes CPUs to max out 100\% (handling the networks stack?) and data traffic to spike (obvsly)
 
 % backup by table from lab notes 21.07
