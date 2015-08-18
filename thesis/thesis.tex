@@ -173,8 +173,11 @@ Overall, the project is complex and requires knowledge of multiple aspects of bo
 \subsection{Hypothesis}
 The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecture \ref{Baseline Architecture}.
 
-The geographically distributed architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} should provide lower user-experienced request handling and broadcast latencies than the baseline architecture \ref{Baseline Architecture}. Some of the latencies that are unavoidable due to geographical global distances, in case of these architectures, can be pushed down to lower levels of the systems. This means that the data retrieval / synchronization can happen asynchronously, in the background, rather than synchronously on every user's request.
+The geographically distributed architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} should provide lower user-experienced request handling and broadcast latencies than the baseline architecture \ref{Baseline Architecture}. Some of the latencies experienced during user's communication with the system are unavoidable due to geographical global distances. In case of the proposed architectures, these latencies can be pushed down to lower levels of the systems. This means that the data retrieval can happen asynchronously, in the background, rather than synchronously on every user's request. This should therefore lower the latencies expected by the user.
 
+Proposed architectures can offer improved resource utilization. When using separate components, resource limitation can potentially be identified easier and the components can be tuned better to their task rather than a single general purpose machine (as is the case with baseline architecture).
+
+Furthermore, the proposed architectures offer better scalability in light of the definition provided by Weinstock and Goodenough \cite{WeinstockOnSystem2006}. Components can be added to the system once demand for their services grows. In case of the baseline architecture, the resource limit will be reached eventually on a big enough scale without further possibility of expansion.
 
 On the other hand, the distributed versions of the architecture add complexity in multiple system layers. Implications of these will probably increase the cost of system utilization (due to increased internal data transfer).
 
