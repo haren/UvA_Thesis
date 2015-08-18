@@ -131,9 +131,9 @@ In order to answer the Research Questions \ref{Research Questions}, a solution c
 \begin{enumerate}
   \item \texttt{Preparing the load test suite}. It is used to simulate geographical distribution of users and load they generate as well as to collect latency-related metrics of WebSocket handshakes and message delivery. Described in details in a Load Testing Framework section \ref{Load Testing}.
   % [TODO] diagram of the distributed load test suite
-  \item \texttt{Preparing the metric collection suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and our custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{AWS Available metrics}.
+  \item \texttt{Preparing the metric collection suite}. It is used to collect data from the application servers. This consists of collecting Amazon's CloudWatch\footnote{\url{http://aws.amazon.com/cloudwatch/}} metrics and my custom metrics (e.g. process memory usage). Metric collection process is described in details in a dedicated section \ref{AWS Available metrics}.
   \item \texttt{Feeding the collected metric into scalability meters}.
-  \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include our custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) has been built.
+  \item \texttt{Automatic scalability management}. This is performed using Amazon's CloudWatch Alarms\footnote{\url{http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/AlarmThatSendsEmail.html}} triggering Auto Scaling Groups \footnote{\url{http://aws.amazon.com/autoscaling/}} capacity changes. In order to include my custom metrics in orchestrating the scalability process, a module based on Amazon's Python library (Boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}) has been built.
 \end{enumerate}
 
 The solution is used to generate realistic user load and benchmark the performance of the system in 3 different versions of varying geographic distributions \ref{Compared Architectures}.
@@ -159,6 +159,8 @@ The questions of this research are of the last type. The authors \cite{EastBr} s
 
 The detailed description of each of the methods helped me to settle for the \texttt{controlled experiment} as a research method for this research. It is well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of my research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described in Scalability Measurements \ref{Scalability Measurements} chapter.
 
+Other methods are not that applicable in the case of the System Under Test \ref{The System Under Test}. No other method would yield as much practical knowledge about internals of the system which can be acted upon to improve it.
+
 \subsection{Research Difficulty}
 The experiments is performed in a shared cloud environment, which is inherently unpredictable and changing. Non-deterministic network conditions play a significant role. Aside from that, one has to acknowledge the fact that control over hardware in a cloud environment is by definition given up by the researcher.
 
@@ -171,7 +173,7 @@ Some of the necessary development and data collection tools are relatively low-l
 Overall, the project is complex and requires knowledge of multiple aspects of both hardware (TCP, WebSocket protocol, networks, operating system), software (architecture, cloud computing, data replication/sharding).
 
 \subsection{Hypothesis}
-The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecture \ref{Baseline Architecture}.
+\textit{The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecture \ref{Baseline Architecture}}.
 
 The geographically distributed architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} should provide lower user-experienced request handling and broadcast latencies than the baseline architecture \ref{Baseline Architecture}. Some of the latencies experienced during user's communication with the system are unavoidable due to geographical global distances. In case of the proposed architectures, these latencies can be pushed down to lower levels of the systems. This means that the data retrieval can happen asynchronously, in the background, rather than synchronously on every user's request. This should therefore lower the latencies expected by the user.
 
@@ -294,7 +296,7 @@ Scalability seems to be a notion that everyone intuitively grasps, but has diffi
 \begin{quote}
 \cite{WeinstockOnSystem2006} Scalability is an ability of a system to handle increased workload (without adding resources).
 \end{quote}\label{x}
-In light of this definition we would talk about a scalability failure if one of the following occurred:
+In light of this definition one would talk about a scalability failure if one of the following occurred:
 \begin{itemize}
   \item Address space was exceeded,
   \item Memory was overloaded,
@@ -341,7 +343,7 @@ There exist multiple scalability vectors for web applications. Different decompo
   \item[Scaling out.]
   Scaling out horizontally - increasing the number of units of resources comprising the system. Cost of hardware can be reduced dramatically this way. In a web application, one can deploy multiple instances of servers. Different types of balancing can be applied to distribute traffic among them: application layer balancing, business load balancing, and anticipating load. The overhead of parsing requests in the application layer is high thus limiting scalability compared to load balancing in the transport layer. Client state needs to be stored in a layer shared between the web servers.\cite{Qvef}  Scale-out is usually adopted in a cloud \cite{WeiTek}.
   \item[Content Delivery Networks.]
-  These only handle static assets. Communication in our system \ref{The System Under Test} happens mainly over WebSockets, which are not supported by CDNs. CDNs can be divided into Big Data Center CDNs and Highly Distributed CDNs, which put application data within end-user ISPs.\cite{Akamai}
+  These only handle static assets. Communication in the system \ref{The System Under Test} happens mainly over WebSockets, which are not supported by CDNs. CDNs can be divided into Big Data Center CDNs and Highly Distributed CDNs, which put application data within end-user ISPs.\cite{Akamai}
   \item[Peer to peer networks.]
   An architecture different from client - server, where users communicate with each other directly. It handles adding and removing nodes to and from the network dynamically very well.
 \end{description}
@@ -455,7 +457,7 @@ A number of TCP ports available (and file descriptors available to a server proc
 
 On a more positive note, Cassetti and Luz \cite{WebsApi} claim that overhead introduced by the WebSocket protocol and WebSocket API is rather small as compared to other communication methods. Furthermore, data intensive applications can achieve superior bandwidth and performance when using WebSockets.
 
-My own research has proven preparing WebSocket-based communication scalability to be difficult and tedious. Most of the cloud scalability stack that is available and that I have been working with was designed and built to support HTTP-based -- and not WebSocket-based -- communication. On top of that, one needs to tweak the host operating system kernel in multiple ways to increase the number of concurrent WebSocket connections the system can maintain. Details of the tuning process are described later \ref{Kernel tuning}.
+Most of the cloud scalability stack that is available and that I have been working with was designed and built to support HTTP-based -- and not WebSocket-based -- communication. On top of that, one needs to tweak the host operating system kernel in multiple ways to increase the number of concurrent WebSocket connections the system can maintain. Details of the tuning process are described later \ref{Kernel tuning}.
 
 The WebSocket Protocol is described in details in a dedicated section \ref{WebSocket Protocol}.
 
@@ -618,9 +620,9 @@ In case of the system benchmarked in this research \ref{The System Under Test}, 
 
 Authors of "Benchmarking cloud serving systems with YCSB" \cite{Ycsb} point out that it is important to have random distributions for benchmarking loads - \textit{uniform}, \textit{zipfian}, \textit{latest}, \textit{multinomial}, etc.
 
-From my own experience, I have drawn that against a complex system like our utilizing a wide stack of technologies, benchmarking tool should do a few "dry runs" in order to give caches a chance to fill up, internal tables to get populated or cloud components to be warmed up (e.g. Elastic Load Balancers in case of our stack \ref{Cloud architecture setup}).
+From my own experience, I have drawn that against a complex system \ref{The System Under Test} utilizing a wide stack of technologies, benchmarking tool should do a few "dry runs" in order to give caches a chance to fill up, internal tables to get populated or cloud components to be warmed up (e.g. Elastic Load Balancers in case of the selected stack \ref{Cloud architecture setup}).
 
-One also has to be aware of what the potential congestions are. For instance, without properly tuning the operating system's TCP stack, one has to wait a few minutes between load testing runs to let all the TCP sockets return to a usable state (that is exit the TIME\_WAIT state, unless the operating system is tuned to reuse such sockets). Details of the process of tuning are describe in detail later \ref{Kernel tuning}. In the process of testing, I have also realized our API Server takes a substantial amount of time to handle disconnects by huge number of clients (test suite disconnects all of them at the same time). That means there needs to be a non-zero pause between load test suite reruns.
+One also has to be aware of what the potential congestions are. For instance, without properly tuning the operating system's TCP stack, one has to wait a few minutes between load testing runs to let all the TCP sockets return to a usable state (that is exit the TIME\_WAIT state, unless the operating system is tuned to reuse such sockets). Details of the process of tuning are describe in detail later \ref{Kernel tuning}. In the process of testing, I have also realized that the API Server takes a substantial amount of time to handle disconnects by huge number of clients (test suite disconnects all of them at the same time). That means there needs to be a non-zero pause between load test suite reruns.
 
 \section{Benchmarking Crimes}
 
@@ -636,9 +638,7 @@ Gernot Heiser prepared a list \cite{GerHeiBench} of \textit{benchmarking crimes}
     \end{enumerate}
     For a benchmark to be reliable, both criteria need to be demonstrated. I trust the models that have been selected to reason about system properties \ref{Selected Meters and Metrics} are living up that task.
 
-    As an economist Mielton Friedman used to put it, \textit{there's no such thing as free lunch}\footnote{\url{http://www.amazon.com/Theres-Such-Thing-Free-Lunch/dp/087548297X}}.
-
-    In this context, we can interpret it in the following way. Techniques improving performance in some capacity usually entail an additional cost (extra bookkeeping, caching). As Heiser writes \cite{GerHeiBench}: "This is really at the heart of systems: it's all about picking the right trade-offs". In our case the potential improved performance comes at a cost of increased data transfers between data centers (and therefore costs) and simply increased complexity of certain system layers.
+    As an economist Mielton Friedman used to put it, \textit{there's no such thing as free lunch}\footnote{\url{http://www.amazon.com/Theres-Such-Thing-Free-Lunch/dp/087548297X}}. In this context, we can interpret it in the following way. Techniques improving performance in some capacity usually entail an additional cost (extra bookkeeping, caching). As Heiser writes \cite{GerHeiBench}: "This is really at the heart of systems: it's all about picking the right trade-offs". In my case the potential improved performance comes at a cost of increased data transfers between data centers (and therefore costs) and simply increased complexity of certain system layers.
   \item Subsetting a benchmark without strong justification. A warning sign that one might sin in this way:
     \begin{itemize}
       \item "we picked a representative subset", "typical results are shown" - reads as "we cherry picked the data to fit our expected results".
@@ -666,7 +666,7 @@ The aforementioned applies.
 Heiser suggests this reads as "I am covering that the results are really bad or irrelevant" \cite{GerHeiBench}. In the case of this research, some results need to stary relative since this is what the selected scalability measurement meters \ref{Selected Meters and Metrics} require. Absolutes might not make sense in this context.
 
 \subsubsection{Providing no proper baseline}
-Often the state-of-the-art solution can be used as a baseline. I believe the solution we picked as a baseline (the simplest architecture decomposition) is a good one. The research leading up to the test did not yield any data to prove that statement wrong.
+Often the state-of-the-art solution can be used as a baseline. I believe the solution I picked as a baseline (the simplest architecture decomposition) is a good one. The research leading up to the test did not yield any data to prove that statement wrong.
 
 \subsubsection{Using arithmetic mean for averaging across benchmark scores}
 Wallace and Fleming \cite{Fleming} point out that this is an incorrect way to approaching averaging.
@@ -739,7 +739,7 @@ The platform is written mostly in Python \texttt{2.7.6}. Data storages used by t
 
 \section{Web Server}
 
-We use nginx\footnote{\url{http://nginx.org/}} as a web server solution, which handles encrypted communication and forwards the traffic to the backend servers. If there are multiple backend servers deployed on a single machine, nginx handles the load balancing between them (using a simple round-robin routing policy).
+The system uses nginx\footnote{\url{http://nginx.org/}} as a web server solution, which handles encrypted communication and forwards the traffic to the backend servers. If there are multiple backend servers deployed on a single machine, nginx handles the load balancing between them (using a simple round-robin routing policy).
 
 % \subsection{Database Technologies}
 
@@ -780,16 +780,16 @@ There are multiple unique aspects of the system that make this research interest
 
 \section{Goal of the experiment}
 
-The goal of the project is to design a scalability framework for a real-time persistent WebSocket distributed application (the system). The core researched topic is whether a systems awareness of clients geographical distribution can improve the system performance according to selected metrics, in comparison with traditional approach \ref{Baseline Architecture}.
+The goal of the project is to verify if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture \ref{Baseline Architecture} in serving geographically dispersed clients. Another goal of the project is to design a scalability framework for a real-time persistent WebSocket distributed application with all its components (orchestration, metric collection and architectures deployment).
 
-The goal of the project is to see if the proposed architecture decompositions \ref{Proposed Architecture I}, \ref{Proposed Architecture II} can perform better (quantitatively, according to the selected meters) than the baseline architecture in serving geographically dispersed clients. Approaches used to scale simple HTTP applications cannot always be translated to WebSocket applications since the communication protocols differ. WebSockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with HTTP). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
+Approaches used to scale simple HTTP applications cannot always be translated to WebSocket applications since the communication protocols differ. WebSockets put a different kind of strain on the server machines since these need to keep the connection opened on a port for a prolonged period of time rather than simply open, server and close (as is the case with HTTP). Along the way, an answer needs to be found what level of decoupling provides best performance on each layer of a stateless persistent system. One of the properties of a system of that kind is that key value stores come under heavy load since this is where the state resides. A good solution for distributing (sharding / replicating) these also needs to be found. Same goes for persistent storage.
 
 \section{Problem To Be Solved}
-The host company is facing the problem of scaling up their system. It has been designed in a way that should support scalability - all processes are decoupled and communicate over TCP sockets, using the ZMQ library\footnote{\url{http://zeromq.org/}}. Most internal messaging happens using pub-sub architecture. Thanks to that, new nodes can be added to the system in order to increase its capacity.
+The host company is facing the problem of scaling their system up/out. It has been designed in a way that should facilitate scalability - all processes are decoupled and communicate over TCP sockets, using the ZMQ library\footnote{\url{http://zeromq.org/}}. Most internal messaging happens using pub-sub architecture. Thanks to that, new nodes can be added to the system in order to increase its capacity.
 
 Even though the system has been designed for scalability, it has not been battle-tested. The scalability process is performed in this research; multiple system limitations and have been identified \ref{Discovered System Limitations} and solutions proposed and implemented.
 
-Our (the host company) preliminary research has not yielded definitive answers as two which level of geographic architecture decomposition will result in best system performance. The key metrics influencing these performance are user-experienced WebSocket handshaking, message handling latencies, utilization of the allocated cloud resources and utilization cost.
+Preliminary research has been performed and has not yielded definitive answers as two which level of geographic architecture decomposition will result in best system performance. The key metrics influencing these performance are user-experienced WebSocket handshaking, message handling latencies, utilization of the allocated cloud resources and utilization cost.
 
 Furthermore, the organization does not possess any tools to measure application performance. This research provides the organization with a set of tools to measure any component of the system (in terms of resource usage and processing time), store the metrics and visualize them in real-time in a comprehensible way.
 
@@ -805,12 +805,14 @@ On top that, my research delivers the design and implementation of the load test
   \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
 \end{enumerate}
 
-The answer to these questions is sought for among the 3 tested architecture, described in detail below \ref{Compared Architectures}. In short - I propose 3 architectures of increasing level of geographical distribution (= decreasing level of centralization) and then use the load test and measurements suite to assess which performs best.
+The answer to these questions is sought for among the 3 tested architecture, described in detail below \ref{Compared Architectures}. In short - I propose 3 architectures of increasing level of geographical distribution (that is of decreasing level of centralization) and then use the load test and measurements suite to assess which performs best.
 
 Answers to these questions are evaluated using the models and a set of metrics described in detail in a dedicated chapter \ref{Scalability Measurements}, section \ref{Selected Meters and Metrics}.
 
 \section{Research Method}
-The research method I selected is \textit{Controlled experiment} \ref{Research Method}. The \textit{controlled} part is somewhat tricky in the cloud environment. The intrinsic property of cloud computing is that the researcher has to give up control over hardware to the cloud provider, thus fully controlling it cannot be in scope of a project such as mine. Nevertheless, I did my best to keep constant all variables I have influence over and measure and control all the rest.
+The research method I selected is \textit{Controlled experiment} \ref{Research Method}. It is well-suited for testing a hypothesis where manipulating independent variables has an effect of dependent ones, which is exactly the case of my research. The manipulated variable is architecture decomposition, and the measured ones are determined by scalability measurement models described in Scalability Measurements \ref{Scalability Measurements} chapter.
+
+The \textit{controlled} part is somewhat tricky in the cloud environment. It is the environment in which the system normally runs, which makes it a natural selection for the research (and not local or proprietary server environments). The intrinsic property of cloud computing is that the researcher has to give up control over hardware to the cloud provider, thus fully controlling it cannot be in scope of a project such as mine.
 
 Variables constant across benchmark runs against different architectures include:
 \begin{itemize}
@@ -828,6 +830,8 @@ Variables over which I have no full control:
   \item spikes in resource allocation on shared cloud instances (e.g. Allocated CPU cycles) (this happens mostly for micro instances \footnote{\url{http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts\_micro\_instances.html}}, I use bigger instances),
   \item general global network conditions (benchmarks are run at the same time of a day, at times [to my best knowledge] with no major global events which could disrupt network conditions).
 \end{itemize}
+
+The exact number of users and the number of users connecting per second was interpolated from a business requirement of the organization regarding the pre-game users connection phase - 1,000,000 users, 5,000 connecting every second. That means users are connecting over 200 seconds. The same period was used for the users connection phase in the benchmark run and because of the resource limitation (number of instances that could be run for the clients in each region - 15), the total number of users amounted to $15*8*200=24000$.
 
 \section{Experiment Outline}
 
@@ -858,7 +862,7 @@ Once all the client and server instances are brought up and reachable (verifiabl
 
 \subsection{Load Testing}\label{Load Testing}
 
-Simulated clients come from instances located in all available Auto-Scaling AWS regions \footnote{\url{http://docs.aws.amazon.com/general/latest/gr/rande.html}}, except for eu-central-1 (Frankfurt, \ref{Exluding Frankfurt Region}).
+Simulated clients come from instances located in all available Auto-Scaling AWS regions\footnote{\url{http://docs.aws.amazon.com/general/latest/gr/rande.html}}, except for eu-central-1 (Frankfurt, \ref{Exluding Frankfurt Region}).
 
 The load testing process is enumerated below:
 \begin{enumerate}
@@ -963,7 +967,7 @@ The second proposed architecture adds the distribution of the data layer. Read r
 \begin{figure}[H]
 \centering
 \includegraphics[scale=0.3]{archprop2}
-\caption{Proposed architecture I diagram.}
+\caption{Proposed architecture II diagram.}
 \label{figure:archprop2}
 \end{figure}
 
@@ -1163,11 +1167,11 @@ One can therefore see a general theme to measuring scalability, around which lit
 
 \section{AWS Available metrics} \label{AWS Available metrics}
 
-Since the System Under Test \ref{The System Under Test} is deployed to Amazon's Cloud \ref{Cloud architecture setup}, the metrics of the system need to be collected as a combination of metrics offered by Amazon's measurement service (CloudWatch\footnote{\url{https://aws.amazon.com/cloudwatch/}}) and our custom collection process (described later \ref{Custom Metric Collection}).
+Since the System Under Test \ref{The System Under Test} is deployed to Amazon's Cloud \ref{Cloud architecture setup}, the metrics of the system need to be collected as a combination of metrics offered by Amazon's measurement service (CloudWatch\footnote{\url{https://aws.amazon.com/cloudwatch/}}) and my custom collection process (described later \ref{Custom Metric Collection}).
 
 Metrics from CloudWatch are collectible by default every 5 minutes. They offer a paid \textit{detailed mode}, with which one can collect metrics every minute. From what I have experienced, even in the detailed mode, the requested metrics show up in the CloudWatch API results with a delay as high as 2 minutes.
 
-The CloudWatch API has its limitations - for instance, the allocation and utilization of memory for EC2 instances and processes is not available. This is something we are collecting in our custom metric collection process \ref{Custom Metric Collection}.
+The CloudWatch API has its limitations - for instance, the allocation and utilization of memory for EC2 instances and processes is not available. This is something I am collecting in my custom metric collection process \ref{Custom Metric Collection}.
 
 As Pattabhiraman et al. \cite{Models} warn, there exist additional costs which are not apparent from the start.
 If one exceeds 10 metrics, 10 alarms, 1,000,000 million requests, 1000 SNS email notifications, 5GB of incoming data logs or 5GB of data archiving per month then additional costs accrue.
@@ -1252,16 +1256,16 @@ I selected the following scalability meters and metrics for their inputs:
     \end{itemize}
   \item \texttt{System Performance Meter}, with inputs:
     \begin{itemize}
-      \item Handshaking latency, compiled over all client WebSockets on all client instances, collected through our suite,
-      \item Request handling latency, compiled over all client WebSockets on all client instances, collected through our suite,
-      \item Broadcast latency, compiled over all client WebSockets on all client instances, collected through our suite,
+      \item Handshaking latency, compiled over all client WebSockets on all client instances, collected through the proprietary suite,
+      \item Request handling latency, compiled over all client WebSockets on all client instances, collected through the proprietary suite,
+      \item Broadcast latency, compiled over all client WebSockets on all client instances, collected through the proprietary suite,
       \item Total network data in, compiled over all connections collected through cloudwatch,
       \item Total network data out, compiled over all connections collected through cloudwatch,
     \end{itemize}
   \item \texttt{System Load Meter}, with inputs:
     \begin{itemize}
-      \item Successful connections, compiled over all client WebSockets on all client instances, collected through our suite,
-      \item Handled requests count, compiled over all client WebSockets on all client instances, collected through our suite,
+      \item Successful connections, compiled over all client WebSockets on all client instances, collected through the proprietary suite,
+      \item Handled requests count, compiled over all client WebSockets on all client instances, collected through the proprietary suite,
       \item Redis database successful hits, collected manually (through \textit{info} command),
       \item MySQL query count, collected manually \ref{lstlisting:qcount},
     \end{itemize}
@@ -1319,7 +1323,7 @@ I expect to see differences in various metrics. Using all the other selected met
 \epigraph{"At scale, everything breaks."}{--- Urs Holzle, Google Fellow}
 
 \section{Baseline Architecture Preparations}\label{Baseline Architecture Preparations}
-In order to obtain meaningful benchmark results, I had to perform multiple optimizations of the application code. This part of the project proved to be extremely timely (a lot of debugging time was not budgeted for in the project timeline).
+In order to obtain meaningful benchmark results, multiple optimizations of the application code had to be performed. This part of the project proved to be extremely timely (a lot of debugging time was not budgeted for in the project timeline).
 
 I also managed to identify main resource bottlenecks. Both in cases of the client simulating process and the server, it is the CPU.
 
@@ -1354,7 +1358,7 @@ The message publishing included in the benchmarking scenario happens when users 
 
 I have discovered two huge system limitations when it comes to message publishing.
 
-In the beginning, the distribution update was broadcast after \textit{every prediction}. For a load of 24000 users, predicting (simplifying) on average every 30 seconds, 800 updates \textit{per second}. This is not sustainable - neither the publishing threads that had to push the message out through a list of sockets, nor the client processes could keep up with such messaging pace (or a pace nowhere near that, since publishing to a few thousand users takes hundreds of milliseconds). More importantly, humans are only capable of registering and reacting to changes as often as once every few hundred milliseconds (tested empirically \footnote{\url{http://www.humanbenchmark.com/tests/reactiontime}}). As the platform is supposed to serve as a second-screen fun, the users should not be disturbed even at that pace. Thus, we decided to batch the prediction updates and send them once every 3 seconds (per pool). This improved the performance tremendously.
+In the beginning, the distribution update was broadcast after \textit{every prediction}. For a load of 24000 users, predicting (simplifying) on average every 30 seconds, 800 updates \textit{per second}. This is not sustainable - neither the publishing threads that had to push the message out through a list of sockets, nor the client processes could keep up with such messaging pace (or a pace nowhere near that, since publishing to a few thousand users takes hundreds of milliseconds). More importantly, humans are only capable of registering and reacting to changes as often as once every few hundred milliseconds (tested empirically \footnote{\url{http://www.humanbenchmark.com/tests/reactiontime}}). As the platform is supposed to serve as a second-screen fun, the users should not be disturbed even at that pace. Thus, I decided to batch the prediction updates and send them once every 3 seconds (per pool). This improved the performance tremendously.
 
 At first, updating the last broadcast timestamp in redis (\textit{line 6} from the listing \ref{lstlisting:batching}) was located below line 14. When running multiple WebSocket server instances, this caused a race condition (retrieving data concerning hundreds of predictions from redis and formatting them takes up to tens of milliseconds), so up to 3 broadcast messages would be sent within this time window. This problem got solved by moving the line up the if clause. The check is still not atomic, but get and set are now separated only with one integer comparison (within the if clause, \textit{line 5}, listing \ref{lstlisting:batching}) so the race condition is not expected to happen at any reasonable scale. Nevertheless, this will be made atomic eventually.
 
@@ -1462,8 +1466,8 @@ In order to have real-time insight into the system and the state of the host ope
 
 The setup I used is the following:
 \begin{description}
-  \item[Graphite] a scalable, real time graphing tool. I used it to display both our system internal metrics and operating system parameters\footnote{\url{http://graphite.wikidot.com/}}.
-  \item[Statsd] a tool aggregating metrics and preparing appropriate output formats for tools like graphite. I used it to display both our system internal metrics and operating system parameters\footnote{\url{https://github.com/etsy/statsd}}.
+  \item[Graphite] a scalable, real time graphing tool. I used it to display both system internal metrics and operating system parameters\footnote{\url{http://graphite.wikidot.com/}}.
+  \item[Statsd] a tool aggregating metrics and preparing appropriate output formats for tools like graphite. I used it to display both system internal metrics and operating system parameters\footnote{\url{https://github.com/etsy/statsd}}.
   \item[Custom Scripts] to collect operating system data. This is slightly different in case of the deployed cloud architecture and is described below \ref{Cloud baseline preparations}.
 \end{description}
 
@@ -1480,7 +1484,7 @@ Measured operating system parameters were selected so that they indicate bottlen
   \item [netstat -s] network summary, collectibles: counts of SYN cookies sent and received (also invalid), connections aborted due to memory pressure, SYNs to listen sockets dropped, socket queue overflows, failed connection attempts, passive connection openings, segments retransmitted, requests sent out and TCP timeouts.
 \end{description}
 
-The monitoring helped multiple times in identifying the bottlenecks. Increases in socket queue overflow counts and SYNs to listen sockets dropped (overflows and drops are rarely a good thing) helped us identify why the sockets were failing to open and which TCP parameters we needed to tune.
+The monitoring helped multiple times in identifying the bottlenecks. Increases in socket queue overflow counts and SYNs to listen sockets dropped (overflows and drops are rarely a good thing) helped us identify why the sockets were failing to open and which TCP parameters that needed to be tuned.
 
 \begin{figure}[H]
 \centering
@@ -1540,9 +1544,9 @@ listen 443 backlog=16384 deferred;
 \end{sourcecode}
 
 \section{MySQL Optimizations}
-Most of MySQL optimizations are still ahead, since I haven't really stretched it to its limits yet. We have encountered and solved a massive bottleneck at one point. MySQL would periodically, regularly stall for a very long time.
+Most of MySQL optimizations are still ahead. Nevertheless, a big bottleneck has been identified and resolved. 
 
-I managed to pinpoint the issue down to the frequency with which the log was flushed to disk. With the default value of the \textit{innodb\_flush\_log\_at\_trx\_commit} parameter (1), this happens on every transaction commit. Since changing the parameter value to 2, the flushing only happens once per second and the performance has vastly improved.
+MySQL would periodically, regularly stall for a very long time. The issue was narrowed down to the frequency with which the log was flushed to disk. With the default value of the \textit{innodb\_flush\_log\_at\_trx\_commit} parameter (1), this happens on every transaction commit. Since changing the parameter value to 2, the flushing only happens once per second and the performance has vastly improved.
 
 The second parameter I modified is \textit{max\_connections} so that all the server processes with their multiple threads could connect without problems against (we hit the default limit rather early).
 
@@ -1558,7 +1562,7 @@ innodb_flush_log_at_trx_commit = 2
 There is definitely potential for further improvements in this scope.
 
 \section{Redis Optimizations}
-As with MySQL, I have hit one major redis roadblock regarding redis. At seemingly random points through trial benchmark runs, redis process would become unreachable by the WebSocket server instances.
+As with MySQL, one major redis roadblock has been identified and removed. At seemingly random points through trial benchmark runs, redis process would become unreachable by the WebSocket server instances.
 
 The error reported by the server processes (listing \ref{lstlisting:redis2}) and pointed to the redis server log, where the issue was narrowed down to forking \ref{lstlisting:redis}.
 
@@ -1632,7 +1636,7 @@ Multiple availability zones very important in a shared cloud environment, becaus
 \label{figure:awsregions}
 \end{figure}
 
-Most of the service stack is prepared and registered with Amazon within a single region. There is no easy way to copy the prepare setup between regions, other than (in some cases) manually or using AWS API. I prepared a full set of python scripts utilizing Amazon-provided library, boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}, to distribute our AMIs, launch configurations, autoscaling groups and other services setup across the regions. The listing \ref{lstlisting:copygroups} contains a simplified script for copying autoscale groups between regions.
+Most of the service stack is prepared and registered with Amazon within a single region. There is no easy way to copy the prepare setup between regions, other than (in some cases) manually or using AWS API. I prepared a full set of python scripts utilizing Amazon-provided library, boto\footnote{\url{http://aws.amazon.com/sdk-for-python/}}, to distribute the AMIs, launch configurations, autoscaling groups and other services setup across the regions. The listing \ref{lstlisting:copygroups} contains a simplified script for copying autoscale groups between regions.
 
 \begin{sourcecode}[H]
 \begin{lstlisting}[style=mono, language=Python]
@@ -2026,7 +2030,7 @@ Each server and redis read replica instance is running on an m3.2xlarge instance
 
 Redis write master is using an m2.xlarge - 1 core with 17.1 GB of RAM. MySQL master RDS node uses db.r3.2xlarge instance - 8 cores with 61GB of RAM. Each MySQL read replica node is using a db.m3.medium (1 CPU core, 3.75 GB RAM) instance.
 
-Amazon introduces another limitation - no more than 5 read replicas per master. That made our setup slightly asymmetrical - Irish WebSocket servers connect directly to master instances, and Sydney's MySQL reads from a replica located in Singapore, and California reads from replica located in Oregon as depicted on the figure \ref{figure:archprop2}. Chaining up to 3 replicas is allowed, but no more than 1 cross-region boundary can be included in the chain\footnote{\url{http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html\#USER\_ReadRepl.XRgn}}. That means that a chain Ireland -> Singapore -> Sydney is not allowed.
+Amazon introduces another limitation - no more than 5 read replicas per master. That made the setup slightly asymmetrical - Irish WebSocket servers connect directly to master instances, and Sydney's MySQL reads from a replica located in Singapore, and California reads from replica located in Oregon as depicted on the figure \ref{figure:archprop2}. Chaining up to 3 replicas is allowed, but no more than 1 cross-region boundary can be included in the chain\footnote{\url{http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ReadRepl.html\#USER\_ReadRepl.XRgn}}. That means that a chain Ireland -> Singapore -> Sydney is not allowed.
 
 \section{Cloud architecture setup} \label{Cloud architecture setup}
 The cloud architecture stack consists of the following:
@@ -2103,7 +2107,7 @@ In the research, custom redis master-slaves topology is used. Setting up a topol
 \section{System Scaling Delay}\label{System Scaling Delay}
 Measuring the speed of scaling up and down proved to be very difficult and was eventually excluded from this research. The following factors constitute the perceived system scaling delay:
 \begin{description}
-  \item [Cloudwatch] - even in a detailed mode (which offers metrics collectible every 1 minute instead of every 5 minutes), the delay of received metrics during our tests averaged out at ~2 minutes. That means that every scale in / out action that could be undertaken is delayed at least by that time.
+  \item [Cloudwatch] - even in a detailed mode (which offers metrics collectible every 1 minute instead of every 5 minutes), the delay of received metrics during tests averaged out at ~2 minutes. That means that every scale in / out action that could be undertaken is delayed at least by that time.
   \item [DNS protocol issues] - a huge number of DNS servers do not obey TTLs (time-to-live) on DNS records. Therefore, there is no guarantee that even a record with a TTL set to 60 seconds becomes updated every minute for all, globally distributed, clients. I tested this empirically and my research lead me to conclusion that this is a known issue in the community\footnote{\url{http://engineering.chartbeat.com/2014/01/02/part-1-lessons-learned-tuning-TCP-and-nginx-in-ec2/}}. There is simply no way to estimate when clients of the system are going to "see" the updates in a system topology.
 \end{description}
 
@@ -2531,13 +2535,13 @@ Contrary to original expectations, the model does not provide useful insight to 
 
 It also shows that models are rather sensitive to input values. For instance, the increased internal transfer in Proposed architecture II strongly influences all the derivative models based on System Performance Meter.
 
-The model could more useful when different loads are applied on the same architecture.
+The model is probably more useful when different loads are applied on the same architecture.
 
 \section{General Interpretation}
 
 According to all primary metrics Baseline architecture performs best, followed by the 2nd proposed architecture and the 1st proposed architecture performing worst.
 
-The cause of such state of affairs is the combination of WebSocket server technology and database drivers that are used in the tested system \ref{The System Under Test}. The System runs Tornado, which is single-threaded. Without fully asynchronous and non-blocking I/O operations, system scalability is severely limited. Our database drivers have proven not to be fully non-blocking, which seems like a foreseeable problem, yet it was not discovered until the benchmark runs. The issue only manifests itself when data source is not located in server's proximity. This is when network latencies are added to each database query and, because of that, request handling times escalate.
+The cause of such state of affairs is the combination of WebSocket server technology and database drivers that are used in the tested system \ref{The System Under Test}. The System runs Tornado, which is single-threaded. Without fully asynchronous and non-blocking I/O operations, system scalability is severely limited. The used database drivers have proven not to be fully non-blocking, which seems like a foreseeable problem, yet it was not discovered until the benchmark runs. The issue only manifests itself when data source is not located in server's proximity. This is when network latencies are added to each database query and, because of that, request handling times escalate.
 
 A sample use case demonstrates the behavior: 1000 users connecting from Sydney to Ireland at the same time. Let us assume latency of the Sydney-Ireland round-trip to be 1000ms, and the database query handling time to be 1ms.
 
@@ -2558,7 +2562,7 @@ When the server is moved to Sydney, but the data source stays in Ireland, the fl
 \caption{Proposed architectures case.}
 \label{figure:case2}
 \end{figure}
-An attempt was made to replace the database drivers, yet this is no trivial task. One cannot simply code asynchronicity around the intrinsically synchronous calls. Thu, the drivers were fully replaced with asynchronous ones, and another issue cropped up when this was performed.
+An attempt was made to replace the database drivers, yet this is no trivial task. One cannot simply code asynchronicity around the intrinsically synchronous calls. Thus, the drivers were fully replaced with asynchronous ones, and another issue cropped up when this was performed.
 
 The server was now capable of serving users in an asynchronous manner, provided that there was no more than one asynchronous operation in each execution flow. Unfortunately, this is not always the case with the tested system. Listing \ref{lstlisting:async} explains the 3 cases: fully-synchronous, asynchronous working and asynchronous not working entirely as intended.
 
@@ -2745,8 +2749,8 @@ As the research progressed, I have to multiple conclusions that might not be dir
   \item[Building a scalable system] - this is fairly common knowledge, but in order to be scalable the system needs to be designed in a way that facilitates that from the start. State should be concentrated in a layer that has good scalability mechanisms and all other system nodes should hold as little (or none at all) state as possible. This guarantees they can be dynamically added to and removed from the system. One cannot simply add a scalability module which will drastically improve the performance of the system at scale. It is a process of digging deeper and obtaining a better understanding of the system architecture and technologies used and applying that knowledge to a scalable design. It is important to set scalability goals that the system should satisfy, otherwise the process can go on forever.
   \item[Hardware does not have to be the limit] - in the case of the tested system, resource utilization (as the metrics show) is fairly low. The operating system has been tuned to facilitate system's needs; if this is done properly, suboptimal utilization of some kind of resource or a suboptimal programming/architecture solution is most likely the limit to scalability. I am willing to jump to a conclusion that this holds true for most software systems.
   \item[Deploying in the cloud] has proved to be much more challenging than expected. The distributed setup is significantly different from a simple, centralized one. One should be prepared to familiarize themselves thoroughly with the details of the cloud solution used in a process of preparing the system for deployment in the cloud.
-  \item[Focus on achieving the predefined goals] - it is to get lost in trying to optimize irrelevant aspects of the architecture (guilty as charged). I have spent days making sure that the kernel is tuned so that thousand of users can connect simultaneously to find out later that our system can only sustain values order of magnitude smaller.
-  \item[AWS Cloud stack is not built for global setups] - at least for global setups that our system requires. A lot of functionality (elasticache, elastic load balancing, auto scaling) is limited to one region. If the same setup needs to be replicated in different regions, the whole process needs to be performed manually (or using AWS API, but still this proved to be time-consuming).
+  \item[Focus on achieving the predefined goals] - it is to get lost in trying to optimize irrelevant aspects of the architecture (guilty as charged). I have spent days making sure that the kernel is tuned so that thousand of users can connect simultaneously to find out later that the system can only sustain values order of magnitude smaller.
+  \item[AWS Cloud stack is not built for global setups] - at least for global setups that the system requires. A lot of functionality (elasticache, elastic load balancing, auto scaling) is limited to one region. If the same setup needs to be replicated in different regions, the whole process needs to be performed manually (or using AWS API, but still this proved to be time-consuming).
   \item[Publishing user-generated content globally] - this needs to be performed with some degree of sensibility. If users generate content hundred times a second, it is not feasible (nor reasonable) to broadcast all updates to all users. They probably do not need to see all of them in real time. Some form of batching can be really helpful and can reduce amount of data sent by orders of magnitude.
   \item[Read replication] - provides only some improved scalability. If the application is write-intensive (as is the tested system), this is not the best solution.
   \item[Data Locality] - is extremely important. There is no way to beat the speed of light (and in most cases internet middle-man introduced overhead); one needs to make sure that the data retrieval mechanisms in the \texttt{stateless} servers are fully asynchronous and non-blocking or that a sufficient number of threads can be supported. Otherwise, at a big enough scale, a catastrophy will ensue.
@@ -2801,7 +2805,7 @@ The scalability of the System Under Test \ref{The System Under Test} is not yet 
 
 The benchmark is planned to be reused with varying user distributions per region. This is a natural consecutive step having established system's behavior in basic cases.
 
-A plan exists to test different database technologies - DynamoDB of AWS offering and custom setup of redis and MySQL clusters. A baseline against which to compare this data solutions within our system already exists.
+A plan exists to test different database technologies - DynamoDB of AWS offering and custom setup of redis and MySQL clusters. A baseline against which to compare this data solutions within the system \ref{The System Under Test} already exists.
 
 Finally, improvements to the used scalability models could be introduced so that the meter inputs can be weighted in order to reflect researcher's preferences. This could guarantee that they are not that sensitive to single values that influence the meter and its derivatives.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

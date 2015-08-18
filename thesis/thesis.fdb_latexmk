@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex thesis"] 1439899450 "thesis.aux" "thesis.bbl" "thesis" 1439899459
+["bibtex thesis"] 1439905481 "thesis.aux" "thesis.bbl" "thesis" 1439905848
   "/usr/local/texlive/2014/texmf-dist/bibtex/bst/urlbst/alphaurl.bst" 1311291550 33980 c8409be7db470882c31229bb09deb6ac ""
-  "thesis.aux" 1439899458 37923 58763ec8fa884290f7319669e90a396f ""
+  "thesis.aux" 1439905847 37925 608d6a008d6219b337054cfeeea336b9 ""
   "thesis.bcf" 0 -1 0 ""
   "thesis.bib" 1439045674 10909 dc272410fdb5c59c3b904449cc75c928 ""
   (generated)
   "thesis.blg"
   "thesis.bbl"
-["pdflatex"] 1439899450 "thesis.tex" "thesis.pdf" "thesis" 1439899459
+["pdflatex"] 1439905839 "thesis.tex" "thesis.pdf" "thesis" 1439905848
   "/usr/local/texlive/2014/texmf-dist/tex/context/base/supp-pdf.mkii" 1337017135 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/local/texlive/2014/texmf-dist/tex/generic/ifxetex/ifxetex.sty" 1284331290 1458 43ab4710dc82f3edeabecd0d099626b2 ""
   "/usr/local/texlive/2014/texmf-dist/tex/generic/oberdiek/gettitlestring.sty" 1303254447 8237 52810bdb4db2270e717422560a104aea ""
@@ -102,14 +102,14 @@
   "figures/structure.png" 1439059349 38162 da6a06254332b6e8aa4fc7a11c4425d2 ""
   "figures/ws.png" 1436471520 34620 d30ded3179bb8ebd7be1ba8ea6b71d3a ""
   "program-listings.tex" 1439206771 2551 260c3d482d7a875d2bc00861a198a01a ""
-  "thesis.aux" 1439899458 37923 58763ec8fa884290f7319669e90a396f ""
-  "thesis.bbl" 1439899450 8326 7650fceb3cd0f073649f913846b6cd64 "bibtex thesis"
-  "thesis.tex" 1439899441 219138 b93ffbac6bd289392061232dbdc455a6 ""
-  "thesis.toc" 1439899458 13054 46552f427fc9c8bfac4291bf6287de81 ""
+  "thesis.aux" 1439905847 37925 608d6a008d6219b337054cfeeea336b9 ""
+  "thesis.bbl" 1439905482 8326 7650fceb3cd0f073649f913846b6cd64 "bibtex thesis"
+  "thesis.tex" 1439905838 220173 722ec46cf8c1072304c32cc0c25adee2 ""
+  "thesis.toc" 1439905847 13054 f6d2523af2a8d8cdc8802a1d47b3e9f7 ""
   "uva.pdf" 1431173289 1677 ca941aecd8bffdac245d574f2ea5950f ""
   "uvamscse.cls" 1431188922 4748 7f6a90c12bf04dde4ebf6934779cba01 ""
   (generated)
-  "thesis.log"
-  "thesis.toc"
   "thesis.aux"
   "thesis.pdf"
+  "thesis.toc"
+  "thesis.log"
