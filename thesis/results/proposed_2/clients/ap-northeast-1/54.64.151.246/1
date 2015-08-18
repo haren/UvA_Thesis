@@ -1,0 +1,27 @@
+[32mLaunch bench with 200 total connection, 1 concurent connection[39m
+[32m0 message(s) send by client[39m
+[32m1 worker(s)[39m
+[32mWS server : classic[39m
+Printing summary in 5s.
+
+                     
+Online               5725922 milliseconds
+Time taken           5725922 milliseconds
+Connected            131
+Disconnected         0
+Failed               0
+Collected from:      131
+
+Durations (ms):
+
+                     min      mean       stddev   median      max sampleCount
+Handshaking          3317     1018492   1131990   484165  4123422      131
+Latency              42065    847262     582919   791415  2392338      692
+Broadcast Latency    37       176           149      164     4976   118144
+
+Percentile (ms):
+
+                      50%      66%      75%      80%      90%      95%      98%      98%     100%    
+Handshaking          484165   1056136  1694332  1940460  3050134  3448572  3839341  3840751  4123422 
+Latency              791415   1139185  1305008  1428106  1615407  1858445  2088526  2252346  2392338 
+Broadcast Latency    164      173      180      184      197      222      255      271      4976    

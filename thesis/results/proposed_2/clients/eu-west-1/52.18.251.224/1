@@ -1,0 +1,37 @@
+[32mLaunch bench with 200 total connection, 1 concurent connection[39m
+[32m0 message(s) send by client[39m
+[32m1 worker(s)[39m
+[32mWS server : classic[39m
+Printing summary in 5s.
+
+                     
+Online               5727403 milliseconds
+Time taken           5727403 milliseconds
+Connected            161
+Disconnected         0
+Failed               6
+Collected from:      161
+
+Durations (ms):
+
+                     min     mean     stddev  median     max sampleCount
+Handshaking          11      341         631      26    2426     161
+Latency              10      3949       1085    3918   10365   47264
+Broadcast Latency    20      103          40      97     366  302798
+
+Percentile (ms):
+
+                      50%     66%     75%     80%     90%     95%     98%     98%    100%   
+Handshaking          26      63      145     445     1547    1889    2144    2389    2426   
+Latency              3918    4229    4456    4628    5170    5735    6479    6937    10365  
+Broadcast Latency    97      116     128     135     152     169     204     232     366    
+
+Received errors:
+
+5x                   unexpected server response (504)
+1x                   unexpected server response (502)
+Exception: [Error: channel closed]
+Exception: [Error: channel closed]
+Exception: [Error: channel closed]
+Exception: [Error: channel closed]
+Exception: [Error: channel closed]
