@@ -21,9 +21,7 @@
 \usepackage{graphicx}
 \graphicspath{ {figures/} }
 
-% \usepackage{polski}
 \usepackage[utf8]{inputenc}
-% \usepackage[applemac]{inputenc} % for Macs
 \DeclareUnicodeCharacter{00A0}{ }
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -271,8 +269,9 @@ In this section I outline the structure of the thesis - all chapters with short 
   \item \texttt{Experiment Outline and Design} - contains a description of the conducted experiment, its goals and deliverables \ref{Experiment Outline and Design}.
   \item \texttt{Scalability Measurements} - contains a description of literature-based scalability metrics and models. Lists the models and metrics selected for measurements in this research, as well as all metrics collectible from the AWS cloud environment \ref{Scalability Measurements}.
   \item \texttt{Experiment Implementation} - contains a full description of the compared architectures and cloud stack on which the research is performed, including the technological details \ref{Experiment Implementation}.
-  \item \texttt{Experiment results} - contains the data collected in the experiments \ref{Experiment results}.
-  \item \texttt{Conclusions and Evaluation} - contains a list of conclusions derived from the analysis of the experiment results and the evaluation of the experiment \ref{Conclusions and Evaluation}.
+  \item \texttt{Experiment Results} - contains the data collected in the experiments \ref{Experiment Results}.
+  \item \texttt{Analysis and Evaluation} - contains the evaluation of the experiment and a list of takeaways derived from the analysis of the experiment results \ref{Analysis and Evaluation}.
+  \item \texttt{Conclusions} - contains the conclusion of the research \ref{Conclusions}.
   \item \texttt{Further Work} - contains a description of relevant, testable variables I did not have enough time to cover in this research. \ref{Further Work}
 \end{enumerate}
 
@@ -2109,7 +2108,7 @@ Measuring the speed of scaling up and down proved to be very difficult and was e
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Experiment results}\label{Experiment results}
+\chapter{Experiment Results}\label{Experiment Results}
 
 \epigraph{"You can't always get what you want, but if you try sometimes you just might find
 you get what you need."}{--- The Rolling Stones}
@@ -2707,24 +2706,22 @@ Snippet \ref{lstlisting:redistest} shows the code used to test redis. Table \ref
 \end{table}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Conclusions and Evaluation}\label{Conclusions and Evaluation}
+\chapter{Analysis and Evaluation}\label{Analysis and Evaluation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \epigraph{"Nine women can't make a baby in one month."}{--- Fred Brooks, The Mythical Man-Month}
 
-\section{Short Summary}
-In this research, a load test suite generating an arbitrary load over an arbitrary period of time according to the customizable messaging scenarios and user distributions has been designed and implemented. Metric collection for the client test suite and all system components has also been put in place. Multiple bottlenecks of the system have been identified and optimizations proposed and applied. Different architecture decompositions of the system \ref{The System Under Test} were proposed and tested with a benchmark utilizing the load test suite. Metrics have been collected, aggregated and a comparative, quantitative analysis of architectures has been performed.
-
-\section{Research Questions and Hypothesis}
-\subsection{Research Questions}
-\textit{The research questions put forward in the introduction are the following:
-\begin{enumerate}
-  \item What's the architecture decomposition stack that:
-    \begin{enumerate}
-      \item guarantees data delivery to geographically distributed users with minimal, consistent and manageable latency?
-      \item guarantees lowest cost and best degree of utilization of the employed resources within a data center?
-    \end{enumerate}
-  \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
-\end{enumerate}}
+\section{Research Questions}
+The research questions put forward in the introduction are the following:
+\textit{
+  \begin{enumerate}
+    \item What's the architecture decomposition stack that:
+      \begin{enumerate}
+        \item guarantees data delivery to geographically distributed users with minimal, consistent and manageable latency?
+        \item guarantees lowest cost and best degree of utilization of the employed resources within a data center?
+      \end{enumerate}
+    \item Does architecture with geographical awareness of its users' distribution provide better Quality of Service than the baseline architecture?
+  \end{enumerate}
+}
 
 The research has yielded the following answers:
 \begin{enumerate}
@@ -2732,14 +2729,14 @@ The research has yielded the following answers:
   \item The distributed architectures \ref{Proposed Architecture I} and \ref{Proposed Architecture II} do not provide better Quality of Service than the baseline architecture \ref{Baseline Architecture}.
 \end{enumerate}
 
-\subsection{Hypothesis}
+\section{Hypothesis}
 \textit{The correct geographical decomposition of the stack of The System Under Test \ref{The System Under Test} can lead to improved performance in comparison with the Baseline Architecture \ref{Baseline Architecture}.}
 
 The hypothesis is refuted in the research, the Baseline Architecture \ref{Baseline Architecture} performed better than the proposed improvements \ref{Proposed Architecture I} and \ref{Proposed Architecture II}.
 
 What needs to be emphasized that the answers and rebuttal of the hypothesis result from the inherent system limitations identified in this research. They are based on the every tested state of the system, yet they might not hold true anymore if the existing known limitations are overcome.
 
-\section{Other conclusions}
+\section{Other takeaways}
 As the research progressed, I have to multiple conclusions that might not be directly related to the research question but I believe are worth bringing up nevertheless:
 \begin{description}
   \item[Building a scalable system] - this is fairly common knowledge, but in order to be scalable the system needs to be designed in a way that facilitates that from the start. State should be concentrated in a layer that has good scalability mechanisms and all other system nodes should hold as little (or none at all) state as possible. This guarantees they can be dynamically added to and removed from the system. One cannot simply add a scalability module which will drastically improve the performance of the system at scale. It is a process of digging deeper and obtaining a better understanding of the system architecture and technologies used and applying that knowledge to a scalable design. It is important to set scalability goals that the system should satisfy, otherwise the process can go on forever.
@@ -2775,6 +2772,19 @@ Even though primary question has only been answered in scope of current system l
   \item A real-time telemetry has been added to the system. The distributed servers report metrics that can be viewed in real time.
   \item A cloud orchestration suite has been implemented - whenever a system architecture changes, the tools to deploy the updated architecture are available.
 \end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Conclusions}\label{Conclusions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In this research, an optimal (according to selected metrics) architecture decomposition of the system under test \ref{The System Under Test} was sought for. In the process of searching for that architecture, a load test suite generating an arbitrary load over an arbitrary period of time according to the customizable messaging scenarios and user distributions has been designed and implemented. Furthermore, metric collection for the client test suite and all system components has also been put in place. Orchestration mechanisms have been prepared for commanding the test suite, deploying and dynamically changing all tested architecture versions.
+
+Different architecture decompositions of the system \ref{The System Under Test} were proposed and tested with a benchmark utilizing the load test suite. Metrics have been collected, aggregated and a comparative, quantitative analysis of architectures has been performed.
+
+Thanks to the process of preparing different architecture variants and deploying the system at scale, multiple bottlenecks of the system have been identified and optimizations proposed and applied.
+
+The result of the research is that the proposed architectures (\ref{Proposed Architecture I}) and \ref{Proposed Architecture II}) have performed significantly worse than the baseline architecture \ref{Baseline Architecture}. Therefore, the research hypothesis has been refuted with the emphasis on the fact that it is a direct consequence on certain system limitations; namely the incapability of used technologies to handle a remote/high-latency data store.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Further Work}\label{Further Work}
