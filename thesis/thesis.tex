@@ -2759,8 +2759,11 @@ As the research progressed, I have to multiple conclusions that might not be dir
 Following threats to validity have been identified:
 \begin{itemize}
   \item Cloud computing environments, such as EC2, are outside of the researcher's control. They can only be monitored and influenced to an extent. Since it is a shared environment, it is hard to predict how other systems that the deployed system is sharing resources with will behave (e.g they might end up under a DDOS attack).
+  \item Experiment setup has been limited to one cloud services provider - Amazon Web Services. With other cloud providers the architecture setup would have to be modified and different bottlenecks and limitations could crop up.
+  \item Selected metrics and meters are only a subset of what is collectible and what truly represents a system state. The meters used for comparisons are imperfect and rather sensitive to the input data (e.g. the order in which data are input changes meter's absolute value).
   \item Global network conditions are inherently non-deterministic, the benchmark might (and probably would) yield different results if performed e.g. during a Superbowl or World Cup final.
-  \item Because of the system \ref{The System Under Test} limitations, I am not able to make any claims about other, truly asynchronous systems.
+  \item Benchmark run has been performed once per tested architecture; mostly due to time and cost limitations. No huge discrepancies have been observed (when running on a smaller scale) between the results of different benchmark runs against the same architecture setup. Nonetheless, executing the benchmark multiple time against each of the architecture would enhance statistical significance of the results of the research.
+  \item Because of the system \ref{The System Under Test} limitations, few claims about other, truly asynchronous systems can be made and justified.
 \end{itemize}
 
 \section{Host Company Benefits}

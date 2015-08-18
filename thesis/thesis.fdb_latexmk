@@ -1,13 +1,13 @@
 # Fdb version 3
-["bibtex thesis"] 1439892259 "thesis.aux" "thesis.bbl" "thesis" 1439892268
+["bibtex thesis"] 1439892259 "thesis.aux" "thesis.bbl" "thesis" 1439895804
   "/usr/local/texlive/2014/texmf-dist/bibtex/bst/urlbst/alphaurl.bst" 1311291550 33980 c8409be7db470882c31229bb09deb6ac ""
-  "thesis.aux" 1439892267 37890 7698cbbdc7f755cf670ffd7e9f6fceb1 ""
+  "thesis.aux" 1439895803 37890 7698cbbdc7f755cf670ffd7e9f6fceb1 ""
   "thesis.bcf" 0 -1 0 ""
   "thesis.bib" 1439045674 10909 dc272410fdb5c59c3b904449cc75c928 ""
   (generated)
-  "thesis.blg"
   "thesis.bbl"
-["pdflatex"] 1439892260 "thesis.tex" "thesis.pdf" "thesis" 1439892268
+  "thesis.blg"
+["pdflatex"] 1439895796 "thesis.tex" "thesis.pdf" "thesis" 1439895804
   "/usr/local/texlive/2014/texmf-dist/tex/context/base/supp-pdf.mkii" 1337017135 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/local/texlive/2014/texmf-dist/tex/generic/ifxetex/ifxetex.sty" 1284331290 1458 43ab4710dc82f3edeabecd0d099626b2 ""
   "/usr/local/texlive/2014/texmf-dist/tex/generic/oberdiek/gettitlestring.sty" 1303254447 8237 52810bdb4db2270e717422560a104aea ""
@@ -102,14 +102,14 @@
   "figures/structure.png" 1439059349 38162 da6a06254332b6e8aa4fc7a11c4425d2 ""
   "figures/ws.png" 1436471520 34620 d30ded3179bb8ebd7be1ba8ea6b71d3a ""
   "program-listings.tex" 1439206771 2551 260c3d482d7a875d2bc00861a198a01a ""
-  "thesis.aux" 1439892267 37890 7698cbbdc7f755cf670ffd7e9f6fceb1 ""
+  "thesis.aux" 1439895803 37890 7698cbbdc7f755cf670ffd7e9f6fceb1 ""
   "thesis.bbl" 1439892260 8326 7650fceb3cd0f073649f913846b6cd64 "bibtex thesis"
-  "thesis.tex" 1439892250 217401 bf740b82c6b59fa312e824e7a5016500 ""
-  "thesis.toc" 1439892267 13054 46552f427fc9c8bfac4291bf6287de81 ""
+  "thesis.tex" 1439895795 218338 929c612b5aa795360e45b9c33e413e9a ""
+  "thesis.toc" 1439895803 13054 46552f427fc9c8bfac4291bf6287de81 ""
   "uva.pdf" 1431173289 1677 ca941aecd8bffdac245d574f2ea5950f ""
   "uvamscse.cls" 1431188922 4748 7f6a90c12bf04dde4ebf6934779cba01 ""
   (generated)
-  "thesis.pdf"
   "thesis.aux"
-  "thesis.log"
   "thesis.toc"
+  "thesis.pdf"
+  "thesis.log"
